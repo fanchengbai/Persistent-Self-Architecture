@@ -1,7 +1,7 @@
 # PSA 状态与 Checkpoint 格式规范
 
 > 版本：v0.2-dev
-> 状态：Impl-1 实测契约已固定；Impl-2 tensor checkpoint 已实现，等待云端 L3/100 次恢复门验证后冻结
+> 状态：Impl-1 state 契约与 Impl-2 开发容差已固定；云端 L3/100 次恢复门已通过，格式仍待 official reset 与兼容性门后冻结
 > 日期：2026-07-29  
 > 依赖：[`architecture.md`](architecture.md)、[`task_design.md`](task_design.md)、[`evaluation_protocol.md`](evaluation_protocol.md)  
 > 目标：定义原生 recurrent state、显式 Self State、耦合状态和审计记录如何安全、可验证、可恢复地持久化。
@@ -314,6 +314,26 @@ L3 开发门要求 100/100 次：
 Bitwise exact 次数和同一子进程内的重复一致性继续记录为诊断指标，但不与
 “序列化是否无损”混为同一判断。正式确认批次的最终容差仍需在开发门结果
 复核后预注册。
+
+2026-07-29 重跑结果：
+
+| 项目 | 结果 |
+|---|---:|
+| checkpoint validation | L2，checksum/inventory/model compatible 全部通过 |
+| 跨进程恢复 | L3 |
+| 容差通过 | 100/100 |
+| logits top-1 一致 | 100/100 |
+| 跨进程 bitwise exact | 0/100 |
+| 子进程内相对首轮 bitwise exact | 1/100 |
+| tensor 净载荷 | 6,389,760 bytes |
+| SafeTensors 文件 | 6,396,096 bytes |
+| 容器开销 | 6,336 bytes（约 0.099%） |
+| checkpoint 保存 | 0.088768 s |
+| 完整子进程门 | 14.021353 s |
+
+该结果将“无损保存”与“低精度续算的逐位确定性”明确区分：前者已由逐
+tensor SHA-256 验证；后者在当前 RWKV/PyTorch/CUDA 栈上不成立，但其数值
+漂移稳定落在开发容差内且不改变 top-1。
 
 ### 6.4 保存 dtype
 
@@ -779,10 +799,11 @@ v0.x 期间不保证向后兼容，但每次破坏性变更必须增加 `format_
 - [x] 开发 restore probe 输入；
 - [x] Impl-2 开发数值容差；
 - [ ] 确认性实验最终数值容差；
-- [ ] checkpoint 大小和存储预算；
+- [x] Impl-2 checkpoint 大小和开发存储预算；
 - [x] manifest JSON Schema 文件；
 - [x] Self State JSON Schema 文件；
 - [ ] 格式测试向量；
 - [ ] 将状态改为 Frozen for Implementation。
 
-在 Impl-2 云端 100 次磁盘/跨进程恢复完成前，本规范仍是实现候选，不冻结最终数值容差。
+Impl-2 开发容差现已固定；在 official reset、kernel compatibility 和确认性
+实验最终容差完成前，本规范仍为实现候选。

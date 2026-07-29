@@ -166,7 +166,7 @@ Phase 0 → Phase 1 — Research Design / State Infrastructure
 6. 实现不加载模型的任务生成、验证和统计骨架；
 7. 完成云端资源与 GPU 环境门；
 8. 完成 RWKV-7 0.4B 模型加载、72-tensor state inventory 和 bitwise-exact 内存恢复；
-9. 实现 SafeTensors checkpoint 与 100 次跨进程磁盘恢复开发门，等待云端验证。
+9. SafeTensors checkpoint 已通过云端 L3 与 100 次跨进程磁盘恢复开发门。
 
 ## 项目文档
 

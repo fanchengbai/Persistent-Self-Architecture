@@ -832,7 +832,8 @@ SafeTensors checkpoint、原子提交、逐文件 SHA-256、模型/tokenizer/输
 兼容性检查，以及独立子进程中的 100 次磁盘恢复门。第一轮云端运行达到 L2，
 确认序列化无损，但跨进程 FP16 续算并非 bitwise exact；已据开发结果登记
 `logits ≤ 0.0625`、`state ≤ 0.125` 的非确认性 L3 门，并增加确定性运行设置
-与 top-1 一致性检查，等待重跑。diff、swap/random 尚未实现。
+与 top-1 一致性检查。重跑已达到 L3，100/100 次满足容差且 top-1 一致；
+diff、swap/random 尚未实现。
 
 ### Impl-3：开发门
 
@@ -871,8 +872,8 @@ SafeTensors checkpoint、原子提交、逐文件 SHA-256、模型/tokenizer/输
 - [ ] task leakage validator 通过；
 - [x] model/tokenizer digest 固定；
 - [x] official state inventory 固定；
-- [ ] checkpoint L3 验证通过；
-- [ ] 100 次 roundtrip 容差冻结；
+- [x] checkpoint L3 验证通过；
+- [x] 100 次 roundtrip 开发容差冻结；
 - [ ] Prompt-visible 能力门通过；
 - [ ] dry run 资源预估完成；
 - [ ] source/config/schema digest 固定；
