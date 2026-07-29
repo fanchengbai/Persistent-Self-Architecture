@@ -1,0 +1,48 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://persistent-self-architecture.local/schemas/state_operations_summary.schema.json",
+  "title": "PSA Development State Operations Summary",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "gate",
+    "started_at_utc",
+    "finished_at_utc",
+    "development_only",
+    "model_id",
+    "gate_config_sha256",
+    "tokenizer_roundtrip_valid",
+    "state_diff_valid",
+    "reset_valid",
+    "swap_valid",
+    "source_states_immutable",
+    "component_count",
+    "different_component_count",
+    "valid",
+    "reports"
+  ],
+  "properties": {
+    "gate": {"const": "impl2b_state_operations"},
+    "started_at_utc": {"type": "string", "format": "date-time"},
+    "finished_at_utc": {"type": "string", "format": "date-time"},
+    "development_only": {"const": true},
+    "model_id": {"type": "string", "minLength": 1},
+    "gate_config_sha256": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{64}$"
+    },
+    "tokenizer_roundtrip_valid": {"type": "boolean"},
+    "state_diff_valid": {"type": "boolean"},
+    "reset_valid": {"type": "boolean"},
+    "swap_valid": {"type": "boolean"},
+    "source_states_immutable": {"type": "boolean"},
+    "component_count": {"type": "integer", "minimum": 1},
+    "different_component_count": {"type": "integer", "minimum": 1},
+    "valid": {"type": "boolean"},
+    "reports": {
+      "type": "array",
+      "minItems": 3,
+      "items": {"type": "string"}
+    }
+  }
+}

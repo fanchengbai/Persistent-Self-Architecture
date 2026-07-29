@@ -635,7 +635,16 @@ swap 创建新运行记录，不修改来源 checkpoint。
 
 ### 14.3 Reset
 
-reset state 必须来自模型官方初始化路径，并保存其独立 checksum。不能用“全零”冒充 reset，除非官方初始状态确实为零并已验证。
+RWKV-7 World 0.4B 的 Impl-2b reset 候选定义为官方包
+`rwkv.model.RWKV.forward(tokens, state=None)` 路径。`None` 是 reset
+操作的语义标记，不是一个可与普通 72-tensor state 混淆的空 checkpoint。
+
+开发门必须从同一 `None` reset 边界重复运行相同 token 序列，检查 shape、
+dtype、数值容差和 top-1 一致性。正式 reset 干预记录
+`operation_type=reset`、输入边界与官方实现版本。
+
+不能用“全零 tensor”冒充 reset；只有在另外证明官方初始化确实等于全零后，
+全零构造才可作为等价实现。
 
 ### 14.4 Randomize
 
@@ -794,7 +803,7 @@ v0.x 期间不保证向后兼容，但每次破坏性变更必须增加 `format_
 - [x] RWKV-7 官方实现的 state component 清单；
 - [x] 精确 tensor 名称、shape 和 dtype；
 - [x] tensor 容器库及版本；
-- [ ] 官方初始化 state 的定义；
+- [ ] 官方 reset `state=None` 候选的云端验证；
 - [ ] kernel compatibility 规则；
 - [x] 开发 restore probe 输入；
 - [x] Impl-2 开发数值容差；

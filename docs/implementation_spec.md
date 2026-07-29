@@ -833,7 +833,8 @@ SafeTensors checkpoint、原子提交、逐文件 SHA-256、模型/tokenizer/输
 确认序列化无损，但跨进程 FP16 续算并非 bitwise exact；已据开发结果登记
 `logits ≤ 0.0625`、`state ≤ 0.125` 的非确认性 L3 门，并增加确定性运行设置
 与 top-1 一致性检查。重跑已达到 L3，100/100 次满足容差且 top-1 一致；
-diff、swap/random 尚未实现。
+已实现 official reset、逐组件 state diff 和不可变 full-state swap 的 Impl-2b
+开发门，等待云端验证；random 尚未实现。
 
 ### Impl-3：开发门
 

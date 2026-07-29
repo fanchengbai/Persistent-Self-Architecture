@@ -170,6 +170,36 @@ L2；100/100 次续算保持 shape/dtype 和 top-1 一致，logits 最大绝对�
 cat results/development/impl2_checkpoint_roundtrip/failure_report.json
 ```
 
+### 5.2 运行 Impl-2b State 操作门
+
+Impl-2 的 `summary.json` 为 `valid: true` 后执行：
+
+```bash
+bash scripts/run_impl2b_state_operations_gate.sh
+```
+
+该门验证：
+
+- 官方 reset 语义为 `rwkv.model.RWKV.forward(..., state=None)`；
+- 两条等长 token 边界分支形成兼容但内容不同的 72-tensor state；
+- state diff 输出逐组件 L1、L2、L∞、cosine 和 RMS ratio；
+- full-state swap 使用 donor 的深拷贝；
+- 两个 source state 在 swap 续算前后 digest 不变；
+- reset 与双向 swap 的重复续算均满足 Impl-2 开发容差和 top-1 一致性。
+
+输出：
+
+```text
+results/development/impl2b_state_operations/
+├─ state_diff_report.json
+├─ reset_validation.json
+├─ swap_validation.json
+└─ summary.json
+```
+
+通过后，`summary.json` 中的 `reset_valid`、`state_diff_valid`、
+`swap_valid`、`source_states_immutable` 和总 `valid` 均应为 `true`。
+
 ## 6. 运行纯逻辑测试
 
 ```bash

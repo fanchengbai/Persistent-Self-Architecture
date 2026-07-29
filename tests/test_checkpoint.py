@@ -16,6 +16,18 @@ from psa.state.checkpoint import (
     component_name,
     verify_native_checkpoint,
 )
+from psa.state.operations import official_reset_state, swap_full_state
+
+
+class CloneableValue:
+    def __init__(self, value: int) -> None:
+        self.value = value
+
+    def detach(self) -> "CloneableValue":
+        return self
+
+    def clone(self) -> "CloneableValue":
+        return CloneableValue(self.value)
 
 
 class CheckpointTests(unittest.TestCase):
@@ -106,6 +118,17 @@ class CheckpointTests(unittest.TestCase):
             _validate_acceptance_policy(
                 {**policy, "state_max_abs_error": 0.0}
             )
+
+    def test_official_reset_uses_rwkv_none_sentinel(self) -> None:
+        self.assertIsNone(official_reset_state())
+
+    def test_full_state_swap_is_a_deep_clone(self) -> None:
+        donor = [CloneableValue(3), {"nested": CloneableValue(5)}]
+        swapped = swap_full_state(donor)
+        self.assertIsNot(swapped, donor)
+        self.assertIsNot(swapped[0], donor[0])
+        self.assertIsNot(swapped[1]["nested"], donor[1]["nested"])
+        self.assertEqual(swapped[1]["nested"].value, 5)
 
     def test_l1_verification_accepts_intact_payloads(self) -> None:
         with tempfile.TemporaryDirectory() as directory:
