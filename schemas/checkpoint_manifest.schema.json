@@ -1,0 +1,60 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://persistent-self-architecture.local/checkpoint_manifest.schema.json",
+  "title": "PSA Checkpoint Manifest",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "format_version",
+    "checkpoint_id",
+    "checkpoint_kind",
+    "created_at",
+    "experiment_id",
+    "run_id",
+    "trajectory_id",
+    "environment_step",
+    "model",
+    "tokenizer",
+    "runtime",
+    "state_components",
+    "input_boundary",
+    "provenance",
+    "integrity",
+    "status"
+  ],
+  "properties": {
+    "format_version": {"const": "0.1"},
+    "checkpoint_id": {"type": "string", "minLength": 8},
+    "checkpoint_kind": {
+      "enum": ["native_state", "explicit_self", "combined"]
+    },
+    "created_at": {"type": "string", "format": "date-time"},
+    "experiment_id": {"type": "string", "minLength": 1},
+    "run_id": {"type": "string", "minLength": 8},
+    "trajectory_id": {"type": "string", "minLength": 8},
+    "parent_checkpoint_id": {"type": ["string", "null"]},
+    "fork_root_id": {"type": ["string", "null"]},
+    "environment_step": {"type": "integer", "minimum": 0},
+    "model": {"type": "object"},
+    "tokenizer": {"type": "object"},
+    "runtime": {"type": "object"},
+    "state_components": {
+      "type": "array",
+      "items": {"type": "object"}
+    },
+    "input_boundary": {"type": "object"},
+    "provenance": {"type": "object"},
+    "integrity": {
+      "type": "object",
+      "required": ["payload_root_digest_sha256"],
+      "properties": {
+        "payload_root_digest_sha256": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{64}$"
+        }
+      }
+    },
+    "status": {"const": "complete"}
+  }
+}
+

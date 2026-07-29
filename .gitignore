@@ -216,3 +216,9 @@ __marimo__/
 
 # Streamlit
 .streamlit/secrets.toml
+
+# PSA generated artifacts
+results/raw/
+results/derived/
+results/failures/
+checkpoints/

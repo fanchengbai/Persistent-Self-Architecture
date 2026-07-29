@@ -1,0 +1,51 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://persistent-self-architecture.local/run_record.schema.json",
+  "title": "PSA Raw Run Record",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "record_version",
+    "experiment_id",
+    "batch_id",
+    "run_id",
+    "factorial_group_id",
+    "trajectory_id",
+    "sample_id",
+    "condition",
+    "state_checkpoint_id",
+    "query_digest_sha256",
+    "option_scores",
+    "status"
+  ],
+  "properties": {
+    "record_version": {"const": "0.1"},
+    "experiment_id": {"type": "string"},
+    "batch_id": {"type": "string"},
+    "run_id": {"type": "string"},
+    "factorial_group_id": {"type": "string"},
+    "trajectory_id": {"type": "string"},
+    "sample_id": {"type": "string"},
+    "condition": {"type": "string"},
+    "state_checkpoint_id": {"type": "string"},
+    "query_digest_sha256": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{64}$"
+    },
+    "option_scores": {
+      "type": "object",
+      "minProperties": 4,
+      "maxProperties": 4
+    },
+    "option_probabilities": {"type": "object"},
+    "argmax_choice": {"type": ["string", "null"]},
+    "format_valid": {"type": ["boolean", "null"]},
+    "state_summary_before": {"type": "object"},
+    "state_summary_after": {"type": "object"},
+    "timing": {"type": "object"},
+    "runtime": {"type": "object"},
+    "status": {"enum": ["success", "failed"]},
+    "error": {"type": ["object", "null"]}
+  }
+}
+

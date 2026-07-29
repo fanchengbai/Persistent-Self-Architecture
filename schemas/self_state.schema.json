@@ -1,0 +1,41 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://persistent-self-architecture.local/self_state.schema.json",
+  "title": "PSA Structured Self State",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "state_id",
+    "agent_instance_id",
+    "trajectory_id",
+    "step",
+    "identity_anchors",
+    "preferences",
+    "capability_estimate",
+    "active_goals",
+    "confidence",
+    "uncertainty_conflicts",
+    "provenance_refs",
+    "integrity"
+  ],
+  "properties": {
+    "schema_version": {"const": "0.1"},
+    "state_id": {"type": "string", "minLength": 8},
+    "agent_instance_id": {"type": "string", "minLength": 8},
+    "parent_state_id": {"type": ["string", "null"]},
+    "trajectory_id": {"type": "string", "minLength": 8},
+    "step": {"type": "integer", "minimum": 0},
+    "identity_anchors": {"type": "array"},
+    "preferences": {"type": "object"},
+    "capability_estimate": {"type": "object"},
+    "active_goals": {"type": "array"},
+    "confidence": {"type": "object"},
+    "uncertainty_conflicts": {"type": "array"},
+    "provenance_refs": {
+      "type": "array",
+      "items": {"type": "string"}
+    },
+    "integrity": {"type": "object"}
+  }
+}

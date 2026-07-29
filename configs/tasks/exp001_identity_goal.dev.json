@@ -1,0 +1,12 @@
+{
+  "config_version": "0.1",
+  "track": "synthetic",
+  "generator_version": "0.1",
+  "group_count": 8,
+  "base_seed": 20260729,
+  "identity_label_pairs": [["dax", "kel"]],
+  "goal_label_pairs": [["mip", "rov"]],
+  "answer_codes": ["A", "B", "C", "D"],
+  "delay_units": 1,
+  "split": "development"
+}

@@ -1,0 +1,36 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://persistent-self-architecture.local/sample_manifest.schema.json",
+  "title": "PSA Identity-Goal Sample",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "sample_id",
+    "trajectory_id",
+    "factorial_group_id",
+    "identity",
+    "goal",
+    "history",
+    "common_suffix",
+    "query",
+    "correct_code",
+    "correct_identity",
+    "correct_goal",
+    "generation_factors"
+  ],
+  "properties": {
+    "sample_id": {"type": "string", "minLength": 8},
+    "trajectory_id": {"type": "string", "minLength": 8},
+    "factorial_group_id": {"type": "string", "minLength": 8},
+    "identity": {"enum": [0, 1]},
+    "goal": {"enum": [0, 1]},
+    "history": {"type": "string", "minLength": 1},
+    "common_suffix": {"type": "string"},
+    "query": {"type": "string", "minLength": 1},
+    "correct_code": {"type": "string", "minLength": 1},
+    "correct_identity": {"enum": [0, 1]},
+    "correct_goal": {"enum": [0, 1]},
+    "generation_factors": {"type": "object"}
+  }
+}
+
