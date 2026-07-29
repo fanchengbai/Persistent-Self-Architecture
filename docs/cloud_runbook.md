@@ -78,7 +78,39 @@ results/development/environment_manifest.json
 
 只有报告中的 `valid` 为 `true` 才进入模型加载门。若 PyTorch 下载受网络影响，可先运行 AutoDL 的 `source /etc/network_turbo`。
 
-## 5. 运行纯逻辑测试
+## 5. 运行 Impl-1 模型接口门
+
+环境报告通过后执行：
+
+```bash
+bash scripts/run_impl1_interface_gate.sh
+```
+
+这个开发门只做：
+
+- 再次校验模型和 tokenizer；
+- 加载冻结的 RWKV-7 World 0.4B；
+- 验证 tokenizer 编码—解码往返；
+- 用开发文本形成一份 recurrent state；
+- 清点每个 state tensor 的 shape、dtype、device、大小、有限性和 SHA-256；
+- 从同一份内存 snapshot 两次运行相同 suffix；
+- 比较两次最终 logits 和 state 是否逐元素一致。
+
+输出位于：
+
+```text
+results/development/impl1_model_interface/
+├─ model_interface_report.json
+├─ state_inventory.json
+├─ roundtrip_validation.json
+└─ summary.json
+```
+
+这是一次非确认性的工程开发门，不使用 EXP-001 身份/目标任务，也不产生项目主张所需的行为证据。
+
+该门只验证内存内 clone/restore。磁盘序列化、跨进程恢复和 100 次重复属于下一批开发门。
+
+## 6. 运行纯逻辑测试
 
 ```bash
 python -m unittest discover -s tests -v
@@ -96,7 +128,7 @@ python -m unittest discover -s tests -v
 
 它们不是模型实验。
 
-## 6. 单独生成开发任务样例
+## 7. 单独生成开发任务样例
 
 ```bash
 psa task-generate \
@@ -106,7 +138,7 @@ psa task-generate \
 
 输出只用于检查生成逻辑。当前示例标签尚未经过目标 RWKV tokenizer 审核，不得作为正式测试集。
 
-## 7. 远程环境信息
+## 8. 远程环境信息
 
 进入模型适配前记录：
 
@@ -127,7 +159,7 @@ tokenizer revision
 
 不要把访问密钥、用户名或私有路径提交进仓库。
 
-## 8. 开发门顺序
+## 9. 开发门顺序
 
 ```text
 环境检查
@@ -145,7 +177,7 @@ tokenizer revision
 
 在 RWKV adapter、正式配置和预注册尚未完成前，不运行 Core Set。
 
-## 9. 需要从云端回传
+## 10. 需要从云端回传
 
 第一轮只回传非确认性开发信息：
 

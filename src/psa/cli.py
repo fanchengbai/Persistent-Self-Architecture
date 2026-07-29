@@ -10,6 +10,7 @@ from psa.assets import fetch_manifest, load_manifest, plan_manifest, verify_mani
 from psa.artifacts import canonical_json_bytes, sha256_file, sha256_json
 from psa.environment import collect_environment
 from psa.evaluation import group_contrasts
+from psa.model import run_interface_gate
 from psa.tasks import generate_dataset
 from psa.validation import validate_dataset
 
@@ -157,6 +158,16 @@ def _environment_report(args: argparse.Namespace) -> int:
     return 0 if result["valid"] else 2
 
 
+def _model_interface_gate(args: argparse.Namespace) -> int:
+    result = run_interface_gate(
+        config_path=args.config,
+        output_dir=args.output_dir,
+        project_root=args.project_root,
+    )
+    print(json.dumps(result, ensure_ascii=False, indent=2))
+    return 0 if result["valid"] else 2
+
+
 def _add_asset_common_arguments(parser: argparse.ArgumentParser) -> None:
     parser.add_argument("--manifest", required=True)
     parser.add_argument("--root", default=".psa-assets")
@@ -229,6 +240,15 @@ def build_parser() -> argparse.ArgumentParser:
     environment_report.add_argument("--output", required=True)
     environment_report.add_argument("--project-root", default=".")
     environment_report.set_defaults(handler=_environment_report)
+
+    model_interface_gate = subparsers.add_parser(
+        "model-interface-gate",
+        help="load RWKV-7 and run tokenizer, state inventory, and memory roundtrip checks",
+    )
+    model_interface_gate.add_argument("--config", required=True)
+    model_interface_gate.add_argument("--output-dir", required=True)
+    model_interface_gate.add_argument("--project-root", default=".")
+    model_interface_gate.set_defaults(handler=_model_interface_gate)
     return parser
 
 
@@ -237,6 +257,14 @@ def main(argv: list[str] | None = None) -> int:
     args = parser.parse_args(argv)
     try:
         return int(args.handler(args))
-    except (KeyError, TypeError, ValueError, OSError, json.JSONDecodeError) as exc:
+    except (
+        ImportError,
+        KeyError,
+        RuntimeError,
+        TypeError,
+        ValueError,
+        OSError,
+        json.JSONDecodeError,
+    ) as exc:
         print(f"error: {exc}", file=sys.stderr)
         return 2

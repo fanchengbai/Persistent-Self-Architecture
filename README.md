@@ -163,7 +163,8 @@ Phase 0 — Research Design
 3. 分析 RWKV recurrent state；
 4. 定义 Self、Memory 与 Persona 的边界；
 5. 设计最小 state persistence / swap 实验；
-6. 实现不加载模型的任务生成、验证和统计骨架。
+6. 实现不加载模型的任务生成、验证和统计骨架；
+7. 完成云端资源与 GPU 环境门，准备验证 RWKV-7 recurrent state 接口。
 
 ## 项目文档
 

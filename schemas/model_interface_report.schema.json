@@ -1,0 +1,57 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://persistent-self-architecture.local/schemas/model_interface_report.schema.json",
+  "title": "PSA Model Interface Report",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "report_version",
+    "created_at_utc",
+    "development_only",
+    "model",
+    "load_seconds",
+    "cuda_peak_memory_bytes",
+    "tokenizer_roundtrip",
+    "logits"
+  ],
+  "properties": {
+    "report_version": {
+      "const": "0.1"
+    },
+    "created_at_utc": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "development_only": {
+      "const": true
+    },
+    "model": {
+      "type": "object"
+    },
+    "load_seconds": {
+      "type": "number",
+      "minimum": 0
+    },
+    "cuda_peak_memory_bytes": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "tokenizer_roundtrip": {
+      "type": "object",
+      "required": [
+        "prefix_exact",
+        "suffix_exact",
+        "prefix_token_count",
+        "suffix_token_count"
+      ]
+    },
+    "logits": {
+      "type": "object",
+      "required": [
+        "shape",
+        "dtype",
+        "device"
+      ]
+    }
+  }
+}

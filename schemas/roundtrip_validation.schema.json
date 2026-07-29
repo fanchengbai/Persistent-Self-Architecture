@@ -1,0 +1,50 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://persistent-self-architecture.local/schemas/roundtrip_validation.schema.json",
+  "title": "PSA In-Memory State Roundtrip Validation",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "report_version",
+    "created_at_utc",
+    "development_only",
+    "mode",
+    "prefix_token_count",
+    "suffix_token_count",
+    "logits",
+    "state",
+    "valid"
+  ],
+  "properties": {
+    "report_version": {
+      "const": "0.1"
+    },
+    "created_at_utc": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "development_only": {
+      "const": true
+    },
+    "mode": {
+      "const": "in_memory_clone_restore"
+    },
+    "prefix_token_count": {
+      "type": "integer",
+      "minimum": 1
+    },
+    "suffix_token_count": {
+      "type": "integer",
+      "minimum": 1
+    },
+    "logits": {
+      "type": "object"
+    },
+    "state": {
+      "type": "object"
+    },
+    "valid": {
+      "type": "boolean"
+    }
+  }
+}
