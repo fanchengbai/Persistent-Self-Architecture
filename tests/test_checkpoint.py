@@ -16,7 +16,11 @@ from psa.state.checkpoint import (
     component_name,
     verify_native_checkpoint,
 )
-from psa.state.operations import official_reset_state, swap_full_state
+from psa.state.operations import (
+    official_reset_state,
+    randomize_state_matched,
+    swap_full_state,
+)
 
 
 class CloneableValue:
@@ -129,6 +133,10 @@ class CheckpointTests(unittest.TestCase):
         self.assertIsNot(swapped[0], donor[0])
         self.assertIsNot(swapped[1]["nested"], donor[1]["nested"])
         self.assertEqual(swapped[1]["nested"].value, 5)
+
+    def test_random_state_rejects_negative_seed_before_tensor_work(self) -> None:
+        with self.assertRaises(ValueError):
+            randomize_state_matched([], object(), seed=-1)
 
     def test_l1_verification_accepts_intact_payloads(self) -> None:
         with tempfile.TemporaryDirectory() as directory:

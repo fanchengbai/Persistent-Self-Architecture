@@ -835,7 +835,8 @@ SafeTensors checkpoint、原子提交、逐文件 SHA-256、模型/tokenizer/输
 与 top-1 一致性检查。重跑已达到 L3，100/100 次满足容差且 top-1 一致；
 official reset、逐组件 state diff 和不可变 full-state swap 的 Impl-2b
 云端开发门已通过：72/72 分支组件不同，reset、swap、tokenizer roundtrip
-与 source immutability 全部有效；random 尚未实现。
+与 source immutability 全部有效。逐组件 L2/RMS 尺度匹配、seed 可重建的
+`random_matched` Impl-2c 开发门已实现，等待云端验证。
 
 ### Impl-3：开发门
 

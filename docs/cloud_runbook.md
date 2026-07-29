@@ -200,6 +200,35 @@ results/development/impl2b_state_operations/
 通过后，`summary.json` 中的 `reset_valid`、`state_diff_valid`、
 `swap_valid`、`source_states_immutable` 和总 `valid` 均应为 `true`。
 
+### 5.3 运行 Impl-2c Matched Random State 门
+
+Impl-2b 通过后执行：
+
+```bash
+bash scripts/run_impl2c_random_state_gate.sh
+```
+
+该门为 EXP-001 的 `random_matched` 对照验证：
+
+- 每个 tensor 独立生成零均值高斯噪声；
+- 保持 72 个组件的 shape、dtype 和 device；
+- 逐组件匹配来源 state 的 L2/RMS 尺度；
+- seed 固定且与任务标签和答案无关；
+- 同 seed 必须逐位可重建，不同 seed 必须产生不同 digest；
+- 来源 state 在随机化及续算后保持不变；
+- 随机 state 能完成重复续算且不出现超容差漂移。
+
+输出：
+
+```text
+results/development/impl2c_random_matched/
+├─ random_state_validation.json
+└─ summary.json
+```
+
+通过时 `same_seed_bitwise_reproducible`、`different_seed_distinct`、
+`scale_match_valid`、`continuation_valid` 和总 `valid` 均为 `true`。
+
 ## 6. 运行纯逻辑测试
 
 ```bash

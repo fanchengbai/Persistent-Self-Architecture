@@ -155,6 +155,32 @@ class CliTests(unittest.TestCase):
             self.assertEqual(report["gate"], "impl2b_state_operations")
             self.assertEqual(report["message"], "state operation failed")
 
+    def test_random_state_failure_writes_diagnostic_report(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            output_dir = Path(directory) / "gate"
+            with patch(
+                "psa.cli.run_random_state_gate",
+                side_effect=RuntimeError("random state failed"),
+            ):
+                exit_code = main(
+                    [
+                        "random-state-gate",
+                        "--config",
+                        "configs/models/test.json",
+                        "--gate-config",
+                        "configs/gates/test.json",
+                        "--output-dir",
+                        str(output_dir),
+                    ]
+                )
+
+            self.assertEqual(exit_code, 2)
+            report = json.loads(
+                (output_dir / "failure_report.json").read_text(encoding="utf-8")
+            )
+            self.assertEqual(report["gate"], "impl2c_random_matched")
+            self.assertEqual(report["message"], "random state failed")
+
 
 if __name__ == "__main__":
     unittest.main()

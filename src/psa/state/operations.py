@@ -49,6 +49,105 @@ def swap_full_state(donor_state: Any) -> Any:
     return clone_state(donor_state)
 
 
+def randomize_state_matched(
+    source_state: Any,
+    torch: Any,
+    *,
+    seed: int,
+) -> list[Any]:
+    """Generate per-component zero-mean Gaussian state matched on L2 scale."""
+    if not isinstance(seed, int) or seed < 0:
+        raise ValueError("random state seed must be a non-negative integer")
+    flattened = list(_flatten_state(source_state))
+    generator = torch.Generator(device="cpu")
+    generator.manual_seed(seed)
+    randomized = []
+    for index, (path, source_tensor) in enumerate(flattened):
+        if path != f"state[{index}]":
+            raise TypeError("matched random currently requires a flat state list")
+        source_float = source_tensor.detach().float().cpu()
+        noise = torch.randn(
+            source_float.shape,
+            generator=generator,
+            device="cpu",
+            dtype=torch.float32,
+        )
+        noise = noise - noise.mean()
+        noise_norm = torch.linalg.vector_norm(noise)
+        source_norm = torch.linalg.vector_norm(source_float)
+        if float(source_norm.item()) == 0.0:
+            matched = torch.zeros_like(source_float)
+        elif float(noise_norm.item()) == 0.0:
+            raise RuntimeError(f"random noise has zero norm at {path}")
+        else:
+            matched = noise * (source_norm / noise_norm)
+        randomized.append(
+            matched.to(dtype=source_tensor.dtype, device=source_tensor.device)
+        )
+    return randomized
+
+
+def matched_scale_report(
+    source_state: Any,
+    randomized_state: Any,
+    torch: Any,
+) -> dict[str, Any]:
+    source_items = list(_flatten_state(source_state))
+    random_items = list(_flatten_state(randomized_state))
+    if [path for path, _ in source_items] != [
+        path for path, _ in random_items
+    ]:
+        return {
+            "compatible": False,
+            "component_count": 0,
+            "all_finite": False,
+            "max_relative_l2_error": None,
+            "components": [],
+        }
+    components = []
+    all_finite = True
+    for (path, source), (_, randomized) in zip(source_items, random_items):
+        compatible = bool(
+            tuple(source.shape) == tuple(randomized.shape)
+            and source.dtype == randomized.dtype
+            and source.device == randomized.device
+        )
+        source_float = source.detach().float()
+        random_float = randomized.detach().float()
+        source_l2 = float(torch.linalg.vector_norm(source_float).item())
+        random_l2 = float(torch.linalg.vector_norm(random_float).item())
+        relative_error = (
+            abs(random_l2 - source_l2) / source_l2
+            if source_l2 > 0
+            else (0.0 if random_l2 == 0 else None)
+        )
+        finite = bool(torch.isfinite(random_float).all().item())
+        all_finite = all_finite and finite
+        components.append(
+            {
+                "path": path,
+                "compatible": compatible,
+                "finite": finite,
+                "source_l2_norm": source_l2,
+                "random_l2_norm": random_l2,
+                "relative_l2_error": relative_error,
+                "random_mean": float(random_float.mean().item()),
+            }
+        )
+    errors = [
+        item["relative_l2_error"]
+        for item in components
+        if item["relative_l2_error"] is not None
+    ]
+    return {
+        "compatible": all(item["compatible"] for item in components),
+        "component_count": len(components),
+        "all_finite": all_finite,
+        "max_relative_l2_error": max(errors, default=0.0),
+        "components": components,
+    }
+
+
 def diff_states(left: Any, right: Any, torch: Any) -> dict[str, Any]:
     left_items = list(_flatten_state(left))
     right_items = list(_flatten_state(right))
@@ -425,5 +524,176 @@ def run_state_operations_gate(
     _write_json(destination / "state_diff_report.json", branch_diff)
     _write_json(destination / "reset_validation.json", reset_probe)
     _write_json(destination / "swap_validation.json", swap_probe)
+    _write_json(destination / "summary.json", summary)
+    return summary
+
+
+def run_random_state_gate(
+    *,
+    config_path: str | Path,
+    gate_config_path: str | Path,
+    output_dir: str | Path,
+    project_root: str | Path,
+) -> dict[str, Any]:
+    started_at = _utc_now()
+    root = Path(project_root).resolve()
+    destination = Path(output_dir).resolve()
+    gate_config_path = Path(gate_config_path).resolve()
+    gate_config = _read_config(gate_config_path)
+    if (
+        gate_config.get("gate_version") != "0.1"
+        or gate_config.get("gate") != "impl2c_random_matched"
+        or gate_config.get("development_only") is not True
+    ):
+        raise ValueError("unsupported random state gate config")
+    repeat_count = gate_config.get("repeat_count")
+    if not isinstance(repeat_count, int) or repeat_count < 10:
+        raise ValueError("repeat_count must be at least 10")
+    base_seed = gate_config.get("base_seed")
+    alternate_seed = gate_config.get("alternate_seed")
+    if (
+        not isinstance(base_seed, int)
+        or not isinstance(alternate_seed, int)
+        or base_seed < 0
+        or alternate_seed < 0
+        or base_seed == alternate_seed
+    ):
+        raise ValueError("random state seeds must be distinct non-negative integers")
+    maximum_scale_error = gate_config.get("max_relative_l2_error")
+    if (
+        not isinstance(maximum_scale_error, (int, float))
+        or maximum_scale_error <= 0
+    ):
+        raise ValueError("max_relative_l2_error must be positive")
+    _apply_determinism_policy(gate_config.get("determinism"))
+    acceptance = _validate_acceptance_policy(
+        gate_config.get("acceptance")
+    )
+
+    model_config = load_model_config(config_path, root, verify_files=True)
+    adapter = RWKV7Adapter.load(model_config)
+    prefix_text = gate_config.get("prefix_text")
+    suffix_text = gate_config.get("suffix_text")
+    if not all(
+        isinstance(value, str) and value
+        for value in (prefix_text, suffix_text)
+    ):
+        raise ValueError("gate probe text fields must be non-empty strings")
+    prefix_tokens = adapter.encode(prefix_text)
+    suffix_tokens = adapter.encode(suffix_text)
+    tokenizer_valid = bool(
+        adapter.decode(prefix_tokens) == prefix_text
+        and adapter.decode(suffix_tokens) == suffix_text
+    )
+    _, source_state = adapter.forward(prefix_tokens, official_reset_state())
+    source_before = inventory_state(source_state, adapter.torch)
+
+    random_state = randomize_state_matched(
+        source_state, adapter.torch, seed=base_seed
+    )
+    same_seed_state = randomize_state_matched(
+        source_state, adapter.torch, seed=base_seed
+    )
+    alternate_state = randomize_state_matched(
+        source_state, adapter.torch, seed=alternate_seed
+    )
+    same_seed_comparison = compare_states(
+        random_state, same_seed_state, adapter.torch
+    )
+    source_random_diff = diff_states(
+        source_state, random_state, adapter.torch
+    )
+    seed_diff = diff_states(
+        random_state, alternate_state, adapter.torch
+    )
+    scale = matched_scale_report(
+        source_state, random_state, adapter.torch
+    )
+    random_inventory = inventory_state(random_state, adapter.torch)
+    alternate_inventory = inventory_state(alternate_state, adapter.torch)
+    continuation = _repeat_from_state(
+        adapter,
+        suffix_tokens,
+        random_state,
+        repeat_count=repeat_count,
+        acceptance=acceptance,
+    )
+    source_after = inventory_state(source_state, adapter.torch)
+    source_immutable = bool(
+        source_before["state_digest_sha256"]
+        == source_after["state_digest_sha256"]
+    )
+    reproducible = bool(
+        same_seed_comparison["compatible"]
+        and same_seed_comparison["exact"]
+    )
+    distinct_seed_valid = bool(
+        seed_diff["compatible"]
+        and seed_diff["all_finite"]
+        and seed_diff["different_component_count"] > 0
+        and random_inventory["state_digest_sha256"]
+        != alternate_inventory["state_digest_sha256"]
+    )
+    scale_valid = bool(
+        scale["compatible"]
+        and scale["all_finite"]
+        and scale["component_count"]
+        == model_config.architecture_hint["n_layer"] * 3
+        and scale["max_relative_l2_error"] is not None
+        and scale["max_relative_l2_error"] <= maximum_scale_error
+    )
+    report = {
+        "report_version": "0.1",
+        "created_at_utc": _utc_now(),
+        "development_only": True,
+        "operation": "random_matched",
+        "method": "per-component centered Gaussian matched to source L2 norm",
+        "base_seed": base_seed,
+        "alternate_seed": alternate_seed,
+        "source_state_digest_sha256": source_before[
+            "state_digest_sha256"
+        ],
+        "random_state_digest_sha256": random_inventory[
+            "state_digest_sha256"
+        ],
+        "alternate_state_digest_sha256": alternate_inventory[
+            "state_digest_sha256"
+        ],
+        "source_state_immutable": source_immutable,
+        "same_seed_bitwise_reproducible": reproducible,
+        "different_seed_distinct": distinct_seed_valid,
+        "source_random_different_component_count": source_random_diff[
+            "different_component_count"
+        ],
+        "scale": scale,
+        "continuation": continuation,
+        "valid": bool(
+            tokenizer_valid
+            and source_immutable
+            and reproducible
+            and distinct_seed_valid
+            and scale_valid
+            and continuation["valid"]
+        ),
+    }
+    summary = {
+        "gate": "impl2c_random_matched",
+        "started_at_utc": started_at,
+        "finished_at_utc": _utc_now(),
+        "development_only": True,
+        "model_id": model_config.model_id,
+        "gate_config_sha256": sha256_file(gate_config_path),
+        "tokenizer_roundtrip_valid": tokenizer_valid,
+        "component_count": scale["component_count"],
+        "source_state_immutable": source_immutable,
+        "same_seed_bitwise_reproducible": reproducible,
+        "different_seed_distinct": distinct_seed_valid,
+        "scale_match_valid": scale_valid,
+        "max_relative_l2_error": scale["max_relative_l2_error"],
+        "continuation_valid": continuation["valid"],
+        "valid": report["valid"],
+        "reports": ["random_state_validation.json"],
+    }
+    _write_json(destination / "random_state_validation.json", report)
     _write_json(destination / "summary.json", summary)
     return summary

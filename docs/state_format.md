@@ -658,6 +658,18 @@ random state 记录：
 
 random state 是新 checkpoint，`operation_type=randomize`。
 
+Impl-2c 的冻结候选生成规则为：
+
+1. 对每个 tensor 使用固定 CPU generator 生成 Gaussian noise；
+2. 每个组件单独减去样本均值；
+3. 将 noise L2 norm 缩放到来源组件的 L2 norm；
+4. 转回来源 dtype 和 device，不改变 shape；
+5. 保存 base seed、组件顺序、算法版本和来源 digest。
+
+开发门要求同 seed bitwise 可重建、不同 seed digest 不同、逐组件相对 L2
+误差不超过 1%、所有值有限且来源 state 不被修改。该规则只定义数值扰动
+对照，不声称随机 state 具有任何 Self 语义。
+
 ### 14.5 Ablation
 
 记录：
