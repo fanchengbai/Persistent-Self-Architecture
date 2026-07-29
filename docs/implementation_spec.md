@@ -1,7 +1,7 @@
 # PSA 实现与远程执行规范
 
 > 版本：v0.1  
-> 状态：Impl-0 纯逻辑骨架和 Impl-0.1 云端资源准备已实现；模型适配尚未开始、尚未部署
+> 状态：Impl-0 纯逻辑骨架和 Impl-0.1 云端资源准备已实现；Impl-1 GPU 环境门已起草，模型适配尚未部署
 > 日期：2026-07-29  
 > 依赖：[`architecture.md`](architecture.md)、[`state_format.md`](state_format.md)、[`task_design.md`](task_design.md)、[`evaluation_protocol.md`](evaluation_protocol.md)  
 > 边界：本机用于代码、配置、文档和结果分析；模型实验只在明确的远程 GPU 环境运行。

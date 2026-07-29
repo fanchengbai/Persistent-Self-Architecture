@@ -45,7 +45,40 @@ PSA_ASSET_ROOT=/mnt/psa-assets \
 
 当前不下载 RWKV 完整预训练语料，因为 EXP-001 是冻结基础模型上的状态实验，不是预训练或全量微调。
 
-## 4. 运行纯逻辑测试
+## 4. 安装并验证 Impl-1 GPU 环境
+
+资源准备成功后，在已经激活的 `.venv` 中执行：
+
+```bash
+bash scripts/install_impl1_gpu.sh
+```
+
+脚本固定安装：
+
+```text
+PyTorch 2.12.0 + CUDA 13.2 wheel
+rwkv 0.8.32
+```
+
+首轮接口门使用：
+
+```text
+RWKV_V7_ON=1
+RWKV_JIT_ON=0
+RWKV_CUDA_ON=0
+```
+
+也就是说先运行官方 `rwkv` 包的纯 PyTorch 路径，不编译自定义 CUDA kernel。这样便于检查 state 结构和数值一致性；性能优化留到接口门通过之后。
+
+安装结束会生成：
+
+```text
+results/development/environment_manifest.json
+```
+
+只有报告中的 `valid` 为 `true` 才进入模型加载门。若 PyTorch 下载受网络影响，可先运行 AutoDL 的 `source /etc/network_turbo`。
+
+## 5. 运行纯逻辑测试
 
 ```bash
 python -m unittest discover -s tests -v
@@ -63,7 +96,7 @@ python -m unittest discover -s tests -v
 
 它们不是模型实验。
 
-## 5. 单独生成开发任务样例
+## 6. 单独生成开发任务样例
 
 ```bash
 psa task-generate \
@@ -73,7 +106,7 @@ psa task-generate \
 
 输出只用于检查生成逻辑。当前示例标签尚未经过目标 RWKV tokenizer 审核，不得作为正式测试集。
 
-## 6. 远程环境信息
+## 7. 远程环境信息
 
 进入模型适配前记录：
 
@@ -94,7 +127,7 @@ tokenizer revision
 
 不要把访问密钥、用户名或私有路径提交进仓库。
 
-## 7. 开发门顺序
+## 8. 开发门顺序
 
 ```text
 环境检查
@@ -112,7 +145,7 @@ tokenizer revision
 
 在 RWKV adapter、正式配置和预注册尚未完成前，不运行 Core Set。
 
-## 8. 需要从云端回传
+## 9. 需要从云端回传
 
 第一轮只回传非确认性开发信息：
 

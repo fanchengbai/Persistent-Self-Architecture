@@ -16,7 +16,8 @@
         "revision": "b9edcafa66561b3004c9398f00a0007cd15edb0e",
         "filename": "RWKV-x070-World-0.4B-v2.9-20250107-ctx4096.pth"
       },
-      "sha256": "c08cf602b33e59a5717b8f0cafaf7f04c50c1c67166e477aa2f47c5ca180da4a"
+      "sha256": "c08cf602b33e59a5717b8f0cafaf7f04c50c1c67166e477aa2f47c5ca180da4a",
+      "size_bytes": 901794466
     },
     {
       "id": "rwkv-world-tokenizer-20230424",
@@ -30,7 +31,9 @@
         "repo_id": "RWKV/v6-Finch-7B-World3-HF",
         "revision": "8cc2ab5d72b0a75713a62be5192a6e39b28df0ed",
         "filename": "rwkv_vocab_v20230424.txt"
-      }
+      },
+      "sha256": "e6dee3d4e31b4d5c40ac99508ac6c701ceef4bed681bf2167ce9a908552bca89",
+      "size_bytes": 1093733
     }
   ],
   "generated_assets": [

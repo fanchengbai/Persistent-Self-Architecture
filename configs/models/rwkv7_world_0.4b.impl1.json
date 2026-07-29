@@ -1,0 +1,42 @@
+{
+  "config_version": "0.1",
+  "model_id": "rwkv7-world-0.4b-v2.9",
+  "family": "RWKV",
+  "architecture": "RWKV-7",
+  "weights": {
+    "path": ".psa-assets/models/rwkv7-world-0.4b/RWKV-x070-World-0.4B-v2.9-20250107-ctx4096.pth",
+    "revision": "b9edcafa66561b3004c9398f00a0007cd15edb0e",
+    "sha256": "c08cf602b33e59a5717b8f0cafaf7f04c50c1c67166e477aa2f47c5ca180da4a",
+    "size_bytes": 901794466
+  },
+  "tokenizer": {
+    "path": ".psa-assets/tokenizers/rwkv_vocab_v20230424.txt",
+    "revision": "8cc2ab5d72b0a75713a62be5192a6e39b28df0ed",
+    "sha256": "e6dee3d4e31b4d5c40ac99508ac6c701ceef4bed681bf2167ce9a908552bca89",
+    "size_bytes": 1093733,
+    "vocab_size": 65536
+  },
+  "architecture_hint": {
+    "n_layer": 24,
+    "n_embd": 1024,
+    "head_size": 64
+  },
+  "runtime": {
+    "python": ">=3.11,<3.13",
+    "torch": "2.12.0",
+    "torch_cuda": "13.2",
+    "rwkv": "0.8.32",
+    "strategy": "cuda fp16",
+    "environment": {
+      "RWKV_V7_ON": "1",
+      "RWKV_JIT_ON": "0",
+      "RWKV_CUDA_ON": "0"
+    }
+  },
+  "development_only": true,
+  "notes": [
+    "The initial interface gate uses the official rwkv package without a custom CUDA kernel.",
+    "Architecture hints must be checked against loaded weights before they become frozen facts.",
+    "The confirmatory experiment remains locked until all development gates pass."
+  ]
+}

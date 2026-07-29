@@ -136,8 +136,7 @@ export HF_TOKEN="..."
 ## 7. 完整性与安全边界
 
 - 模型权重固定到具体 revision，并校验发布页给出的 SHA-256；
-- tokenizer 固定到具体 revision，下载后把实际 SHA-256 写入本地收据；
-- 在最终预注册前，应把 tokenizer 收据中的 digest 回填到资源清单；
+- tokenizer 固定到具体 revision；首次云端下载得到的大小和 SHA-256 已回填资源清单；
 - `.pth` 属于 PyTorch 序列化文件，只从已记录的官方来源获取；
 - 模型适配器实现时优先使用限制反序列化能力的加载方式，并在加载前再次校验 digest；
 - 下载成功不等于模型接口门通过，仍需完成 state inventory 和 roundtrip 验证。

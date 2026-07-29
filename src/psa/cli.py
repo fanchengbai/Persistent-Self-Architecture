@@ -8,6 +8,7 @@ from typing import Any
 
 from psa.assets import fetch_manifest, load_manifest, plan_manifest, verify_manifest
 from psa.artifacts import canonical_json_bytes, sha256_file, sha256_json
+from psa.environment import collect_environment
 from psa.evaluation import group_contrasts
 from psa.tasks import generate_dataset
 from psa.validation import validate_dataset
@@ -149,6 +150,13 @@ def _assets_verify(args: argparse.Namespace) -> int:
     return 0 if result["valid"] else 2
 
 
+def _environment_report(args: argparse.Namespace) -> int:
+    result = collect_environment(args.project_root)
+    _write_json(Path(args.output), result)
+    print(json.dumps(result, ensure_ascii=False, indent=2))
+    return 0 if result["valid"] else 2
+
+
 def _add_asset_common_arguments(parser: argparse.ArgumentParser) -> None:
     parser.add_argument("--manifest", required=True)
     parser.add_argument("--root", default=".psa-assets")
@@ -214,6 +222,13 @@ def build_parser() -> argparse.ArgumentParser:
     )
     _add_asset_common_arguments(assets_verify)
     assets_verify.set_defaults(handler=_assets_verify)
+
+    environment_report = subparsers.add_parser(
+        "environment-report", help="record and validate the Impl-1 GPU environment"
+    )
+    environment_report.add_argument("--output", required=True)
+    environment_report.add_argument("--project-root", default=".")
+    environment_report.set_defaults(handler=_environment_report)
     return parser
 
 
