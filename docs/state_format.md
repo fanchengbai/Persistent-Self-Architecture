@@ -803,7 +803,7 @@ v0.x 期间不保证向后兼容，但每次破坏性变更必须增加 `format_
 - [x] RWKV-7 官方实现的 state component 清单；
 - [x] 精确 tensor 名称、shape 和 dtype；
 - [x] tensor 容器库及版本；
-- [ ] 官方 reset `state=None` 候选的云端验证；
+- [x] 官方 reset `state=None` 的云端验证；
 - [ ] kernel compatibility 规则；
 - [x] 开发 restore probe 输入；
 - [x] Impl-2 开发数值容差；
