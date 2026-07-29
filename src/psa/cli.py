@@ -12,6 +12,8 @@ from psa.artifacts import canonical_json_bytes, sha256_file, sha256_json
 from psa.environment import collect_environment
 from psa.evaluation import group_contrasts
 from psa.model import run_interface_gate
+from psa.state import run_checkpoint_roundtrip_gate
+from psa.state.checkpoint import run_restore_probe
 from psa.tasks import generate_dataset
 from psa.validation import validate_dataset
 
@@ -184,6 +186,58 @@ def _model_interface_gate(args: argparse.Namespace) -> int:
     return 0 if result["valid"] else 2
 
 
+def _checkpoint_roundtrip_gate(args: argparse.Namespace) -> int:
+    failure_path = Path(args.output_dir) / "failure_report.json"
+    failure_path.unlink(missing_ok=True)
+    try:
+        result = run_checkpoint_roundtrip_gate(
+            config_path=args.config,
+            gate_config_path=args.gate_config,
+            output_dir=args.output_dir,
+            project_root=args.project_root,
+        )
+    except Exception as exc:
+        failure = {
+            "failure_version": "0.1",
+            "created_at_utc": datetime.now(timezone.utc).isoformat(),
+            "development_only": True,
+            "gate": "impl2_checkpoint_roundtrip",
+            "exception_type": type(exc).__name__,
+            "message": str(exc),
+            "config": str(Path(args.config).resolve()),
+            "gate_config": str(Path(args.gate_config).resolve()),
+        }
+        _write_json(failure_path, failure)
+        raise
+    print(json.dumps(result, ensure_ascii=False, indent=2))
+    return 0 if result["valid"] else 2
+
+
+def _checkpoint_restore_probe(args: argparse.Namespace) -> int:
+    result = run_restore_probe(
+        config_path=args.config,
+        checkpoint_path=args.checkpoint,
+        reference_path=args.reference,
+        probe_config_path=args.probe_config,
+        output_path=args.output,
+        project_root=args.project_root,
+    )
+    print(
+        json.dumps(
+            {
+                "valid": result["valid"],
+                "repeat_count": result["repeat_count"],
+                "exact_repeat_count": result["exact_repeat_count"],
+                "achieved_level": result["achieved_level"],
+                "output": str(Path(args.output).resolve()),
+            },
+            ensure_ascii=False,
+            indent=2,
+        )
+    )
+    return 0 if result["valid"] else 2
+
+
 def _add_asset_common_arguments(parser: argparse.ArgumentParser) -> None:
     parser.add_argument("--manifest", required=True)
     parser.add_argument("--root", default=".psa-assets")
@@ -265,6 +319,28 @@ def build_parser() -> argparse.ArgumentParser:
     model_interface_gate.add_argument("--output-dir", required=True)
     model_interface_gate.add_argument("--project-root", default=".")
     model_interface_gate.set_defaults(handler=_model_interface_gate)
+
+    checkpoint_roundtrip_gate = subparsers.add_parser(
+        "checkpoint-roundtrip-gate",
+        help="save native state and validate 100 disk restores in a child process",
+    )
+    checkpoint_roundtrip_gate.add_argument("--config", required=True)
+    checkpoint_roundtrip_gate.add_argument("--gate-config", required=True)
+    checkpoint_roundtrip_gate.add_argument("--output-dir", required=True)
+    checkpoint_roundtrip_gate.add_argument("--project-root", default=".")
+    checkpoint_roundtrip_gate.set_defaults(handler=_checkpoint_roundtrip_gate)
+
+    checkpoint_restore_probe = subparsers.add_parser(
+        "checkpoint-restore-probe",
+        help="internal child-process restore probe used by the Impl-2 gate",
+    )
+    checkpoint_restore_probe.add_argument("--config", required=True)
+    checkpoint_restore_probe.add_argument("--checkpoint", required=True)
+    checkpoint_restore_probe.add_argument("--reference", required=True)
+    checkpoint_restore_probe.add_argument("--probe-config", required=True)
+    checkpoint_restore_probe.add_argument("--output", required=True)
+    checkpoint_restore_probe.add_argument("--project-root", default=".")
+    checkpoint_restore_probe.set_defaults(handler=_checkpoint_restore_probe)
     return parser
 
 

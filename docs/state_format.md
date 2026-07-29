@@ -1,7 +1,7 @@
 # PSA 状态与 Checkpoint 格式规范
 
-> 版本：v0.1  
-> 状态：Phase 0 格式草案；JSON Schema 与 checksum 工具已起草，tensor checkpoint 尚未实现、尚未冻结  
+> 版本：v0.2-dev
+> 状态：Impl-1 实测契约已固定；Impl-2 tensor checkpoint 已实现，等待云端 L3/100 次恢复门验证后冻结
 > 日期：2026-07-29  
 > 依赖：[`architecture.md`](architecture.md)、[`task_design.md`](task_design.md)、[`evaluation_protocol.md`](evaluation_protocol.md)  
 > 目标：定义原生 recurrent state、显式 Self State、耦合状态和审计记录如何安全、可验证、可恢复地持久化。
@@ -211,23 +211,37 @@ checkpoint 必须说明 state 对应到哪一个 token 边界：
 
 禁止把不可信 checkpoint 默认保存在会执行任意对象反序列化的格式中。若官方实现只能输出其他格式，转换过程必须在受控环境完成，并记录原始与转换后 digest。
 
-### 6.2 Tensor 命名
+### 6.2 RWKV-7 World 0.4B 实测状态契约
 
-名称使用稳定的逻辑路径：
+2026-07-29 的 Impl-1 云端接口调查使用固定权重
+`RWKV-x070-World-0.4B-v2.9-20250107-ctx4096`、`rwkv==0.8.32`、
+PyTorch 2.12.0 + CUDA 13.2、`cuda fp16` 策略和纯 PyTorch kernel，观察到：
 
-```text
-layers.<layer_index>.<state_component>
-```
+| 项目 | 实测值 |
+|---|---:|
+| 层数 | 24 |
+| 每层组件数 | 3 |
+| tensor 总数 | 72 |
+| tensor 净载荷 | 6,389,760 bytes（6.09375 MiB） |
+| 捕获设备 | `cuda:0` |
+| 有限性 | 72/72 全部 finite |
 
-示例仅表示命名原则：
+每层严格按以下顺序出现：
 
-```text
-layers.0.attention_state
-layers.0.channel_state
-layers.1.attention_state
-```
+| 列表位置 | 稳定名称 | role | shape | dtype | 每层字节数 |
+|---|---|---|---|---|---:|
+| `state[3L]` | `layers.L.att_x_prev` | attention 前一 token 激活 | `[1024]` | `torch.float16` | 2,048 |
+| `state[3L+1]` | `layers.L.att_kv` | attention recurrent KV | `[16,64,64]` | `torch.float32` | 262,144 |
+| `state[3L+2]` | `layers.L.ffn_x_prev` | FFN 前一 token 激活 | `[1024]` | `torch.float16` | 2,048 |
 
-真实 RWKV-7 state component 名称必须由官方实现和接口调查获得，不得根据旧版 RWKV 猜测。
+其中 \(L\in[0,23]\)。24 个 `att_kv` 共占 6 MiB，48 个 FP16
+激活向量共占 96 KiB。因此保存时必须保留混合精度，不能为了格式统一把
+`att_kv` 降为 FP16，也不能把两个 FP16 分量无依据地升为 FP32。
+
+接口调查 fixture 的 state digest 为
+`9d63d57dac737cb49ee0e95bb10359699b2af23e1d500c4af15d763143514d84`。
+该 digest 只标识固定开发前缀形成的那一份具体状态，不是所有合法 state
+都必须相同的格式常量。
 
 ### 6.3 Inventory
 
@@ -256,6 +270,25 @@ layers.1.attention_state
 ```
 
 state statistics 用于诊断，不能替代 tensor checksum。
+
+### 6.4 Tensor 容器
+
+Impl-2 固定使用 `safetensors==0.8.0`：
+
+- 文件为 `native_state/tensors.safetensors`；
+- key 使用 6.2 节的稳定逻辑名称；
+- 保存前转为 contiguous CPU tensor，但不改变 dtype 或数值；
+- 加载时先在 CPU 安全读取，完成 checksum、名称、shape 和 dtype 检查后再移动到目标设备；
+- 不使用 pickle 或 `torch.load` 读取 PSA native-state checkpoint。
+
+### 6.5 Impl-1 内存恢复基线
+
+同一 prefix snapshot 上两次运行相同 9-token suffix 的结果：
+
+- logits：bitwise exact，最大绝对误差 0；
+- 最终 state：72/72 tensor bitwise exact，最大绝对误差 0；
+- tokenizer prefix/suffix roundtrip：exact；
+- 该基线只证明同进程内存 clone/restore，不替代磁盘和跨进程验证。
 
 ### 6.4 保存 dtype
 
@@ -713,17 +746,17 @@ v0.x 期间不保证向后兼容，但每次破坏性变更必须增加 `format_
 
 ## 20. 冻结前待填写
 
-- [ ] RWKV-7 官方 state component 清单；
-- [ ] 精确 tensor 名称、shape 和 dtype；
-- [ ] tensor 容器库及版本；
+- [x] RWKV-7 官方实现的 state component 清单；
+- [x] 精确 tensor 名称、shape 和 dtype；
+- [x] tensor 容器库及版本；
 - [ ] 官方初始化 state 的定义；
 - [ ] kernel compatibility 规则；
-- [ ] restore probe 输入；
+- [x] 开发 restore probe 输入；
 - [ ] 工程数值容差；
 - [ ] checkpoint 大小和存储预算；
-- [ ] manifest JSON Schema 文件；
-- [ ] Self State JSON Schema 文件；
+- [x] manifest JSON Schema 文件；
+- [x] Self State JSON Schema 文件；
 - [ ] 格式测试向量；
 - [ ] 将状态改为 Frozen for Implementation。
 
-在完成 RWKV-7 远程接口调查前，本规范保持逻辑层冻结候选，不填写猜测的 tensor shape。
+在 Impl-2 云端 100 次磁盘/跨进程恢复完成前，本规范仍是实现候选，不冻结最终数值容差。

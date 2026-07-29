@@ -15,6 +15,7 @@
     "torch",
     "rwkv",
     "numpy",
+    "safetensors",
     "runtime_environment",
     "disk",
     "expected",
@@ -53,6 +54,9 @@
     "numpy": {
       "type": "object"
     },
+    "safetensors": {
+      "type": "object"
+    },
     "runtime_environment": {
       "type": "object"
     },
@@ -67,6 +71,7 @@
       "required": [
         "python_supported",
         "numpy_version_pinned",
+        "safetensors_version_pinned",
         "torch_version_pinned",
         "torch_cuda_pinned",
         "cuda_available",

@@ -153,7 +153,7 @@ PSA 想探索另一条互补路线：
 项目目前处于：
 
 ```text
-Phase 0 — Research Design
+Phase 0 → Phase 1 — Research Design / State Infrastructure
 ```
 
 当前工作包括：
@@ -164,7 +164,9 @@ Phase 0 — Research Design
 4. 定义 Self、Memory 与 Persona 的边界；
 5. 设计最小 state persistence / swap 实验；
 6. 实现不加载模型的任务生成、验证和统计骨架；
-7. 完成云端资源与 GPU 环境门，准备验证 RWKV-7 recurrent state 接口。
+7. 完成云端资源与 GPU 环境门；
+8. 完成 RWKV-7 0.4B 模型加载、72-tensor state inventory 和 bitwise-exact 内存恢复；
+9. 实现 SafeTensors checkpoint 与 100 次跨进程磁盘恢复开发门，等待云端验证。
 
 ## 项目文档
 

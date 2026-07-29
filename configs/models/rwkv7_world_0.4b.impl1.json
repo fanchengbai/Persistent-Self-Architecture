@@ -27,6 +27,7 @@
     "torch": "2.12.0",
     "torch_cuda": "13.2",
     "rwkv": "0.8.32",
+    "safetensors": "0.8.0",
     "strategy": "cuda fp16",
     "environment": {
       "RWKV_V7_ON": "1",

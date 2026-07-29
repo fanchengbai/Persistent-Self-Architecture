@@ -35,26 +35,183 @@
     "parent_checkpoint_id": {"type": ["string", "null"]},
     "fork_root_id": {"type": ["string", "null"]},
     "environment_step": {"type": "integer", "minimum": 0},
-    "model": {"type": "object"},
-    "tokenizer": {"type": "object"},
-    "runtime": {"type": "object"},
-    "state_components": {
-      "type": "array",
-      "items": {"type": "object"}
-    },
-    "input_boundary": {"type": "object"},
-    "provenance": {"type": "object"},
-    "integrity": {
+    "model": {
       "type": "object",
-      "required": ["payload_root_digest_sha256"],
+      "required": [
+        "family",
+        "architecture",
+        "model_id",
+        "revision",
+        "weight_digest_sha256",
+        "layer_count",
+        "hidden_size",
+        "implementation"
+      ],
       "properties": {
-        "payload_root_digest_sha256": {
+        "family": {"const": "RWKV"},
+        "architecture": {"const": "RWKV-7"},
+        "model_id": {"type": "string", "minLength": 1},
+        "revision": {"type": "string", "minLength": 1},
+        "weight_digest_sha256": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{64}$"
+        },
+        "layer_count": {"type": "integer", "minimum": 1},
+        "hidden_size": {"type": "integer", "minimum": 1},
+        "implementation": {"type": "string", "minLength": 1}
+      }
+    },
+    "tokenizer": {
+      "type": "object",
+      "required": [
+        "tokenizer_id",
+        "revision",
+        "vocab_digest_sha256",
+        "implementation"
+      ],
+      "properties": {
+        "tokenizer_id": {"type": "string", "minLength": 1},
+        "revision": {"type": "string", "minLength": 1},
+        "vocab_digest_sha256": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{64}$"
+        },
+        "implementation": {"type": "string", "minLength": 1}
+      }
+    },
+    "runtime": {
+      "type": "object",
+      "required": [
+        "framework",
+        "framework_version",
+        "cuda",
+        "dtype",
+        "kernel_family",
+        "deterministic_mode",
+        "strategy",
+        "safetensors_version",
+        "code_commit",
+        "code_dirty",
+        "config_digest_sha256"
+      ],
+      "properties": {
+        "framework": {"const": "torch"},
+        "framework_version": {"type": "string", "minLength": 1},
+        "cuda": {"type": "string", "minLength": 1},
+        "dtype": {"const": "mixed_fp16_fp32"},
+        "kernel_family": {"enum": ["pytorch", "rwkv_cuda"]},
+        "deterministic_mode": {"type": "boolean"},
+        "strategy": {"type": "string", "minLength": 1},
+        "safetensors_version": {"const": "0.8.0"},
+        "code_commit": {
+          "type": ["string", "null"],
+          "pattern": "^[0-9a-f]{40}$"
+        },
+        "code_dirty": {"type": ["boolean", "null"]},
+        "config_digest_sha256": {
           "type": "string",
           "pattern": "^[0-9a-f]{64}$"
         }
       }
     },
+    "state_components": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": [
+          "name",
+          "source_path",
+          "layer",
+          "role",
+          "shape",
+          "dtype",
+          "device_at_capture",
+          "numel",
+          "byte_length",
+          "finite",
+          "l2_norm",
+          "sha256"
+        ],
+        "properties": {
+          "name": {
+            "type": "string",
+            "pattern": "^layers\\.[0-9]+\\.(att_x_prev|att_kv|ffn_x_prev)$"
+          },
+          "source_path": {
+            "type": "string",
+            "pattern": "^state\\[[0-9]+\\]$"
+          },
+          "layer": {"type": "integer", "minimum": 0},
+          "role": {
+            "enum": ["att_x_prev", "att_kv", "ffn_x_prev"]
+          },
+          "shape": {
+            "type": "array",
+            "minItems": 1,
+            "items": {"type": "integer", "minimum": 1}
+          },
+          "dtype": {"enum": ["torch.float16", "torch.float32"]},
+          "device_at_capture": {"type": "string", "minLength": 1},
+          "numel": {"type": "integer", "minimum": 1},
+          "byte_length": {"type": "integer", "minimum": 1},
+          "finite": {"const": true},
+          "l2_norm": {"type": "number"},
+          "sha256": {
+            "type": "string",
+            "pattern": "^[0-9a-f]{64}$"
+          }
+        }
+      }
+    },
+    "input_boundary": {
+      "type": "object",
+      "required": [
+        "last_token_id",
+        "tokens_consumed",
+        "prefix_digest_sha256",
+        "conversation_boundary",
+        "eot_seen",
+        "next_expected_input_digest_sha256"
+      ],
+      "properties": {
+        "last_token_id": {"type": "integer", "minimum": 0},
+        "tokens_consumed": {"type": "integer", "minimum": 1},
+        "prefix_digest_sha256": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{64}$"
+        },
+        "conversation_boundary": {"type": "string", "minLength": 1},
+        "eot_seen": {"type": "boolean"},
+        "next_expected_input_digest_sha256": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{64}$"
+        }
+      }
+    },
+    "provenance": {
+      "type": "object",
+      "required": ["capture_mode", "events"],
+      "properties": {
+        "capture_mode": {"const": "development_only"},
+        "events": {"const": "provenance/events.jsonl"}
+      }
+    },
+    "integrity": {
+      "type": "object",
+      "required": [
+        "algorithm",
+        "payload_root_digest_sha256",
+        "checksums_file"
+      ],
+      "properties": {
+        "algorithm": {"const": "sha256"},
+        "payload_root_digest_sha256": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{64}$"
+        },
+        "checksums_file": {"const": "validation/checksums.sha256"}
+      }
+    },
     "status": {"const": "complete"}
   }
 }
-

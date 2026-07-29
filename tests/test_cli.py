@@ -103,6 +103,32 @@ class CliTests(unittest.TestCase):
             self.assertEqual(exit_code, 0)
             self.assertFalse(failure_path.exists())
 
+    def test_checkpoint_gate_failure_writes_diagnostic_report(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            output_dir = Path(directory) / "gate"
+            with patch(
+                "psa.cli.run_checkpoint_roundtrip_gate",
+                side_effect=RuntimeError("child probe failed"),
+            ):
+                exit_code = main(
+                    [
+                        "checkpoint-roundtrip-gate",
+                        "--config",
+                        "configs/models/test.json",
+                        "--gate-config",
+                        "configs/gates/test.json",
+                        "--output-dir",
+                        str(output_dir),
+                    ]
+                )
+
+            self.assertEqual(exit_code, 2)
+            report = json.loads(
+                (output_dir / "failure_report.json").read_text(encoding="utf-8")
+            )
+            self.assertEqual(report["gate"], "impl2_checkpoint_roundtrip")
+            self.assertEqual(report["message"], "child probe failed")
+
 
 if __name__ == "__main__":
     unittest.main()

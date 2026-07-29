@@ -814,6 +814,11 @@ transfer size
 - option scoring；
 - golden fixture。
 
+当前状态：RWKV-7 World 0.4B 已在 RTX 5090 上完成加载、tokenizer
+roundtrip、72-tensor state inventory 和同进程内存恢复。内存恢复的 logits
+与全部 state tensor 均为 bitwise exact。official reset、option scoring 和
+golden fixture 仍待后续开发门。
+
 ### Impl-2：State 基础设施
 
 - checkpoint；
@@ -821,6 +826,11 @@ transfer size
 - diff；
 - swap/random；
 - L0–L3 validation。
+
+当前状态：已按 Impl-1 实测的 24 层 × 3 组件契约实现首版
+SafeTensors checkpoint、原子提交、逐文件 SHA-256、模型/tokenizer/输入边界
+兼容性检查，以及独立子进程中的 100 次磁盘恢复门。等待云端执行结果后冻结
+L3 容差；diff、swap/random 尚未实现。
 
 ### Impl-3：开发门
 
@@ -857,8 +867,8 @@ transfer size
 
 - [x] 首版纯逻辑单元测试通过；
 - [ ] task leakage validator 通过；
-- [ ] model/tokenizer digest 固定；
-- [ ] official state inventory 固定；
+- [x] model/tokenizer digest 固定；
+- [x] official state inventory 固定；
 - [ ] checkpoint L3 验证通过；
 - [ ] 100 次 roundtrip 容差冻结；
 - [ ] Prompt-visible 能力门通过；

@@ -59,6 +59,7 @@ bash scripts/install_impl1_gpu.sh
 PyTorch 2.12.0 + CUDA 13.2 wheel
 NumPy 1.26.4
 rwkv 0.8.32
+safetensors 0.8.0
 ```
 
 首轮接口门使用：
@@ -118,6 +119,51 @@ results/development/impl1_model_interface/failure_report.json
 这是一次非确认性的工程开发门，不使用 EXP-001 身份/目标任务，也不产生项目主张所需的行为证据。
 
 该门只验证内存内 clone/restore。磁盘序列化、跨进程恢复和 100 次重复属于下一批开发门。
+
+### 5.1 运行 Impl-2 Checkpoint 恢复门
+
+Impl-1 的 `summary.json` 为 `valid: true` 后执行：
+
+```bash
+bash scripts/run_impl2_checkpoint_gate.sh
+```
+
+该开发门会：
+
+- 形成一份新的原生 recurrent state；
+- 保留 48 个 FP16 与 24 个 FP32 tensor 的原始 dtype；
+- 用 SafeTensors 写入不可执行的 tensor 容器；
+- 通过临时目录、完整性校验和原子 rename 提交 checkpoint；
+- 校验权重、tokenizer、输入 token 边界、tensor 名称、shape、dtype 和 SHA-256；
+- 启动新的 Python 子进程，重新加载模型；
+- 在子进程中从磁盘加载同一 checkpoint 100 次；
+- 每次继续相同 suffix，比较 logits 与最终 state；
+- 输出首次/中位数/P95 保存恢复耗时和最大数值误差。
+
+主要输出：
+
+```text
+results/development/impl2_checkpoint_roundtrip/
+├─ summary.json
+├─ checkpoints/ckpt-<opaque-id>/
+│  ├─ manifest.json
+│  ├─ native_state/
+│  │  ├─ tensors.safetensors
+│  │  └─ inventory.json
+│  ├─ provenance/events.jsonl
+│  └─ validation/checksums.sha256
+└─ runs/run-<opaque-id>/
+   ├─ probe_config.json
+   ├─ reference.safetensors
+   └─ cross_process_restore_report.json
+```
+
+通过条件是：独立子进程成立、checkpoint 达到 L2、100/100 次 logits 与
+state 均 exact，最终 `achieved_level` 为 `L3`。若提前失败，查看：
+
+```bash
+cat results/development/impl2_checkpoint_roundtrip/failure_report.json
+```
 
 ## 6. 运行纯逻辑测试
 

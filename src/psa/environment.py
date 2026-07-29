@@ -16,6 +16,7 @@ EXPECTED_TORCH_VERSION = "2.12.0"
 EXPECTED_TORCH_CUDA = "13.2"
 EXPECTED_RWKV_VERSION = "0.8.32"
 EXPECTED_NUMPY_VERSION = "1.26.4"
+EXPECTED_SAFETENSORS_VERSION = "0.8.0"
 
 
 def _package_version(package: str) -> str | None:
@@ -127,10 +128,14 @@ def collect_environment(project_root: str | Path = ".") -> dict[str, Any]:
     torch_info = _torch_info()
     rwkv_version = _package_version("rwkv")
     numpy_version = _package_version("numpy")
+    safetensors_version = _package_version("safetensors")
 
     checks = {
         "python_supported": (3, 11) <= sys.version_info[:2] < (3, 13),
         "numpy_version_pinned": numpy_version == EXPECTED_NUMPY_VERSION,
+        "safetensors_version_pinned": (
+            safetensors_version == EXPECTED_SAFETENSORS_VERSION
+        ),
         "torch_version_pinned": str(torch_info.get("version", "")).split("+")[0]
         == EXPECTED_TORCH_VERSION,
         "torch_cuda_pinned": torch_info.get("cuda_runtime") == EXPECTED_TORCH_CUDA,
@@ -155,6 +160,7 @@ def collect_environment(project_root: str | Path = ".") -> dict[str, Any]:
         "torch": torch_info,
         "rwkv": {"version": rwkv_version},
         "numpy": {"version": numpy_version},
+        "safetensors": {"version": safetensors_version},
         "runtime_environment": {
             key: os.environ.get(key)
             for key in ("RWKV_V7_ON", "RWKV_JIT_ON", "RWKV_CUDA_ON")
@@ -169,6 +175,7 @@ def collect_environment(project_root: str | Path = ".") -> dict[str, Any]:
             "torch_cuda": EXPECTED_TORCH_CUDA,
             "rwkv": EXPECTED_RWKV_VERSION,
             "numpy": EXPECTED_NUMPY_VERSION,
+            "safetensors": EXPECTED_SAFETENSORS_VERSION,
         },
         "checks": checks,
         "valid": all(checks.values()),

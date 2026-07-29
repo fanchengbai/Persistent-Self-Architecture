@@ -15,6 +15,7 @@ dependencies = []
 rwkv7 = [
   "numpy==1.26.4",
   "rwkv==0.8.32",
+  "safetensors==0.8.0",
 ]
 
 [project.scripts]

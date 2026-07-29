@@ -1,0 +1,23 @@
+{
+  "gate_version": "0.1",
+  "gate": "impl2_checkpoint_roundtrip",
+  "development_only": true,
+  "repeat_count": 100,
+  "required_validation_level": "L3",
+  "exact_restore_required": true,
+  "prefix_text": "Development-only disk checkpoint interface check.\n",
+  "suffix_text": "Resume deterministically with delta epsilon zeta.\n",
+  "checkpoint": {
+    "format_version": "0.1",
+    "tensor_container": "safetensors",
+    "tensor_container_version": "0.8.0",
+    "preserve_capture_dtype": true,
+    "atomic_commit": true,
+    "checksum": "sha256"
+  },
+  "notes": [
+    "This gate is non-confirmatory and exists only to calibrate state persistence.",
+    "Each trial reloads the saved state from disk before continuing the same suffix.",
+    "The restore probe runs in a child Python process with a separately loaded model."
+  ]
+}

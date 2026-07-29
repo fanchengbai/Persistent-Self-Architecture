@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from contextlib import nullcontext
+import json
 from pathlib import Path
 import tempfile
 import unittest
@@ -58,6 +59,8 @@ class ModelAdapterTests(unittest.TestCase):
         self.assertEqual(config.architecture_hint["n_layer"], 24)
         self.assertEqual(len(config.weights_sha256), 64)
         self.assertEqual(len(config.tokenizer_sha256), 64)
+        payload = json.loads(MODEL_CONFIG.read_text(encoding="utf-8"))
+        self.assertEqual(payload["runtime"]["safetensors"], "0.8.0")
 
     def test_clone_state_is_deep_for_tensor_like_values(self) -> None:
         original = [Cloneable(1), {"nested": Cloneable(2)}]
