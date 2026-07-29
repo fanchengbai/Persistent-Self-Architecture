@@ -57,6 +57,7 @@ bash scripts/install_impl1_gpu.sh
 
 ```text
 PyTorch 2.12.0 + CUDA 13.2 wheel
+NumPy 1.26.4
 rwkv 0.8.32
 ```
 
@@ -105,6 +106,14 @@ results/development/impl1_model_interface/
 ├─ roundtrip_validation.json
 └─ summary.json
 ```
+
+如果模型在生成上述成功报告前加载失败，目录中会保留：
+
+```text
+results/development/impl1_model_interface/failure_report.json
+```
+
+失败报告记录异常类型、错误信息、配置路径和时间，不包含模型权重或访问凭据。重新运行成功后，旧的失败报告会自动清除。
 
 这是一次非确认性的工程开发门，不使用 EXP-001 身份/目标任务，也不产生项目主张所需的行为证据。
 

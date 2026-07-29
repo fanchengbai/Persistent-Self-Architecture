@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import argparse
+from datetime import datetime, timezone
 import json
 from pathlib import Path
 import sys
@@ -159,11 +160,26 @@ def _environment_report(args: argparse.Namespace) -> int:
 
 
 def _model_interface_gate(args: argparse.Namespace) -> int:
-    result = run_interface_gate(
-        config_path=args.config,
-        output_dir=args.output_dir,
-        project_root=args.project_root,
-    )
+    failure_path = Path(args.output_dir) / "failure_report.json"
+    failure_path.unlink(missing_ok=True)
+    try:
+        result = run_interface_gate(
+            config_path=args.config,
+            output_dir=args.output_dir,
+            project_root=args.project_root,
+        )
+    except Exception as exc:
+        failure = {
+            "failure_version": "0.1",
+            "created_at_utc": datetime.now(timezone.utc).isoformat(),
+            "development_only": True,
+            "gate": "impl1_model_interface",
+            "exception_type": type(exc).__name__,
+            "message": str(exc),
+            "config": str(Path(args.config).resolve()),
+        }
+        _write_json(failure_path, failure)
+        raise
     print(json.dumps(result, ensure_ascii=False, indent=2))
     return 0 if result["valid"] else 2
 

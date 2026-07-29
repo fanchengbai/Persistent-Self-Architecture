@@ -31,6 +31,7 @@ class EnvironmentReportTests(unittest.TestCase):
         self.assertFalse(report["torch"]["available"])
         self.assertFalse(report["checks"]["cuda_available"])
         self.assertFalse(report["checks"]["rwkv_version_pinned"])
+        self.assertFalse(report["checks"]["numpy_version_pinned"])
 
     def test_report_contains_no_environment_secrets(self) -> None:
         with tempfile.TemporaryDirectory() as directory:

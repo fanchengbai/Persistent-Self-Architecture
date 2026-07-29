@@ -4,6 +4,7 @@ import json
 from pathlib import Path
 import tempfile
 import unittest
+from unittest.mock import patch
 
 from psa.cli import main
 
@@ -52,6 +53,55 @@ class CliTests(unittest.TestCase):
             )
             self.assertEqual(len(payload["source_config"]["sha256"]), 64)
             self.assertEqual(len(payload["dataset_digest_sha256"]), 64)
+
+    def test_model_interface_failure_writes_diagnostic_report(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            output_dir = Path(directory) / "gate"
+            with patch(
+                "psa.cli.run_interface_gate",
+                side_effect=RuntimeError("Numpy is not available"),
+            ):
+                exit_code = main(
+                    [
+                        "model-interface-gate",
+                        "--config",
+                        "configs/models/test.json",
+                        "--output-dir",
+                        str(output_dir),
+                    ]
+                )
+
+            self.assertEqual(exit_code, 2)
+            report = json.loads(
+                (output_dir / "failure_report.json").read_text(encoding="utf-8")
+            )
+            self.assertEqual(report["gate"], "impl1_model_interface")
+            self.assertEqual(report["exception_type"], "RuntimeError")
+            self.assertEqual(report["message"], "Numpy is not available")
+            self.assertTrue(report["development_only"])
+
+    def test_successful_model_interface_gate_removes_stale_failure_report(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            output_dir = Path(directory) / "gate"
+            output_dir.mkdir()
+            failure_path = output_dir / "failure_report.json"
+            failure_path.write_text('{"stale":true}', encoding="utf-8")
+            with patch(
+                "psa.cli.run_interface_gate",
+                return_value={"valid": True},
+            ):
+                exit_code = main(
+                    [
+                        "model-interface-gate",
+                        "--config",
+                        "configs/models/test.json",
+                        "--output-dir",
+                        str(output_dir),
+                    ]
+                )
+
+            self.assertEqual(exit_code, 0)
+            self.assertFalse(failure_path.exists())
 
 
 if __name__ == "__main__":

@@ -14,6 +14,7 @@
     "nvidia_smi",
     "torch",
     "rwkv",
+    "numpy",
     "runtime_environment",
     "disk",
     "expected",
@@ -49,6 +50,9 @@
     "rwkv": {
       "type": "object"
     },
+    "numpy": {
+      "type": "object"
+    },
     "runtime_environment": {
       "type": "object"
     },
@@ -62,6 +66,7 @@
       "type": "object",
       "required": [
         "python_supported",
+        "numpy_version_pinned",
         "torch_version_pinned",
         "torch_cuda_pinned",
         "cuda_available",
