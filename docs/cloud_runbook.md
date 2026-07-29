@@ -22,9 +22,30 @@ python -m pip install --upgrade pip
 python -m pip install -e .
 ```
 
-当前 Impl-0 只有 Python 标准库依赖，不会下载 RWKV 权重。
+当前资源下载器只使用 Python 标准库，不要求额外安装 Hugging Face SDK。
 
-## 3. 运行纯逻辑测试
+## 3. 准备模型、Tokenizer 与开发数据
+
+在项目根目录执行：
+
+```bash
+bash scripts/prepare_exp001_assets.sh
+```
+
+脚本会按固定 revision 下载 RWKV-7 World 0.4B 和 World tokenizer，将文件放到项目内被 Git 忽略的 `.psa-assets/`，生成下载收据，然后创建 EXP-001 合成开发集。
+
+中断后重复运行同一命令即可续传。若需要使用挂载盘：
+
+```bash
+PSA_ASSET_ROOT=/mnt/psa-assets \
+  bash scripts/prepare_exp001_assets.sh
+```
+
+完整说明见 `docs/asset_management.md`。
+
+当前不下载 RWKV 完整预训练语料，因为 EXP-001 是冻结基础模型上的状态实验，不是预训练或全量微调。
+
+## 4. 运行纯逻辑测试
 
 ```bash
 python -m unittest discover -s tests -v
@@ -42,19 +63,17 @@ python -m unittest discover -s tests -v
 
 它们不是模型实验。
 
-## 4. 生成开发任务样例
+## 5. 单独生成开发任务样例
 
 ```bash
 psa task-generate \
   --output results/dev/identity_goal.synthetic.json \
-  --count 8 \
-  --base-seed 20260729 \
-  --track synthetic
+  --config configs/tasks/exp001_identity_goal.dev.json
 ```
 
 输出只用于检查生成逻辑。当前示例标签尚未经过目标 RWKV tokenizer 审核，不得作为正式测试集。
 
-## 5. 远程环境信息
+## 6. 远程环境信息
 
 进入模型适配前记录：
 
@@ -75,7 +94,7 @@ tokenizer revision
 
 不要把访问密钥、用户名或私有路径提交进仓库。
 
-## 6. 开发门顺序
+## 7. 开发门顺序
 
 ```text
 环境检查
@@ -93,7 +112,7 @@ tokenizer revision
 
 在 RWKV adapter、正式配置和预注册尚未完成前，不运行 Core Set。
 
-## 7. 需要从云端回传
+## 8. 需要从云端回传
 
 第一轮只回传非确认性开发信息：
 
@@ -105,7 +124,7 @@ roundtrip_validation.json
 tokenizer_label_report.json
 capability_gate_report.json
 resource_estimate.json
+.psa-assets/receipts/exp001-rwkv7-world-0.4b.json
 ```
 
 这些文件用于补齐 `state_format.md` 和 `evaluation_protocol.md` 的空缺参数。
-

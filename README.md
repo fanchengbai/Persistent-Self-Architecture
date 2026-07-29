@@ -178,6 +178,17 @@ Phase 0 — Research Design
 - [状态与 Checkpoint 格式](docs/state_format.md)
 - [实现与远程执行规范](docs/implementation_spec.md)
 - [云服务器开发门运行手册](docs/cloud_runbook.md)
+- [模型与数据资源管理](docs/asset_management.md)
+
+## 云服务器一键准备
+
+克隆项目后，可在 Linux 云服务器的项目根目录执行：
+
+```bash
+bash scripts/prepare_exp001_assets.sh
+```
+
+它会按固定版本下载 RWKV-7 World 0.4B 与 tokenizer，并生成 EXP-001 开发数据。大型文件默认保存在项目内的 `.psa-assets/`，不会进入 Git。
 
 ## License
 

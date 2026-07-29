@@ -6,7 +6,8 @@ from pathlib import Path
 import sys
 from typing import Any
 
-from psa.artifacts import canonical_json_bytes, sha256_json
+from psa.assets import fetch_manifest, load_manifest, plan_manifest, verify_manifest
+from psa.artifacts import canonical_json_bytes, sha256_file, sha256_json
 from psa.evaluation import group_contrasts
 from psa.tasks import generate_dataset
 from psa.validation import validate_dataset
@@ -25,14 +26,33 @@ def _parse_pair(value: str) -> tuple[str, str]:
 
 
 def _task_generate(args: argparse.Namespace) -> int:
+    config: dict[str, Any] = {}
+    config_provenance: dict[str, str] | None = None
+    if args.config:
+        config_path = Path(args.config)
+        loaded = json.loads(config_path.read_text(encoding="utf-8"))
+        if not isinstance(loaded, dict):
+            raise ValueError("task config must be a JSON object")
+        config = loaded
+        config_provenance = {
+            "filename": config_path.name,
+            "sha256": sha256_file(config_path),
+        }
+
+    identity_label_pairs = tuple(
+        tuple(pair) for pair in config.get("identity_label_pairs", (args.identity_labels,))
+    )
+    goal_label_pairs = tuple(
+        tuple(pair) for pair in config.get("goal_label_pairs", (args.goal_labels,))
+    )
     groups = generate_dataset(
-        group_count=args.count,
-        base_seed=args.base_seed,
-        track=args.track,
-        identity_label_pairs=(args.identity_labels,),
-        goal_label_pairs=(args.goal_labels,),
-        answer_codes=tuple(args.answer_codes),
-        delay_units=args.delay_units,
+        group_count=int(config.get("group_count", args.count)),
+        base_seed=int(config.get("base_seed", args.base_seed)),
+        track=str(config.get("track", args.track)),
+        identity_label_pairs=identity_label_pairs,
+        goal_label_pairs=goal_label_pairs,
+        answer_codes=tuple(config.get("answer_codes", args.answer_codes)),
+        delay_units=int(config.get("delay_units", args.delay_units)),
     )
     report = validate_dataset(groups)
     if not report.valid:
@@ -42,9 +62,10 @@ def _task_generate(args: argparse.Namespace) -> int:
     group_payloads = [group.to_dict() for group in groups]
     dataset = {
         "dataset_version": "0.1",
-        "track": args.track,
+        "track": str(config.get("track", args.track)),
         "group_count": len(groups),
-        "base_seed": args.base_seed,
+        "base_seed": int(config.get("base_seed", args.base_seed)),
+        "source_config": config_provenance,
         "groups": group_payloads,
         "validation": report.to_dict(),
     }
@@ -87,6 +108,57 @@ def _stats_contrast(args: argparse.Namespace) -> int:
     return 0
 
 
+def _asset_selection(args: argparse.Namespace) -> tuple[str, ...] | None:
+    return tuple(args.only) if args.only else None
+
+
+def _assets_plan(args: argparse.Namespace) -> int:
+    manifest = load_manifest(args.manifest)
+    result = plan_manifest(
+        manifest,
+        root=args.root,
+        selected_ids=_asset_selection(args),
+        hf_endpoint=args.hf_endpoint,
+    )
+    print(json.dumps(result, ensure_ascii=False, indent=2))
+    return 0
+
+
+def _assets_fetch(args: argparse.Namespace) -> int:
+    manifest = load_manifest(args.manifest)
+    result = fetch_manifest(
+        manifest,
+        root=args.root,
+        selected_ids=_asset_selection(args),
+        retries=args.retries,
+        timeout=args.timeout,
+        hf_endpoint=args.hf_endpoint,
+    )
+    print(json.dumps(result, ensure_ascii=False, indent=2))
+    return 0
+
+
+def _assets_verify(args: argparse.Namespace) -> int:
+    manifest = load_manifest(args.manifest)
+    result = verify_manifest(
+        manifest,
+        root=args.root,
+        selected_ids=_asset_selection(args),
+    )
+    print(json.dumps(result, ensure_ascii=False, indent=2))
+    return 0 if result["valid"] else 2
+
+
+def _add_asset_common_arguments(parser: argparse.ArgumentParser) -> None:
+    parser.add_argument("--manifest", required=True)
+    parser.add_argument("--root", default=".psa-assets")
+    parser.add_argument(
+        "--only",
+        action="append",
+        help="process only one asset ID; repeat to select multiple assets",
+    )
+
+
 def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(prog="psa")
     subparsers = parser.add_subparsers(dest="command", required=True)
@@ -95,6 +167,9 @@ def build_parser() -> argparse.ArgumentParser:
         "task-generate", help="generate a deterministic development task set"
     )
     task_generate.add_argument("--output", required=True)
+    task_generate.add_argument(
+        "--config", help="optional JSON config whose values override CLI defaults"
+    )
     task_generate.add_argument("--count", type=int, default=8)
     task_generate.add_argument("--base-seed", type=int, default=20260729)
     task_generate.add_argument(
@@ -117,6 +192,28 @@ def build_parser() -> argparse.ArgumentParser:
     )
     stats_contrast.add_argument("--input", required=True)
     stats_contrast.set_defaults(handler=_stats_contrast)
+
+    assets_plan = subparsers.add_parser(
+        "assets-plan", help="show pinned remote assets and local destinations"
+    )
+    _add_asset_common_arguments(assets_plan)
+    assets_plan.add_argument("--hf-endpoint")
+    assets_plan.set_defaults(handler=_assets_plan)
+
+    assets_fetch = subparsers.add_parser(
+        "assets-fetch", help="download pinned assets with resume and verification"
+    )
+    _add_asset_common_arguments(assets_fetch)
+    assets_fetch.add_argument("--hf-endpoint")
+    assets_fetch.add_argument("--retries", type=int, default=3)
+    assets_fetch.add_argument("--timeout", type=float, default=60.0)
+    assets_fetch.set_defaults(handler=_assets_fetch)
+
+    assets_verify = subparsers.add_parser(
+        "assets-verify", help="verify downloaded assets against the manifest"
+    )
+    _add_asset_common_arguments(assets_verify)
+    assets_verify.set_defaults(handler=_assets_verify)
     return parser
 
 
@@ -128,4 +225,3 @@ def main(argv: list[str] | None = None) -> int:
     except (KeyError, TypeError, ValueError, OSError, json.JSONDecodeError) as exc:
         print(f"error: {exc}", file=sys.stderr)
         return 2
-
