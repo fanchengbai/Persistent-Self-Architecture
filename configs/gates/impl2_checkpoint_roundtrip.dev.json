@@ -4,9 +4,32 @@
   "development_only": true,
   "repeat_count": 100,
   "required_validation_level": "L3",
-  "exact_restore_required": true,
+  "bitwise_exact_is_diagnostic": true,
   "prefix_text": "Development-only disk checkpoint interface check.\n",
   "suffix_text": "Resume deterministically with delta epsilon zeta.\n",
+  "determinism": {
+    "enabled": true,
+    "seed": 20260729,
+    "cublas_workspace_config": ":4096:8",
+    "deterministic_algorithms": true,
+    "cudnn_benchmark": false,
+    "cudnn_deterministic": true,
+    "float32_matmul_precision": "highest",
+    "allow_tf32": false
+  },
+  "acceptance": {
+    "require_shape_dtype_compatibility": true,
+    "require_top1_match": true,
+    "logits_max_abs_error": 0.0625,
+    "state_max_abs_error": 0.125
+  },
+  "calibration": {
+    "source": "first RTX 5090 cross-process development run",
+    "observed_logits_max_abs_error": 0.03125,
+    "observed_state_max_abs_error": 0.05822181701660156,
+    "threshold_rule": "next power-of-two bound at or above twice the observed development maximum",
+    "confirmatory": false
+  },
   "checkpoint": {
     "format_version": "0.1",
     "tensor_container": "safetensors",

@@ -290,6 +290,31 @@ Impl-2 固定使用 `safetensors==0.8.0`：
 - tokenizer prefix/suffix roundtrip：exact；
 - 该基线只证明同进程内存 clone/restore，不替代磁盘和跨进程验证。
 
+### 6.6 Impl-2 跨进程开发容差
+
+第一轮 RTX 5090 跨进程开发运行确认 checkpoint checksum、tensor inventory、
+shape、dtype 和内容摘要均精确恢复，但独立进程续算不是 bitwise exact：
+
+| 指标 | 100 次实测最大误差 | Impl-2 开发阈值 |
+|---|---:|---:|
+| 最终 logits 最大绝对误差 | 0.03125 | 0.0625 |
+| 最终 state 最大绝对误差 | 0.05822181701660156 | 0.125 |
+
+阈值采用“大于两倍实测最大值的下一个二进制整齐边界”，只用于非确认性
+Impl-2 开发门。重跑同时固定随机种子、cuBLAS workspace、PyTorch
+deterministic algorithms、最高 FP32 matmul 精度并关闭 TF32。
+
+L3 开发门要求 100/100 次：
+
+- checkpoint tensor 与 inventory checksum 精确；
+- logits/state shape 与 dtype 兼容；
+- 误差不超过上述阈值；
+- 最终 logits top-1 token 一致。
+
+Bitwise exact 次数和同一子进程内的重复一致性继续记录为诊断指标，但不与
+“序列化是否无损”混为同一判断。正式确认批次的最终容差仍需在开发门结果
+复核后预注册。
+
 ### 6.4 保存 dtype
 
 默认按捕获时原始 dtype 保存，不擅自转换为 fp32 或更低精度。
@@ -752,7 +777,8 @@ v0.x 期间不保证向后兼容，但每次破坏性变更必须增加 `format_
 - [ ] 官方初始化 state 的定义；
 - [ ] kernel compatibility 规则；
 - [x] 开发 restore probe 输入；
-- [ ] 工程数值容差；
+- [x] Impl-2 开发数值容差；
+- [ ] 确认性实验最终数值容差；
 - [ ] checkpoint 大小和存储预算；
 - [x] manifest JSON Schema 文件；
 - [x] Self State JSON Schema 文件；

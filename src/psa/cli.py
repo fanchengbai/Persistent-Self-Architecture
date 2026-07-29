@@ -228,6 +228,8 @@ def _checkpoint_restore_probe(args: argparse.Namespace) -> int:
                 "valid": result["valid"],
                 "repeat_count": result["repeat_count"],
                 "exact_repeat_count": result["exact_repeat_count"],
+                "tolerance_pass_count": result["tolerance_pass_count"],
+                "top1_match_count": result["top1_match_count"],
                 "achieved_level": result["achieved_level"],
                 "output": str(Path(args.output).resolve()),
             },

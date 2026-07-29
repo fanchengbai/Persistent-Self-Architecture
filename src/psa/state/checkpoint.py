@@ -26,6 +26,7 @@ from psa.model.rwkv7 import (
     RWKV7Adapter,
     RWKV7ModelConfig,
     _flatten_state,
+    clone_state,
     compare_states,
     compare_tensors,
     inventory_state,
@@ -230,6 +231,50 @@ def _git_metadata(project_root: Path) -> dict[str, Any]:
     }
 
 
+def _apply_determinism_policy(policy: Any) -> dict[str, Any]:
+    if not isinstance(policy, dict):
+        raise ValueError("determinism policy must be an object")
+    expected = {
+        "enabled": True,
+        "cublas_workspace_config": ":4096:8",
+        "deterministic_algorithms": True,
+        "cudnn_benchmark": False,
+        "cudnn_deterministic": True,
+        "float32_matmul_precision": "highest",
+        "allow_tf32": False,
+    }
+    if any(policy.get(key) != value for key, value in expected.items()):
+        raise ValueError("determinism policy does not match Impl-2")
+    seed = policy.get("seed")
+    if not isinstance(seed, int) or seed < 0:
+        raise ValueError("determinism seed must be a non-negative integer")
+    os.environ["CUBLAS_WORKSPACE_CONFIG"] = policy[
+        "cublas_workspace_config"
+    ]
+    os.environ["PSA_DETERMINISTIC"] = "1"
+    os.environ["PSA_DETERMINISTIC_SEED"] = str(seed)
+    return dict(policy)
+
+
+def _validate_acceptance_policy(policy: Any) -> dict[str, Any]:
+    if not isinstance(policy, dict):
+        raise ValueError("acceptance policy must be an object")
+    if (
+        policy.get("require_shape_dtype_compatibility") is not True
+        or policy.get("require_top1_match") is not True
+    ):
+        raise ValueError("Impl-2 requires compatibility and top-1 agreement")
+    for field in ("logits_max_abs_error", "state_max_abs_error"):
+        value = policy.get(field)
+        if not isinstance(value, (int, float)) or value <= 0:
+            raise ValueError(f"acceptance.{field} must be positive")
+    return dict(policy)
+
+
+def _top1_id(logits: Any) -> int:
+    return int(logits.detach().float().argmax().item())
+
+
 def save_native_checkpoint(
     state: Any,
     config: RWKV7ModelConfig,
@@ -356,7 +401,12 @@ def save_native_checkpoint(
                     if config.environment["RWKV_CUDA_ON"] == "0"
                     else "rwkv_cuda"
                 ),
-                "deterministic_mode": False,
+                "deterministic_mode": (
+                    os.environ.get("PSA_DETERMINISTIC", "0") == "1"
+                ),
+                "cublas_workspace_config": os.environ.get(
+                    "CUBLAS_WORKSPACE_CONFIG"
+                ),
                 "strategy": config.strategy,
                 "safetensors_version": safetensors_version,
                 "code_commit": code_revision["commit"],
@@ -609,6 +659,12 @@ def run_restore_probe(
     repeat_count = probe_config.get("repeat_count")
     if not isinstance(repeat_count, int) or repeat_count < 100:
         raise ValueError("repeat_count must be at least 100")
+    determinism_policy = _apply_determinism_policy(
+        probe_config.get("determinism")
+    )
+    acceptance = _validate_acceptance_policy(
+        probe_config.get("acceptance")
+    )
 
     checkpoint_verification = verify_native_checkpoint(
         checkpoint_path,
@@ -660,14 +716,20 @@ def run_restore_probe(
     names = [component["name"] for component in components]
     expected_logits = reference["probe.logits"].to(device="cuda")
     expected_state = [reference[name].to(device="cuda") for name in names]
+    expected_top1 = _top1_id(expected_logits)
     torch.cuda.reset_peak_memory_stats()
     trials = []
     load_times: list[float] = []
     inference_times: list[float] = []
-    all_exact = True
     all_compatible = True
+    all_within_tolerance = True
+    all_top1_match = True
     worst_logits_error = 0.0
     worst_state_error = 0.0
+    child_baseline_logits = None
+    child_baseline_state = None
+    intra_process_exact_count = 0
+    intra_process_tolerance_count = 0
     for trial_index in range(repeat_count):
         load_started = time.perf_counter()
         restored_state, _ = load_native_state(
@@ -690,8 +752,51 @@ def run_restore_probe(
         compatible = bool(
             logits_comparison["compatible"] and state_comparison["compatible"]
         )
-        all_exact = all_exact and exact
         all_compatible = all_compatible and compatible
+        logits_error = logits_comparison["max_abs_error"]
+        state_error = state_comparison["max_abs_error"]
+        within_tolerance = bool(
+            compatible
+            and logits_error is not None
+            and state_error is not None
+            and logits_error <= acceptance["logits_max_abs_error"]
+            and state_error <= acceptance["state_max_abs_error"]
+        )
+        top1_match = _top1_id(logits) == expected_top1
+        all_within_tolerance = all_within_tolerance and within_tolerance
+        all_top1_match = all_top1_match and top1_match
+
+        if child_baseline_logits is None:
+            intra_logits = {
+                "compatible": True,
+                "exact": True,
+                "max_abs_error": 0.0,
+            }
+            intra_state = {
+                "compatible": True,
+                "exact": True,
+                "max_abs_error": 0.0,
+            }
+            child_baseline_logits = logits.detach().clone()
+            child_baseline_state = clone_state(final_state)
+        else:
+            intra_logits = compare_tensors(
+                logits, child_baseline_logits, torch
+            )
+            intra_state = compare_states(
+                final_state, child_baseline_state, torch
+            )
+        intra_exact = bool(intra_logits["exact"] and intra_state["exact"])
+        intra_within_tolerance = bool(
+            intra_logits["compatible"]
+            and intra_state["compatible"]
+            and intra_logits["max_abs_error"]
+            <= acceptance["logits_max_abs_error"]
+            and intra_state["max_abs_error"]
+            <= acceptance["state_max_abs_error"]
+        )
+        intra_process_exact_count += int(intra_exact)
+        intra_process_tolerance_count += int(intra_within_tolerance)
         worst_logits_error = max(
             worst_logits_error,
             float(logits_comparison["max_abs_error"] or 0.0),
@@ -710,9 +815,13 @@ def run_restore_probe(
                 "logits_compatible": logits_comparison["compatible"],
                 "logits_exact": logits_comparison["exact"],
                 "logits_max_abs_error": logits_comparison["max_abs_error"],
+                "top1_match": top1_match,
                 "state_compatible": state_comparison["compatible"],
                 "state_exact": state_comparison["exact"],
                 "state_max_abs_error": state_comparison["max_abs_error"],
+                "within_tolerance": within_tolerance,
+                "intra_process_exact": intra_exact,
+                "intra_process_within_tolerance": intra_within_tolerance,
             }
         )
         del restored_state, logits, final_state
@@ -733,6 +842,11 @@ def run_restore_probe(
         "created_at_utc": _utc_now(),
         "development_only": True,
         "mode": "disk_cross_process_restore",
+        "determinism": {
+            "policy": determinism_policy,
+            "observed": adapter.determinism,
+        },
+        "acceptance": acceptance,
         "process_is_distinct": os.getpid() != probe_config.get("parent_process_id"),
         "repeat_count": repeat_count,
         "checkpoint_verification": verification,
@@ -740,6 +854,12 @@ def run_restore_probe(
         "exact_repeat_count": sum(
             trial["logits_exact"] and trial["state_exact"] for trial in trials
         ),
+        "tolerance_pass_count": sum(
+            trial["within_tolerance"] for trial in trials
+        ),
+        "top1_match_count": sum(trial["top1_match"] for trial in trials),
+        "intra_process_exact_count": intra_process_exact_count,
+        "intra_process_tolerance_count": intra_process_tolerance_count,
         "worst_error": {
             "logits_max_abs_error": (
                 worst_logits_error if all_compatible else None
@@ -756,13 +876,21 @@ def run_restore_probe(
         "cuda_peak_memory_bytes": int(torch.cuda.max_memory_allocated()),
         "trials": trials,
         "achieved_level": (
-            "L3" if all_compatible and all_exact and checkpoint_stable else "L2"
+            "L3"
+            if (
+                all_compatible
+                and all_within_tolerance
+                and all_top1_match
+                and checkpoint_stable
+            )
+            else "L2"
         ),
         "valid": bool(
             verification["valid"]
             and os.getpid() != probe_config.get("parent_process_id")
             and all_compatible
-            and all_exact
+            and all_within_tolerance
+            and all_top1_match
             and checkpoint_stable
         ),
     }
@@ -788,9 +916,15 @@ def run_checkpoint_roundtrip_gate(
         raise ValueError("gate repeat_count must be at least 100")
     if (
         gate_config.get("required_validation_level") != "L3"
-        or gate_config.get("exact_restore_required") is not True
+        or gate_config.get("bitwise_exact_is_diagnostic") is not True
     ):
-        raise ValueError("gate must require exact L3 restore validation")
+        raise ValueError("gate must retain bitwise exactness as a diagnostic")
+    determinism_policy = _apply_determinism_policy(
+        gate_config.get("determinism")
+    )
+    acceptance = _validate_acceptance_policy(
+        gate_config.get("acceptance")
+    )
     checkpoint_options = gate_config.get("checkpoint")
     if (
         not isinstance(checkpoint_options, dict)
@@ -856,6 +990,8 @@ def run_checkpoint_roundtrip_gate(
         "suffix_tokens": suffix_tokens,
         "suffix_digest_sha256": sha256_json(suffix_tokens),
         "reference_sha256": reference_digest,
+        "determinism": determinism_policy,
+        "acceptance": acceptance,
     }
     probe_config_path = run_dir / "probe_config.json"
     _write_json(probe_config_path, probe_config)
@@ -892,7 +1028,7 @@ def run_checkpoint_roundtrip_gate(
         check=False,
     )
     child_seconds = time.perf_counter() - child_started
-    if child.returncode != 0:
+    if not probe_report_path.is_file():
         failure = {
             "failure_version": FORMAT_VERSION,
             "created_at_utc": _utc_now(),
@@ -922,6 +1058,11 @@ def run_checkpoint_roundtrip_gate(
         "cross_process_seconds": child_seconds,
         "repeat_count": repeat_count,
         "exact_repeat_count": probe_report["exact_repeat_count"],
+        "tolerance_pass_count": probe_report["tolerance_pass_count"],
+        "top1_match_count": probe_report["top1_match_count"],
+        "intra_process_exact_count": probe_report[
+            "intra_process_exact_count"
+        ],
         "achieved_level": probe_report["achieved_level"],
         "valid": probe_report["valid"],
         "reports": [

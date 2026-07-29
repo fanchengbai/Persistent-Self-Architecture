@@ -290,6 +290,37 @@ def compare_states(left: Any, right: Any, torch: Any) -> dict[str, Any]:
     }
 
 
+def configure_torch_determinism(torch: Any) -> dict[str, Any]:
+    enabled = os.environ.get("PSA_DETERMINISTIC", "0") == "1"
+    seed = int(os.environ.get("PSA_DETERMINISTIC_SEED", "20260729"))
+    if enabled:
+        torch.manual_seed(seed)
+        torch.cuda.manual_seed_all(seed)
+        torch.use_deterministic_algorithms(True, warn_only=False)
+        torch.backends.cudnn.benchmark = False
+        torch.backends.cudnn.deterministic = True
+        torch.set_float32_matmul_precision("highest")
+        torch.backends.cuda.matmul.allow_tf32 = False
+        torch.backends.cudnn.allow_tf32 = False
+    return {
+        "enabled": enabled,
+        "seed": seed,
+        "cublas_workspace_config": os.environ.get("CUBLAS_WORKSPACE_CONFIG"),
+        "deterministic_algorithms": bool(
+            torch.are_deterministic_algorithms_enabled()
+        ),
+        "cudnn_benchmark": bool(torch.backends.cudnn.benchmark),
+        "cudnn_deterministic": bool(torch.backends.cudnn.deterministic),
+        "float32_matmul_precision": str(
+            torch.get_float32_matmul_precision()
+        ),
+        "cuda_matmul_allow_tf32": bool(
+            torch.backends.cuda.matmul.allow_tf32
+        ),
+        "cudnn_allow_tf32": bool(torch.backends.cudnn.allow_tf32),
+    }
+
+
 class RWKV7Adapter:
     def __init__(
         self,
@@ -297,11 +328,13 @@ class RWKV7Adapter:
         model: Any,
         tokenizer: Any,
         torch: Any,
+        determinism: dict[str, Any] | None = None,
     ) -> None:
         self.config = config
         self.model = model
         self.tokenizer = tokenizer
         self.torch = torch
+        self.determinism = determinism or {"enabled": False}
 
     @classmethod
     def load(cls, config: RWKV7ModelConfig) -> "RWKV7Adapter":
@@ -314,6 +347,7 @@ class RWKV7Adapter:
             )
 
         torch = import_module("torch")
+        determinism = configure_torch_determinism(torch)
         rwkv_model = import_module("rwkv.model")
         rwkv_tokenizer = import_module("rwkv.rwkv_tokenizer")
 
@@ -322,7 +356,7 @@ class RWKV7Adapter:
             model_path = model_path[:-4]
         model = rwkv_model.RWKV(model=model_path, strategy=config.strategy)
         tokenizer = rwkv_tokenizer.TRIE_TOKENIZER(str(config.tokenizer_path))
-        return cls(config, model, tokenizer, torch)
+        return cls(config, model, tokenizer, torch, determinism)
 
     def encode(self, text: str) -> list[int]:
         tokens = list(self.tokenizer.encode(text))
@@ -376,6 +410,7 @@ class RWKV7Adapter:
                 "size_bytes": self.config.tokenizer_size_bytes,
             },
             "runtime_environment": dict(self.config.environment),
+            "determinism": dict(self.determinism),
         }
 
 

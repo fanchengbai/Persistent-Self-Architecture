@@ -1,14 +1,18 @@
 from __future__ import annotations
 
 import json
+import os
 from pathlib import Path
 import tempfile
 import unittest
+from unittest.mock import patch
 
 from psa.artifacts import canonical_json_bytes, payload_digest, sha256_file
 from psa.state.checkpoint import (
     CheckpointError,
+    _apply_determinism_policy,
     _checksum_text,
+    _validate_acceptance_policy,
     component_name,
     verify_native_checkpoint,
 )
@@ -66,6 +70,42 @@ class CheckpointTests(unittest.TestCase):
         self.assertEqual(component_name(71, 24), "layers.23.ffn_x_prev")
         with self.assertRaises(ValueError):
             component_name(72, 24)
+
+    def test_determinism_policy_sets_pre_import_environment(self) -> None:
+        policy = {
+            "enabled": True,
+            "seed": 17,
+            "cublas_workspace_config": ":4096:8",
+            "deterministic_algorithms": True,
+            "cudnn_benchmark": False,
+            "cudnn_deterministic": True,
+            "float32_matmul_precision": "highest",
+            "allow_tf32": False,
+        }
+        with patch.dict("os.environ", {}, clear=True):
+            observed = _apply_determinism_policy(policy)
+            self.assertEqual(observed, policy)
+            self.assertEqual(
+                os.environ["CUBLAS_WORKSPACE_CONFIG"],
+                ":4096:8",
+            )
+            self.assertEqual(
+                os.environ["PSA_DETERMINISTIC_SEED"],
+                "17",
+            )
+
+    def test_acceptance_policy_requires_positive_bounds(self) -> None:
+        policy = {
+            "require_shape_dtype_compatibility": True,
+            "require_top1_match": True,
+            "logits_max_abs_error": 0.0625,
+            "state_max_abs_error": 0.125,
+        }
+        self.assertEqual(_validate_acceptance_policy(policy), policy)
+        with self.assertRaises(ValueError):
+            _validate_acceptance_policy(
+                {**policy, "state_max_abs_error": 0.0}
+            )
 
     def test_l1_verification_accepts_intact_payloads(self) -> None:
         with tempfile.TemporaryDirectory() as directory:

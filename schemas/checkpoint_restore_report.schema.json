@@ -9,11 +9,17 @@
     "created_at_utc",
     "development_only",
     "mode",
+    "determinism",
+    "acceptance",
     "process_is_distinct",
     "repeat_count",
     "checkpoint_verification",
     "checkpoint_stable_during_probe",
     "exact_repeat_count",
+    "tolerance_pass_count",
+    "top1_match_count",
+    "intra_process_exact_count",
+    "intra_process_tolerance_count",
     "worst_error",
     "timing_seconds",
     "cuda_peak_memory_bytes",
@@ -35,6 +41,12 @@
     "mode": {
       "const": "disk_cross_process_restore"
     },
+    "determinism": {
+      "type": "object"
+    },
+    "acceptance": {
+      "type": "object"
+    },
     "process_is_distinct": {
       "type": "boolean"
     },
@@ -49,6 +61,22 @@
       "type": "boolean"
     },
     "exact_repeat_count": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "tolerance_pass_count": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "top1_match_count": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "intra_process_exact_count": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "intra_process_tolerance_count": {
       "type": "integer",
       "minimum": 0
     },

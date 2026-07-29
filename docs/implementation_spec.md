@@ -829,8 +829,10 @@ golden fixture 仍待后续开发门。
 
 当前状态：已按 Impl-1 实测的 24 层 × 3 组件契约实现首版
 SafeTensors checkpoint、原子提交、逐文件 SHA-256、模型/tokenizer/输入边界
-兼容性检查，以及独立子进程中的 100 次磁盘恢复门。等待云端执行结果后冻结
-L3 容差；diff、swap/random 尚未实现。
+兼容性检查，以及独立子进程中的 100 次磁盘恢复门。第一轮云端运行达到 L2，
+确认序列化无损，但跨进程 FP16 续算并非 bitwise exact；已据开发结果登记
+`logits ≤ 0.0625`、`state ≤ 0.125` 的非确认性 L3 门，并增加确定性运行设置
+与 top-1 一致性检查，等待重跑。diff、swap/random 尚未实现。
 
 ### Impl-3：开发门
 

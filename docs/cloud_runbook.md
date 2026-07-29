@@ -136,9 +136,11 @@ bash scripts/run_impl2_checkpoint_gate.sh
 - 通过临时目录、完整性校验和原子 rename 提交 checkpoint；
 - 校验权重、tokenizer、输入 token 边界、tensor 名称、shape、dtype 和 SHA-256；
 - 启动新的 Python 子进程，重新加载模型；
+- 固定随机种子、cuBLAS workspace，启用 PyTorch deterministic algorithms，并关闭 TF32；
 - 在子进程中从磁盘加载同一 checkpoint 100 次；
 - 每次继续相同 suffix，比较 logits 与最终 state；
-- 输出首次/中位数/P95 保存恢复耗时和最大数值误差。
+- 输出 bitwise exact 比例、容差通过率、top-1 一致率、首次/中位数/P95
+  保存恢复耗时和最大数值误差。
 
 主要输出：
 
@@ -158,8 +160,11 @@ results/development/impl2_checkpoint_roundtrip/
    └─ cross_process_restore_report.json
 ```
 
-通过条件是：独立子进程成立、checkpoint 达到 L2、100/100 次 logits 与
-state 均 exact，最终 `achieved_level` 为 `L3`。若提前失败，查看：
+通过条件是：独立子进程成立、checkpoint tensor 与 inventory 逐位一致并达到
+L2；100/100 次续算保持 shape/dtype 和 top-1 一致，logits 最大绝对误差不超过
+`0.0625`、state 不超过 `0.125`，最终 `achieved_level` 为 `L3`。
+`exact_repeat_count` 继续作为诊断项，但不再错误地充当跨进程 FP16 的唯一通过
+条件。若提前失败，查看：
 
 ```bash
 cat results/development/impl2_checkpoint_roundtrip/failure_report.json
