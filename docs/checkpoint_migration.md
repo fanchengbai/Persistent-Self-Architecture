@@ -426,3 +426,14 @@ bash scripts/run_impl3m_g1h_2.9b_checkpoint_roundtrip_gate.sh
 bash scripts/run_impl3n_g1h_2.9b_state_operations_gate.sh
 bash scripts/run_impl3o_g1h_2.9b_random_state_gate.sh
 ```
+
+Impl-3m 实际结果已经通过：
+
+- 达到 L3；
+- 100/100 次跨进程恢复在冻结容差内；
+- 100/100 次 top-1 行为一致；
+- checkpoint 状态载荷为 21,299,200 字节；
+- `exact_repeat_count=0`，与 World 0.4B 上已观察到的 CUDA/FP16 跨进程
+  微小数值差异一致，不影响容差和行为判定。
+
+因此按预定顺序进入 Impl-3n，不修改阈值或 checkpoint 格式。

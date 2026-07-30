@@ -206,6 +206,9 @@ Phase 0 → Phase 1 — Research Design / State Infrastructure
 25. 已按与 World 0.4B 相同的阈值、种子和确定性规则准备 G1h 2.9B 的
     Impl-3m 磁盘恢复、Impl-3n reset/diff/swap 和 Impl-3o matched-random
     三个状态工程复验门；它们通过后才会冻结 Batch 2。
+26. Impl-3m 达到 L3：2.9B 状态跨进程恢复的 100/100 次续算均在冻结容差
+    内，top-1 选择全部一致；逐位一致 0/100 作为 CUDA/FP16 数值诊断保留，
+    不误判成持久化失败。下一步是 Impl-3n 状态操作复验。
 
 ## 项目文档
 
