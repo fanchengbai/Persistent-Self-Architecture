@@ -1,8 +1,8 @@
 # PSA 状态与 Checkpoint 格式规范
 
 > 版本：v0.2-dev
-> 状态：Impl-1 state 契约与 Impl-2 开发容差已固定；云端 L3/100 次恢复门已通过，格式仍待 official reset 与兼容性门后冻结
-> 日期：2026-07-29  
+> 状态：Impl-1 state 契约与 Impl-2 开发容差已固定；云端 L3/100 次恢复、official reset、swap 与 matched random 开发门均已通过，格式仍待兼容性规则和测试向量后冻结
+> 日期：2026-07-30
 > 依赖：[`architecture.md`](architecture.md)、[`task_design.md`](task_design.md)、[`evaluation_protocol.md`](evaluation_protocol.md)  
 > 目标：定义原生 recurrent state、显式 Self State、耦合状态和审计记录如何安全、可验证、可恢复地持久化。
 
@@ -821,6 +821,7 @@ v0.x 期间不保证向后兼容，但每次破坏性变更必须增加 `format_
 - [x] Impl-2 开发数值容差；
 - [ ] 确认性实验最终数值容差；
 - [x] Impl-2 checkpoint 大小和开发存储预算；
+- [x] matched random 的 seed 重建、尺度匹配和稳定续算验证；
 - [x] manifest JSON Schema 文件；
 - [x] Self State JSON Schema 文件；
 - [ ] 格式测试向量；

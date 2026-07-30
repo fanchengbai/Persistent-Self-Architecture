@@ -229,6 +229,11 @@ results/development/impl2c_random_matched/
 通过时 `same_seed_bitwise_reproducible`、`different_seed_distinct`、
 `scale_match_valid`、`continuation_valid` 和总 `valid` 均为 `true`。
 
+2026-07-30 的 RTX 5090 / CUDA 13.2 开发运行已通过：72 个组件全部满足
+上述条件，最大逐组件相对 L2 误差为 `3.824590840690877e-05`
+（约 `0.0038%`）。该结果只验证 `random_matched` 是可复现且数值稳定的
+原生 state 对照，不赋予随机 state 任何 Self 语义。
+
 ## 6. 运行纯逻辑测试
 
 ```bash

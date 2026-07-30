@@ -836,7 +836,10 @@ SafeTensors checkpoint、原子提交、逐文件 SHA-256、模型/tokenizer/输
 official reset、逐组件 state diff 和不可变 full-state swap 的 Impl-2b
 云端开发门已通过：72/72 分支组件不同，reset、swap、tokenizer roundtrip
 与 source immutability 全部有效。逐组件 L2/RMS 尺度匹配、seed 可重建的
-`random_matched` Impl-2c 开发门已实现，等待云端验证。
+`random_matched` Impl-2c 云端开发门也已通过：72 个组件同 seed bitwise
+可重建、不同 seed 可区分，来源 state 不变，随机 state 续算稳定；观测到的
+最大逐组件相对 L2 误差为 `3.824590840690877e-05`（约 `0.0038%`），
+低于冻结的 `1%` 开发阈值。
 
 ### Impl-3：开发门
 

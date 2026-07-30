@@ -168,7 +168,8 @@ Phase 0 → Phase 1 — Research Design / State Infrastructure
 8. 完成 RWKV-7 0.4B 模型加载、72-tensor state inventory 和 bitwise-exact 内存恢复；
 9. SafeTensors checkpoint 已通过云端 L3 与 100 次跨进程磁盘恢复开发门。
 10. official reset、state diff 与不可变 full-state swap 云端开发门已通过。
-11. `random_matched` 数值对照开发门已实现，等待云端验证。
+11. `random_matched` 数值对照云端开发门已通过：72 个组件可由 seed
+    逐位重建，不同 seed 可区分，逐组件尺度误差最大约 `0.0038%`，且续算稳定。
 
 ## 项目文档
 
