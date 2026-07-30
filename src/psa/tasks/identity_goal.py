@@ -280,6 +280,7 @@ def generate_dataset(
     goal_label_pairs: Sequence[Sequence[str]] = (("mip", "rov"),),
     answer_codes: Sequence[str] = ("A", "B", "C", "D"),
     delay_units: int = 1,
+    generator_version: str = "0.1",
 ) -> tuple[FactorialGroup, ...]:
     if group_count <= 0:
         raise ValueError("group_count must be positive")
@@ -302,6 +303,7 @@ def generate_dataset(
                 goal_labels=goal_labels,
                 answer_codes=answer_codes,
                 delay_units=delay_units,
+                generator_version=generator_version,
                 history_order=_HISTORY_ORDERS[index % len(_HISTORY_ORDERS)],
             )
         )

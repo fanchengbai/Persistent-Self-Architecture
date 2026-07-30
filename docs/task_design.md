@@ -791,7 +791,10 @@ generator_version
 
 ### Q2 Track S 的标签池
 
-必须在 tokenizer 确定后选择。当前示例标签不能直接进入正式测试。
+必须在 tokenizer 确定后选择。Impl-3 已登记候选池和 tokenizer-only 选择规则：
+bare 与 leading-space 两种形式都必须精确 roundtrip、pair 内 token 数相同且
+每种形式不超过 4 tokens；按配置中的声明顺序取前两个合格 pair。云端结果
+只能形成 Batch 2 冻结候选，当前示例标签仍不能直接进入正式测试。
 
 ### Q3 通用规则是否保留在测试 Prompt
 
@@ -809,7 +812,9 @@ generator_version
 
 ### Q5 干扰 token 档位
 
-等待模型上下文窗口和 tokenizer 确定后冻结，但档位数量、选择原则和分析方法应先写入评价协议。
+Impl-3 先按 tokenizer-only 规则标定标准 delay 候选：在 1–32 个中性 filler
+units 中选择与 128 tokens 绝对误差最小者，误差必须不超过 16 tokens；
+不使用任务表现参与选择。云端实测 token 数将在 Batch 2 审阅后冻结。
 
 ## 21. 任务设计冻结标准
 

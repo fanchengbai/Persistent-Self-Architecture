@@ -170,6 +170,8 @@ Phase 0 → Phase 1 — Research Design / State Infrastructure
 10. official reset、state diff 与不可变 full-state swap 云端开发门已通过。
 11. `random_matched` 数值对照云端开发门已通过：72 个组件可由 seed
     逐位重建，不同 seed 可区分，逐组件尺度误差最大约 `0.0038%`，且续算稳定。
+12. Impl-3 开发门已实现，等待云端运行 Batch 1 Prompt-visible 能力、
+    tokenizer 标签池、标准 delay 与资源测算。
 
 ## 项目文档
 

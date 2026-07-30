@@ -1,0 +1,80 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://persistent-self-architecture.local/impl3_development_summary.schema.json",
+  "title": "PSA Impl-3 Development Gate Summary",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "gate",
+    "started_at_utc",
+    "finished_at_utc",
+    "development_only",
+    "model_id",
+    "gate_config_sha256",
+    "batch0_valid",
+    "task_leakage_valid",
+    "task_tokenization_valid",
+    "label_pool_valid",
+    "selected_identity_pairs",
+    "selected_goal_pairs",
+    "answer_codes_valid",
+    "standard_delay_units",
+    "standard_delay_token_count",
+    "prompt_visible_valid",
+    "prompt_visible_metrics",
+    "resource_estimate_valid",
+    "cuda_peak_memory_bytes",
+    "decision",
+    "reports",
+    "valid"
+  ],
+  "properties": {
+    "gate": {"const": "impl3_development"},
+    "started_at_utc": {"type": "string", "format": "date-time"},
+    "finished_at_utc": {"type": "string", "format": "date-time"},
+    "development_only": {"const": true},
+    "model_id": {"type": "string"},
+    "gate_config_sha256": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{64}$"
+    },
+    "batch0_valid": {"type": "boolean"},
+    "task_leakage_valid": {"type": "boolean"},
+    "task_tokenization_valid": {"type": "boolean"},
+    "label_pool_valid": {"type": "boolean"},
+    "selected_identity_pairs": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "array",
+        "minItems": 2,
+        "maxItems": 2,
+        "items": {"type": "string"}
+      }
+    },
+    "selected_goal_pairs": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "array",
+        "minItems": 2,
+        "maxItems": 2,
+        "items": {"type": "string"}
+      }
+    },
+    "answer_codes_valid": {"type": "boolean"},
+    "standard_delay_units": {"type": "integer", "minimum": 1},
+    "standard_delay_token_count": {"type": "integer", "minimum": 1},
+    "prompt_visible_valid": {"type": "boolean"},
+    "prompt_visible_metrics": {"type": "object"},
+    "resource_estimate_valid": {"type": "boolean"},
+    "cuda_peak_memory_bytes": {"type": "integer", "minimum": 1},
+    "decision": {"enum": ["go", "revise"]},
+    "reports": {
+      "type": "array",
+      "minItems": 1,
+      "items": {"type": "string"}
+    },
+    "valid": {"type": "boolean"}
+  }
+}

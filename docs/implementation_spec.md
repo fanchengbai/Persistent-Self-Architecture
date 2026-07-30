@@ -1,8 +1,8 @@
 # PSA 实现与远程执行规范
 
-> 版本：v0.1  
-> 状态：Impl-0 与云端资源准备已实现；Impl-1 环境门已通过，RWKV-7 模型接口门已实现、等待远程验证
-> 日期：2026-07-29  
+> 版本：v0.2-dev
+> 状态：Impl-0 至 Impl-2c 云端开发门已通过；Impl-3 Batch 1 能力门已实现、等待云端验证
+> 日期：2026-07-30
 > 依赖：[`architecture.md`](architecture.md)、[`state_format.md`](state_format.md)、[`task_design.md`](task_design.md)、[`evaluation_protocol.md`](evaluation_protocol.md)  
 > 边界：本机用于代码、配置、文档和结果分析；模型实验只在明确的远程 GPU 环境运行。
 
@@ -816,8 +816,8 @@ transfer size
 
 当前状态：RWKV-7 World 0.4B 已在 RTX 5090 上完成加载、tokenizer
 roundtrip、72-tensor state inventory 和同进程内存恢复。内存恢复的 logits
-与全部 state tensor 均为 bitwise exact。official reset、option scoring 和
-golden fixture 仍待后续开发门。
+与全部 state tensor 均为 bitwise exact。official reset 已通过；候选答案
+序列 log-likelihood scoring 已纳入 Impl-3。golden fixture 仍待冻结。
 
 ### Impl-2：State 基础设施
 
@@ -848,6 +848,15 @@ official reset、逐组件 state diff 和不可变 full-state swap 的 Impl-2b
 - label pool；
 - 标准 delay；
 - 资源测算。
+
+当前状态：已实现 `impl3-development-gate`。它不重复运行 Batch 0，而是核验
+Impl-2/2b/2c 的不可变 summary 证据；随后只按 tokenizer roundtrip、等 token
+长度和声明顺序选择两个 Track S 标签对，只按 token 距离选择约 128-token
+标准 delay。Batch 1 使用 8 个完整 factorial groups（32 条轨迹）运行
+Prompt-visible T0：I/G 紧邻 query 明示，四个答案按序列 log-likelihood
+评分，并另行做最多 4 token 的 greedy 格式探测。能力报告以 group 为 cluster
+计算 BCa 区间，资源报告按实测时间、token、显存、结果大小和 state 大小外推
+320-group Core Set。当前等待云端验证；所有结果仍为 development-only。
 
 ### Impl-4：工程参数冻结与预注册
 

@@ -181,6 +181,32 @@ class CliTests(unittest.TestCase):
             self.assertEqual(report["gate"], "impl2c_random_matched")
             self.assertEqual(report["message"], "random state failed")
 
+    def test_impl3_failure_writes_diagnostic_report(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            output_dir = Path(directory) / "gate"
+            with patch(
+                "psa.cli.run_impl3_development_gate",
+                side_effect=RuntimeError("Batch 0 evidence is missing"),
+            ):
+                exit_code = main(
+                    [
+                        "impl3-development-gate",
+                        "--config",
+                        "configs/models/test.json",
+                        "--gate-config",
+                        "configs/gates/test.json",
+                        "--output-dir",
+                        str(output_dir),
+                    ]
+                )
+
+            self.assertEqual(exit_code, 2)
+            report = json.loads(
+                (output_dir / "failure_report.json").read_text(encoding="utf-8")
+            )
+            self.assertEqual(report["gate"], "impl3_development")
+            self.assertEqual(report["message"], "Batch 0 evidence is missing")
+
 
 if __name__ == "__main__":
     unittest.main()

@@ -234,6 +234,42 @@ results/development/impl2c_random_matched/
 （约 `0.0038%`）。该结果只验证 `random_matched` 是可复现且数值稳定的
 原生 state 对照，不赋予随机 state 任何 Self 语义。
 
+### 5.4 运行 Impl-3 Batch 1 开发门
+
+确认 Impl-2、Impl-2b 和 Impl-2c 的 `summary.json` 仍在原路径后执行：
+
+```bash
+bash scripts/run_impl3_development_gate.sh
+```
+
+该命令会：
+
+1. 校验三个 Batch 0 基础设施 summary；
+2. 用目标 tokenizer 筛选候选标签与答案代码；
+3. 只按 token 数标定约 128-token 标准 delay；
+4. 生成并检查 8 个完整 factorial groups；
+5. 运行 32 条 Prompt-visible T0 轨迹；
+6. 输出 group-cluster BCa 能力报告和 320-group 资源外推。
+
+输出：
+
+```text
+results/development/impl3_development/
+├─ batch0_evidence.json
+├─ label_pool_report.json
+├─ delay_calibration.json
+├─ development_dataset.json
+├─ task_validation.json
+├─ raw_prompt_visible.jsonl
+├─ prompt_visible_report.json
+├─ resource_estimate.json
+└─ summary.json
+```
+
+若 `summary.json` 的 `decision` 为 `go` 且 `valid=true`，可进入 Batch 2
+参数审阅与冻结；若为 `revise`，先查看 `prompt_visible_report.json` 中失败的
+具体门槛。Batch 1 只检验模型是否理解任务，不提供 persistence 或 Self 证据。
+
 ## 6. 运行纯逻辑测试
 
 ```bash

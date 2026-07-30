@@ -35,6 +35,17 @@ class IdentityGoalTaskTests(unittest.TestCase):
         self.assertEqual(set(counts.values()), {2})
         self.assertTrue(validate_dataset(groups).valid)
 
+    def test_dataset_propagates_generator_version(self) -> None:
+        groups = generate_dataset(
+            group_count=2,
+            base_seed=43,
+            generator_version="0.2-dev",
+        )
+        self.assertEqual(
+            {group.generator_version for group in groups},
+            {"0.2-dev"},
+        )
+
     def test_validator_detects_wrong_answer_mapping(self) -> None:
         group = generate_factorial_group(group_seed=5)
         sample = group.trajectories[0]
@@ -65,4 +76,3 @@ class IdentityGoalTaskTests(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
-
