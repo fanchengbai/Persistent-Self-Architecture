@@ -8,6 +8,7 @@ from psa.development.capability_ladder import (
     render_g1_chat_prompt,
     run_capability_ladder_gate,
     run_g1_code_rotation_gate,
+    run_g1_code_rotation_review,
     run_g1_capability_ladder_gate,
 )
 from psa.development.impl3 import (
@@ -47,6 +48,7 @@ __all__ = [
     "run_capability_ladder_gate",
     "run_g1_capability_ladder_gate",
     "run_g1_code_rotation_gate",
+    "run_g1_code_rotation_review",
     "score_continuations",
     "score_continuations_after_prefix",
     "write_jsonl",

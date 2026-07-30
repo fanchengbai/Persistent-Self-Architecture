@@ -82,14 +82,27 @@ class Impl3DevelopmentTests(unittest.TestCase):
         )
         records = []
         for trial in manifest["trials"]:
-            target = trial["target_code"]
+            scores = {}
+            for option in trial["option_mapping"]:
+                is_target = (
+                    option["domain"] == trial["target_fields"]["domain"]
+                    and option["operation"]
+                    == trial["target_fields"]["operation"]
+                )
+                scores[option["code"]] = (
+                    (2.0 if is_target else 0.0)
+                    + (-3.0 if option["code"] == "D" else 0.0)
+                )
             records.append(
                 {
                     "sample_id": trial["sample_id"],
                     "status": "success",
-                    "argmax_choice": "B" if target == "D" else target,
+                    "argmax_choice": max(
+                        scores,
+                        key=scores.__getitem__,
+                    ),
                     "format_valid": True,
-                    "option_scores": {},
+                    "option_scores": scores,
                 }
             )
 
@@ -99,11 +112,70 @@ class Impl3DevelopmentTests(unittest.TestCase):
         )
 
         self.assertTrue(report["valid"])
-        self.assertEqual(report["route_decision"], "answer_code_bias")
+        self.assertEqual(
+            report["route_decision"],
+            "answer_code_bias_controlled_by_rotation",
+        )
         self.assertEqual(report["error_target_codes"], ["D"])
         self.assertEqual(report["per_code"]["D"]["accuracy"], 0.0)
         self.assertEqual(report["per_code"]["A"]["accuracy"], 1.0)
         self.assertEqual(report["multi_code_error_case_count"], 0)
+        self.assertEqual(report["label_marginalized_accuracy"], 1.0)
+
+    def test_g1_code_rotation_retains_semantic_failure_after_control(
+        self,
+    ) -> None:
+        manifest = generate_g1_code_rotation_manifest(
+            answer_codes=("A", "B", "C", "D"),
+            identity_label_pairs=(("baf", "zom"),),
+            goal_label_pairs=(("vam", "zep"),),
+            repetitions=2,
+            base_seed=17,
+            assistant_prefix="<think></think",
+        )
+        failing_case_id = manifest["trials"][0]["semantic_case_id"]
+        records = []
+        for trial in manifest["trials"]:
+            target_fields = trial["target_fields"]
+            scores = {}
+            for option in trial["option_mapping"]:
+                is_target = (
+                    option["domain"] == target_fields["domain"]
+                    and option["operation"] == target_fields["operation"]
+                )
+                score = 2.0 if is_target else 0.0
+                if (
+                    trial["semantic_case_id"] == failing_case_id
+                    and not is_target
+                    and option["domain"] == target_fields["domain"]
+                ):
+                    score = 3.0
+                scores[option["code"]] = score
+            records.append(
+                {
+                    "sample_id": trial["sample_id"],
+                    "status": "success",
+                    "argmax_choice": max(
+                        scores,
+                        key=scores.__getitem__,
+                    ),
+                    "format_valid": True,
+                    "option_scores": scores,
+                }
+            )
+
+        report = evaluate_g1_code_rotation(
+            manifest=manifest,
+            records=records,
+        )
+
+        self.assertEqual(
+            report["route_decision"],
+            "semantic_composition_failure_after_label_control",
+        )
+        self.assertEqual(report["multi_code_error_case_count"], 1)
+        self.assertEqual(report["label_marginalized_error_count"], 1)
+        self.assertEqual(report["label_marginalized_accuracy"], 7 / 8)
 
     def test_g1_result_audit_joins_targets_and_groups_outputs(self) -> None:
         manifest = {

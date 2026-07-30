@@ -536,6 +536,19 @@ cat results/development/impl3k_g1h_2.9b_code_rotation/summary.json
 它不下载新模型。查看 `per_code`、`multi_code_error_case_count` 和
 `route_decision`。
 
+实际结果有 10/12 个错误集中于 D，原自动路线分类过粗。无需重跑模型，
+进行标签边际化复核：
+
+### 5.15 运行 Impl-3l 标签边际化复核
+
+```bash
+bash scripts/review_impl3k_g1h_2.9b_code_rotation.sh
+cat results/development/impl3k_g1h_2.9b_code_rotation/code_rotation_review.json
+```
+
+重点查看 `label_marginalized_accuracy`、`label_marginalized_error_count`
+和修订后的 `route_decision`。
+
 ## 6. 运行纯逻辑测试
 
 ```bash

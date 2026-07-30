@@ -14,6 +14,7 @@ from psa.development import (
     run_capability_ladder_gate,
     run_g1_capability_ladder_gate,
     run_g1_code_rotation_gate,
+    run_g1_code_rotation_review,
     run_impl3_development_gate,
 )
 from psa.environment import collect_environment
@@ -432,6 +433,12 @@ def _g1_code_rotation_gate(args: argparse.Namespace) -> int:
     return 0 if result["valid"] else 2
 
 
+def _g1_code_rotation_review(args: argparse.Namespace) -> int:
+    result = run_g1_code_rotation_review(args.output_dir)
+    print(json.dumps(result, ensure_ascii=False, indent=2))
+    return 0 if result["valid"] else 2
+
+
 def _add_asset_common_arguments(parser: argparse.ArgumentParser) -> None:
     parser.add_argument("--manifest", required=True)
     parser.add_argument("--root", default=".psa-assets")
@@ -602,6 +609,15 @@ def build_parser() -> argparse.ArgumentParser:
     g1_code_rotation_gate.add_argument("--output-dir", required=True)
     g1_code_rotation_gate.add_argument("--project-root", default=".")
     g1_code_rotation_gate.set_defaults(handler=_g1_code_rotation_gate)
+
+    g1_code_rotation_review = subparsers.add_parser(
+        "g1-code-rotation-review",
+        help="marginalize A-D scores in an existing code-rotation run",
+    )
+    g1_code_rotation_review.add_argument("--output-dir", required=True)
+    g1_code_rotation_review.set_defaults(
+        handler=_g1_code_rotation_review
+    )
     return parser
 
 

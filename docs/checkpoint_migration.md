@@ -349,3 +349,39 @@ cat results/development/impl3k_g1h_2.9b_code_rotation/summary.json
 - `route_decision`：答案代码偏差、语义组合失败或混合效应。
 
 Impl-3k 是开发诊断，不会把原能力门的失败追溯改写为通过。
+
+实际结果：
+
+| 代码 | 正确数 | 准确率 |
+|---|---:|---:|
+| A | 30/32 | 0.9375 |
+| B | 32/32 | 1.0 |
+| C | 32/32 | 1.0 |
+| D | 22/32 | 0.6875 |
+
+共 12 个错误，其中 10 个发生在 D、2 个发生在 A。22/32 个语义案例四轮
+全对；另外 10 个案例都在 D 下出错，其中 2 个还在 A 下出错。因此原始
+`route_decision=semantic_composition_failure` 只捕捉到“存在跨代码错误
+案例”，却没有表达 D 的强主效应。研究解释应为强答案代码偏差加少量
+语义×代码交互。
+
+## 16. Impl-3l：跨代码标签边际化复核
+
+同一语义选项在四轮中分别映射到 A、B、C、D。将它的四个 log-score
+取平均后，每个字母的整体先验对所有语义选项贡献相同，因此能够在配对
+设计内抵消，而不需要事后拟合校准参数。
+
+```bash
+bash scripts/review_impl3k_g1h_2.9b_code_rotation.sh
+cat results/development/impl3k_g1h_2.9b_code_rotation/code_rotation_review.json
+```
+
+该命令只读取已有 manifest 与 JSONL，不加载模型。它保留原 summary 的
+路线字段，同时用 `route_logic_version=0.2` 输出：
+
+- `label_marginalized_accuracy`
+- `label_marginalized_correct_case_count`
+- `label_marginalized_error_count`
+- 未被代码轮换消除的具体语义案例
+
+只有标签边际化后仍错的案例，才能作为代码偏差之外的语义失败证据。

@@ -1283,6 +1283,39 @@ def evaluate_g1_code_rotation(
         errors = [
             outcome for outcome in case_outcomes if not outcome["correct"]
         ]
+        semantic_scores: dict[tuple[str, str], list[float]] = {}
+        for outcome in case_outcomes:
+            raw_scores = outcome["option_scores"]
+            if not isinstance(raw_scores, dict):
+                continue
+            for option in outcome["option_mapping"]:
+                score = raw_scores.get(option["code"])
+                if not isinstance(score, (int, float)):
+                    continue
+                semantic_key = (
+                    str(option["domain"]),
+                    str(option["operation"]),
+                )
+                semantic_scores.setdefault(semantic_key, []).append(
+                    float(score)
+                )
+        mean_semantic_scores = {
+            semantic_key: sum(scores) / len(scores)
+            for semantic_key, scores in semantic_scores.items()
+            if scores
+        }
+        predicted_semantic = (
+            max(mean_semantic_scores, key=mean_semantic_scores.__getitem__)
+            if mean_semantic_scores
+            else None
+        )
+        target_semantic = (
+            str(case_outcomes[0]["target_fields"]["domain"]),
+            str(case_outcomes[0]["target_fields"]["operation"]),
+        )
+        label_marginalized_correct = (
+            predicted_semantic == target_semantic
+        )
         case_reports.append(
             {
                 "semantic_case_id": case_id,
@@ -1292,6 +1325,30 @@ def evaluate_g1_code_rotation(
                 "error_target_codes": sorted(
                     {str(error["target_code"]) for error in errors}
                 ),
+                "label_marginalized_prediction": (
+                    {
+                        "domain": predicted_semantic[0],
+                        "operation": predicted_semantic[1],
+                    }
+                    if predicted_semantic is not None
+                    else None
+                ),
+                "label_marginalized_correct": (
+                    label_marginalized_correct
+                ),
+                "label_marginalized_scores": [
+                    {
+                        "domain": semantic_key[0],
+                        "operation": semantic_key[1],
+                        "mean_log_score": score,
+                        "rotation_count": len(
+                            semantic_scores[semantic_key]
+                        ),
+                    }
+                    for semantic_key, score in sorted(
+                        mean_semantic_scores.items()
+                    )
+                ],
                 "rotations": [
                     {
                         "rotation_index": outcome["rotation_index"],
@@ -1332,15 +1389,24 @@ def evaluate_g1_code_rotation(
     multi_code_error_case_count = sum(
         len(case["error_target_codes"]) >= 2 for case in case_reports
     )
+    failing_case_count = sum(
+        case["error_count"] > 0 for case in case_reports
+    )
+    label_marginalized_correct_case_count = sum(
+        case["label_marginalized_correct"] for case in case_reports
+    )
+    label_marginalized_error_count = (
+        len(case_reports) - label_marginalized_correct_case_count
+    )
     if not scoring_errors:
         route = "no_answer_code_bias_detected"
+    elif label_marginalized_error_count == 0:
+        route = "answer_code_bias_controlled_by_rotation"
     elif (
-        len(error_target_codes) == 1
-        and multi_code_error_case_count == 0
+        multi_code_error_case_count > 0
+        and multi_code_error_case_count == failing_case_count
     ):
-        route = "answer_code_bias"
-    elif multi_code_error_case_count > 0:
-        route = "semantic_composition_failure"
+        route = "semantic_composition_failure_after_label_control"
     else:
         route = "mixed_answer_code_and_semantic_effect"
 
@@ -1369,12 +1435,25 @@ def evaluate_g1_code_rotation(
         "all_rotations_correct_case_count": sum(
             case["error_count"] == 0 for case in case_reports
         ),
+        "failing_case_count": failing_case_count,
         "multi_code_error_case_count": multi_code_error_case_count,
+        "label_marginalized_accuracy": (
+            label_marginalized_correct_case_count / len(case_reports)
+            if case_reports
+            else 0.0
+        ),
+        "label_marginalized_correct_case_count": (
+            label_marginalized_correct_case_count
+        ),
+        "label_marginalized_error_count": (
+            label_marginalized_error_count
+        ),
         "per_code": per_code,
         "confusion_matrix": confusion,
         "case_reports": case_reports,
         "scoring_errors": scoring_errors,
         "route_decision": route,
+        "route_logic_version": "0.2",
         "valid": failures == 0 and len(outcomes) == denominator,
     }
 
@@ -1588,12 +1667,23 @@ def run_g1_code_rotation_gate(
         "all_rotations_correct_case_count": report[
             "all_rotations_correct_case_count"
         ],
+        "failing_case_count": report["failing_case_count"],
         "multi_code_error_case_count": report[
             "multi_code_error_case_count"
+        ],
+        "label_marginalized_accuracy": report[
+            "label_marginalized_accuracy"
+        ],
+        "label_marginalized_correct_case_count": report[
+            "label_marginalized_correct_case_count"
+        ],
+        "label_marginalized_error_count": report[
+            "label_marginalized_error_count"
         ],
         "per_code": report["per_code"],
         "confusion_matrix": report["confusion_matrix"],
         "route_decision": report["route_decision"],
+        "route_logic_version": report["route_logic_version"],
         "load_seconds": load_seconds,
         "run_seconds": run_seconds,
         "cuda_peak_memory_bytes": int(torch.cuda.max_memory_allocated()),
@@ -1608,3 +1698,83 @@ def run_g1_code_rotation_gate(
     }
     _write_json(destination / "summary.json", summary)
     return summary
+
+
+def run_g1_code_rotation_review(
+    output_dir: str | Path,
+) -> dict[str, Any]:
+    destination = Path(output_dir).resolve()
+    manifest = _load_object(
+        destination / "code_rotation_manifest.json",
+        "code rotation manifest",
+    )
+    source_summary = _load_object(
+        destination / "summary.json",
+        "code rotation summary",
+    )
+    records = []
+    for line in (
+        destination / "raw_code_rotation.jsonl"
+    ).read_text(encoding="utf-8").splitlines():
+        if not line.strip():
+            continue
+        record = json.loads(line)
+        if not isinstance(record, dict):
+            raise ValueError("code rotation JSONL record must be an object")
+        records.append(record)
+
+    report = evaluate_g1_code_rotation(
+        manifest=manifest,
+        records=records,
+    )
+    review = {
+        "review_version": "0.1",
+        "created_at_utc": _utc_now(),
+        "development_only": True,
+        "source_gate": source_summary.get("gate"),
+        "source_valid": source_summary.get("valid"),
+        "source_route_decision": source_summary.get("route_decision"),
+        "source_manifest_digest_sha256": source_summary.get(
+            "manifest_digest_sha256"
+        ),
+        "manifest_digest_sha256": manifest.get(
+            "manifest_digest_sha256"
+        ),
+        "trial_count": report["trial_count"],
+        "semantic_case_count": report["semantic_case_count"],
+        "accuracy": report["accuracy"],
+        "scoring_error_count": report["scoring_error_count"],
+        "error_target_codes": report["error_target_codes"],
+        "per_code": report["per_code"],
+        "all_rotations_correct_case_count": report[
+            "all_rotations_correct_case_count"
+        ],
+        "failing_case_count": report["failing_case_count"],
+        "multi_code_error_case_count": report[
+            "multi_code_error_case_count"
+        ],
+        "label_marginalized_accuracy": report[
+            "label_marginalized_accuracy"
+        ],
+        "label_marginalized_correct_case_count": report[
+            "label_marginalized_correct_case_count"
+        ],
+        "label_marginalized_error_count": report[
+            "label_marginalized_error_count"
+        ],
+        "route_decision": report["route_decision"],
+        "route_logic_version": report["route_logic_version"],
+        "label_marginalized_errors": [
+            case
+            for case in report["case_reports"]
+            if not case["label_marginalized_correct"]
+        ],
+        "valid": bool(
+            report["valid"]
+            and source_summary.get("valid") is True
+            and source_summary.get("manifest_digest_sha256")
+            == manifest.get("manifest_digest_sha256")
+        ),
+    }
+    _write_json(destination / "code_rotation_review.json", review)
+    return review
