@@ -822,6 +822,7 @@ def run_g1_capability_ladder_gate(
         "impl3d_g1_capability_ladder",
         "impl3e_g1_fake_think_capability_ladder",
         "impl3g_g1h_2_9b_fake_think_capability_ladder",
+        "impl3i_g1h_2_9b_newline_aligned_capability_ladder",
     }:
         raise ValueError("unsupported G1 capability ladder gate")
     started_at = _utc_now()
@@ -864,10 +865,11 @@ def run_g1_capability_ladder_gate(
     if (assistant_prefix, forced_answer_prefix) not in {
         ("", ""),
         ("<think></think", ">"),
+        ("<think></think", ">\n"),
     }:
         raise ValueError(
             "fake-think mode requires assistant_prefix '<think></think' "
-            "and forced_answer_prefix '>'"
+            "and a supported forced answer prefix"
         )
     repetitions = gate_config.get("repetitions")
     base_seed = gate_config.get("base_seed")

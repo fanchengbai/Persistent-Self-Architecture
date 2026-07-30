@@ -497,6 +497,20 @@ cat results/development/impl3g_g1h_2.9b_fake_think/audit_report.json
 该命令不加载 RWKV、不使用 GPU，也不改变原始 JSONL；它只新增
 `audit_report.json`，汇总输出变体、混淆矩阵和全部评分错误。
 
+审计确认模型所有 96 条回答都在 `>` 后自然先输出换行，而旧候选评分使用
+前导空格。运行只对齐这一边界的 Impl-3i：
+
+### 5.12 运行 Impl-3i 自然换行对齐复验
+
+```bash
+bash scripts/run_impl3i_g1h_2.9b_newline_aligned_gate.sh
+cat results/development/impl3i_g1h_2.9b_newline_aligned/summary.json
+```
+
+这仍使用同一个 2.9B 模型和同一批 96 条题，不需要下载新资源。重点比较
+single/two-field 的 `accuracy`、区间下界和 D 位置；自由生成格式仍作为
+单独问题保留。
+
 ## 6. 运行纯逻辑测试
 
 ```bash

@@ -264,3 +264,34 @@ cat results/development/impl3g_g1h_2.9b_fake_think/audit_report.json
 若评分正确而格式异常集中在一种稳定续写，才允许设计一次预先声明的答案
 接口修订。若评分错误仍集中于 D 或双字段组合，则 checkpoint 能力不足的
 解释更强，不再用 Prompt 格式掩盖该结果。
+
+审计结果确认：
+
+- 7 个评分错误的正确答案全部是 D，其中 6 个 D→B、1 个 D→C；
+- 4 个错误同时格式失败，另 3 个在正常生成 B/C 时也真实答错；
+- copy 的目标 C 会固定进入 Markdown 代码块；
+- single/two-field 的部分样本会转而解释 `The current symbol/domain`；
+- 最关键的是，模型 96/96 次在 `>` 后自然生成换行，而 Impl-3g 候选评分
+  比较的是空格+A–D。
+
+## 13. Impl-3i：自然换行边界对齐
+
+Impl-3i 只改变一个完整回答边界：
+
+```text
+Impl-3g: <think></think> A
+Impl-3i: <think></think>
+A
+```
+
+配置层面表现为把共同强制前缀从 `>` 改成 `>\n`，同时把每个候选自身的
+前导空格移除。模型、Prompt 正文、96 条题、样本 ID、seed、bootstrap
+参数和阈值全部保持不变。
+
+```bash
+bash scripts/run_impl3i_g1h_2.9b_newline_aligned_gate.sh
+cat results/development/impl3i_g1h_2.9b_newline_aligned/summary.json
+```
+
+自由生成的代码块/解释文本不会因为这次评分边界对齐而自动消失，因此本轮
+首先检验评分准确率与 D 位置。如果 D 偏差仍存在，就不再继续调整该边界。

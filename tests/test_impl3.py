@@ -237,6 +237,40 @@ class Impl3DevelopmentTests(unittest.TestCase):
             "results/development/impl3f_g1h_2.9b_interface/summary.json",
         )
 
+    def test_impl3i_changes_only_the_natural_answer_boundary(self) -> None:
+        project_root = Path(__file__).resolve().parents[1]
+        gate_dir = project_root / "configs" / "gates"
+        impl3g = json.loads(
+            (gate_dir / "impl3g_g1h_2.9b_fake_think.dev.json").read_text(
+                encoding="utf-8"
+            )
+        )
+        impl3i = json.loads(
+            (gate_dir / "impl3i_g1h_2.9b_newline_aligned.dev.json").read_text(
+                encoding="utf-8"
+            )
+        )
+        controlled_fields = (
+            "interface_summary",
+            "answer_codes",
+            "assistant_prefix",
+            "single_field_symbols",
+            "identity_label_pairs",
+            "goal_label_pairs",
+            "repetitions",
+            "base_seed",
+            "max_generation_tokens",
+            "bootstrap_replicates",
+            "bootstrap_seed",
+            "thresholds",
+        )
+        for field in controlled_fields:
+            self.assertEqual(impl3i[field], impl3g[field])
+        self.assertEqual(impl3g["forced_answer_prefix"], ">")
+        self.assertEqual(impl3g["answer_continuation_prefix"], " ")
+        self.assertEqual(impl3i["forced_answer_prefix"], ">\n")
+        self.assertEqual(impl3i["answer_continuation_prefix"], "")
+
     def test_capability_level_evaluation_passes_ideal_records(self) -> None:
         manifest = generate_capability_manifest(
             answer_codes=("A", "B", "C", "D"),

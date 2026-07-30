@@ -188,6 +188,9 @@ Phase 0 → Phase 1 — Research Design / State Infrastructure
 19. Impl-3g 运行有效但能力门未通过：copy/single/two-field 评分分别为
     100%/90.625%/87.5%，三个层级均有格式失败，two-field 的 D 位置仍为
     50%；现进入不重跑模型的原始输出与混淆矩阵审计。
+20. Impl-3h 审计确认 7 个评分错误全部以 D 为正确答案，并发现模型 96/96
+    次在 `>` 后自然先输出换行，而旧评分直接比较空格+A–D；Impl-3i 将只
+    对齐这一回答边界，保持模型、96 条题、seed 和阈值不变。
 
 ## 项目文档
 
