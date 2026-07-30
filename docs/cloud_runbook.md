@@ -511,6 +511,17 @@ cat results/development/impl3i_g1h_2.9b_newline_aligned/summary.json
 single/two-field 的 `accuracy`、区间下界和 D 位置；自由生成格式仍作为
 单独问题保留。
 
+本次结果显示 single-field 已修复到 1.0，但 two-field 仍为 0.875、
+D 仍为 0.5。无需重跑模型，直接审计：
+
+### 5.13 审计 Impl-3i 的双字段错误
+
+```bash
+python -m psa g1-capability-audit \
+  --output-dir results/development/impl3i_g1h_2.9b_newline_aligned
+cat results/development/impl3i_g1h_2.9b_newline_aligned/audit_report.json
+```
+
 ## 6. 运行纯逻辑测试
 
 ```bash

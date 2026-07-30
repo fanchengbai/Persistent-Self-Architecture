@@ -295,3 +295,28 @@ cat results/development/impl3i_g1h_2.9b_newline_aligned/summary.json
 
 自由生成的代码块/解释文本不会因为这次评分边界对齐而自动消失，因此本轮
 首先检验评分准确率与 D 位置。如果 D 偏差仍存在，就不再继续调整该边界。
+
+实际结果：
+
+| 层级 | Impl-3g 评分 | Impl-3i 评分 | Impl-3g D | Impl-3i D |
+|---|---:|---:|---:|---:|
+| copy | 1.0 | 1.0 | 1.0 | 1.0 |
+| single-field | 0.90625 | 1.0 | 0.625 | 1.0 |
+| two-field | 0.875 | 0.875 | 0.5 | 0.5 |
+
+`forced_prefix_greedy_exact_rate=1.0`，说明自然换行对齐成立。它完整修复了
+single-field，却没有改变任何 two-field 指标。因此不能再把剩余 4 个
+双字段错误归因于空格/换行评分边界。
+
+## 14. Impl-3j：对齐后双字段错误审计
+
+不重新运行模型，直接审计 Impl-3i 的已有记录：
+
+```bash
+python -m psa g1-capability-audit \
+  --output-dir results/development/impl3i_g1h_2.9b_newline_aligned
+cat results/development/impl3i_g1h_2.9b_newline_aligned/audit_report.json
+```
+
+重点比较 Impl-3g 与 Impl-3i 的 two-field 错误样本 ID、D→B/C 混淆方向
+和分差。若错误集合稳定，停止修改评分边界。
