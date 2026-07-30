@@ -549,6 +549,39 @@ cat results/development/impl3k_g1h_2.9b_code_rotation/code_rotation_review.json
 重点查看 `label_marginalized_accuracy`、`label_marginalized_error_count`
 和修订后的 `route_decision`。
 
+实际复核为 32/32 全部正确。能力前置条件已满足，下面按顺序复验 2.9B
+状态工程。不要一次把三个脚本连在一起运行；每一步先把 summary 返回审阅。
+
+### 5.16 运行 Impl-3m 2.9B 磁盘恢复复验
+
+```bash
+bash scripts/run_impl3m_g1h_2.9b_checkpoint_roundtrip_gate.sh
+cat results/development/impl3m_g1h_2.9b_checkpoint_roundtrip/summary.json
+```
+
+期望 `valid=true`、`achieved_level=L3`、`tolerance_pass_count=100` 和
+`top1_match_count=100`。该门包含独立子进程的 100 次恢复续算。
+
+### 5.17 Impl-3m 通过后运行 Impl-3n 状态操作复验
+
+```bash
+bash scripts/run_impl3n_g1h_2.9b_state_operations_gate.sh
+cat results/development/impl3n_g1h_2.9b_state_operations/summary.json
+```
+
+期望 `state_diff_valid`、`reset_valid`、`swap_valid` 和
+`source_states_immutable` 全部为 `true`，组件数应为 96。
+
+### 5.18 Impl-3n 通过后运行 Impl-3o 随机状态复验
+
+```bash
+bash scripts/run_impl3o_g1h_2.9b_random_state_gate.sh
+cat results/development/impl3o_g1h_2.9b_random_matched/summary.json
+```
+
+期望同 seed 可逐位复现、不同 seed 可区分、尺度匹配和续算均有效，组件数
+应为 96，最终 `valid=true`。
+
 ## 6. 运行纯逻辑测试
 
 ```bash

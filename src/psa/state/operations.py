@@ -350,9 +350,14 @@ def run_state_operations_gate(
     destination = Path(output_dir).resolve()
     gate_config_path = Path(gate_config_path).resolve()
     gate_config = _read_config(gate_config_path)
+    gate_name = gate_config.get("gate")
     if (
         gate_config.get("gate_version") != "0.1"
-        or gate_config.get("gate") != "impl2b_state_operations"
+        or gate_name
+        not in {
+            "impl2b_state_operations",
+            "impl3n_g1h_2_9b_state_operations",
+        }
         or gate_config.get("development_only") is not True
     ):
         raise ValueError("unsupported state operations gate config")
@@ -494,7 +499,7 @@ def run_state_operations_gate(
     )
     reset_probe["valid"] = bool(reset_probe["valid"] and tokenizer_valid)
     summary = {
-        "gate": "impl2b_state_operations",
+        "gate": gate_name,
         "started_at_utc": started_at,
         "finished_at_utc": _utc_now(),
         "development_only": True,
@@ -540,9 +545,14 @@ def run_random_state_gate(
     destination = Path(output_dir).resolve()
     gate_config_path = Path(gate_config_path).resolve()
     gate_config = _read_config(gate_config_path)
+    gate_name = gate_config.get("gate")
     if (
         gate_config.get("gate_version") != "0.1"
-        or gate_config.get("gate") != "impl2c_random_matched"
+        or gate_name
+        not in {
+            "impl2c_random_matched",
+            "impl3o_g1h_2_9b_random_matched",
+        }
         or gate_config.get("development_only") is not True
     ):
         raise ValueError("unsupported random state gate config")
@@ -677,7 +687,7 @@ def run_random_state_gate(
         ),
     }
     summary = {
-        "gate": "impl2c_random_matched",
+        "gate": gate_name,
         "started_at_utc": started_at,
         "finished_at_utc": _utc_now(),
         "development_only": True,

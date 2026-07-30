@@ -1,0 +1,46 @@
+{
+  "gate_version": "0.1",
+  "gate": "impl3m_g1h_2_9b_checkpoint_roundtrip",
+  "development_only": true,
+  "repeat_count": 100,
+  "required_validation_level": "L3",
+  "bitwise_exact_is_diagnostic": true,
+  "prefix_text": "Development-only G1h 2.9B disk checkpoint interface check.\n",
+  "suffix_text": "Resume deterministically with delta epsilon zeta.\n",
+  "determinism": {
+    "enabled": true,
+    "seed": 20260729,
+    "cublas_workspace_config": ":4096:8",
+    "deterministic_algorithms": true,
+    "cudnn_benchmark": false,
+    "cudnn_deterministic": true,
+    "float32_matmul_precision": "highest",
+    "allow_tf32": false
+  },
+  "acceptance": {
+    "require_shape_dtype_compatibility": true,
+    "require_top1_match": true,
+    "logits_max_abs_error": 0.0625,
+    "state_max_abs_error": 0.125
+  },
+  "calibration": {
+    "source": "frozen World 0.4B RTX 5090 development thresholds",
+    "observed_logits_max_abs_error": 0.03125,
+    "observed_state_max_abs_error": 0.05822181701660156,
+    "threshold_rule": "reuse frozen bounds for a directly comparable checkpoint migration gate",
+    "confirmatory": false
+  },
+  "checkpoint": {
+    "format_version": "0.1",
+    "tensor_container": "safetensors",
+    "tensor_container_version": "0.8.0",
+    "preserve_capture_dtype": true,
+    "atomic_commit": true,
+    "checksum": "sha256"
+  },
+  "notes": [
+    "This is a non-confirmatory engineering replay for the selected G1h 2.9B checkpoint.",
+    "Thresholds, repeat count, determinism policy, and storage policy are unchanged from Impl-2.",
+    "Each trial reloads the saved state from disk in a distinct child process before continuing."
+  ]
+}

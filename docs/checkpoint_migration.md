@@ -385,3 +385,44 @@ cat results/development/impl3k_g1h_2.9b_code_rotation/code_rotation_review.json
 - 未被代码轮换消除的具体语义案例
 
 只有标签边际化后仍错的案例，才能作为代码偏差之外的语义失败证据。
+
+实际复核结果为 32/32 个语义案例全部正确：
+
+- `label_marginalized_accuracy=1.0`
+- `label_marginalized_error_count=0`
+- `route_decision=answer_code_bias_controlled_by_rotation`
+
+因此 G1h 2.9B 已满足 EXP-001 的开发能力前置条件。这个结论不是把原
+Impl-3k 的 116/128 改写为满分；原始代码级错误仍保留。它说明在四个
+答案代码的配对轮换中，对同一语义选项求平均可以控制字母先验。
+
+后续开发及正式实验必须预先使用同一规则，不能只在错误样本上临时轮换，
+也不能根据正确答案拟合 A–D 校准量。冻结配置为：
+
+```text
+configs/readouts/exp001_g1h_2.9b_code_marginalized.dev.json
+```
+
+## 17. Impl-3m/3n/3o：G1h 2.9B 状态工程复验
+
+能力前置条件通过后，仍不能直接进入 state 因果实验。World 0.4B 的状态
+工程结果不能代替 G1h 2.9B，因为后者有 32 层、96 个 state 组件，状态
+大小和数值分布都不同。
+
+三个门严格复用旧门的标准，不因模型变大而放宽：
+
+1. Impl-3m：保存到磁盘，在独立进程加载并续算 100 次，要求 L3、
+   100/100 容差通过和 100/100 top-1 一致。
+2. Impl-3n：验证 diff、官方 `state=None` reset、完整 swap 和来源状态
+   不变性。
+3. Impl-3o：用固定 seed 构造逐组件 L2 尺度匹配随机状态，验证同 seed
+   逐位复现、异 seed 可区分、尺度误差不超过 0.01 且续算稳定。
+
+执行必须按 3m → 3n → 3o 顺序。一个门失败时保留失败报告，先诊断，不继续
+把后续门的结果混入判断。对应脚本为：
+
+```bash
+bash scripts/run_impl3m_g1h_2.9b_checkpoint_roundtrip_gate.sh
+bash scripts/run_impl3n_g1h_2.9b_state_operations_gate.sh
+bash scripts/run_impl3o_g1h_2.9b_random_state_gate.sh
+```

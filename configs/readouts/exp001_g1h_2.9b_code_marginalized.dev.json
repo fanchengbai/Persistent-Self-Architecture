@@ -1,0 +1,41 @@
+{
+  "readout_version": "0.1",
+  "readout_id": "exp001-g1h-2.9b-code-marginalized-development",
+  "development_only": true,
+  "confirmatory": false,
+  "model_id": "rwkv7-g1h-2.9b-20260710",
+  "source": {
+    "gate": "impl3k_g1h_2_9b_code_rotation",
+    "report": "results/development/impl3k_g1h_2.9b_code_rotation/code_rotation_review.json",
+    "manifest_digest_sha256": "77ece5767f48d362d6500023ac4e6f641c40e8ac20e643a886ec90e7ee41d4d0"
+  },
+  "answer_codes": ["A", "B", "C", "D"],
+  "rotation_count": 4,
+  "aggregation": {
+    "quantity": "candidate_log_score",
+    "group_by": "semantic_option",
+    "operation": "arithmetic_mean_across_answer_code_rotations",
+    "selection": "highest_aggregated_score"
+  },
+  "answer_boundary": {
+    "assistant_prefix": "<think></think",
+    "forced_answer_prefix": ">\n",
+    "candidate_continuation_prefix": ""
+  },
+  "calibration": {
+    "fitted_parameters": [],
+    "uses_post_hoc_label_offsets": false,
+    "uses_ground_truth_during_scoring": false
+  },
+  "development_qualification": {
+    "semantic_case_count": 32,
+    "correct_case_count": 32,
+    "accuracy": 1.0,
+    "route_decision": "answer_code_bias_controlled_by_rotation"
+  },
+  "notes": [
+    "This freezes the development readout selected after the paired answer-code rotation diagnostic.",
+    "Every semantic case is evaluated under all four predeclared A-D mappings before scores are averaged.",
+    "The same procedure must be preregistered and used unchanged in later formal comparisons."
+  ]
+}

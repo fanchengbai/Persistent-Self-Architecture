@@ -1,0 +1,32 @@
+{
+  "gate_version": "0.1",
+  "gate": "impl3o_g1h_2_9b_random_matched",
+  "development_only": true,
+  "repeat_count": 10,
+  "base_seed": 314159265,
+  "alternate_seed": 271828182,
+  "max_relative_l2_error": 0.01,
+  "prefix_text": "Development-only G1h 2.9B matched random state source.\n",
+  "suffix_text": "Continue safely from the randomized state.\n",
+  "determinism": {
+    "enabled": true,
+    "seed": 20260729,
+    "cublas_workspace_config": ":4096:8",
+    "deterministic_algorithms": true,
+    "cudnn_benchmark": false,
+    "cudnn_deterministic": true,
+    "float32_matmul_precision": "highest",
+    "allow_tf32": false
+  },
+  "acceptance": {
+    "require_shape_dtype_compatibility": true,
+    "require_top1_match": true,
+    "logits_max_abs_error": 0.0625,
+    "state_max_abs_error": 0.125
+  },
+  "notes": [
+    "This is a non-confirmatory engineering replay for the selected G1h 2.9B checkpoint.",
+    "Seeds, scale threshold, continuation thresholds, and determinism policy are unchanged from Impl-2c.",
+    "Noise is centered per component and scaled to the source component L2 norm."
+  ]
+}

@@ -911,6 +911,17 @@ def run_checkpoint_roundtrip_gate(
     started_at = _utc_now()
     gate_config_path = Path(gate_config_path).resolve()
     gate_config = _read_json(gate_config_path)
+    gate_name = gate_config.get("gate")
+    if (
+        gate_config.get("gate_version") != "0.1"
+        or gate_name
+        not in {
+            "impl2_checkpoint_roundtrip",
+            "impl3m_g1h_2_9b_checkpoint_roundtrip",
+        }
+        or gate_config.get("development_only") is not True
+    ):
+        raise ValueError("unsupported checkpoint roundtrip gate config")
     repeat_count = gate_config.get("repeat_count")
     if not isinstance(repeat_count, int) or repeat_count < 100:
         raise ValueError("gate repeat_count must be at least 100")
@@ -1044,7 +1055,7 @@ def run_checkpoint_roundtrip_gate(
     probe_report = _read_json(probe_report_path)
 
     summary = {
-        "gate": "impl2_checkpoint_roundtrip",
+        "gate": gate_name,
         "started_at_utc": started_at,
         "finished_at_utc": _utc_now(),
         "development_only": True,

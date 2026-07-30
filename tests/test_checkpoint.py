@@ -22,6 +22,8 @@ from psa.state.operations import (
     swap_full_state,
 )
 
+PROJECT_ROOT = Path(__file__).resolve().parents[1]
+
 
 class CloneableValue:
     def __init__(self, value: int) -> None:
@@ -137,6 +139,84 @@ class CheckpointTests(unittest.TestCase):
     def test_random_state_rejects_negative_seed_before_tensor_work(self) -> None:
         with self.assertRaises(ValueError):
             randomize_state_matched([], object(), seed=-1)
+
+    def test_g1h_state_replay_configs_preserve_frozen_controls(self) -> None:
+        pairs = (
+            (
+                "impl2_checkpoint_roundtrip.dev.json",
+                "impl3m_g1h_2.9b_checkpoint_roundtrip.dev.json",
+            ),
+            (
+                "impl2b_state_operations.dev.json",
+                "impl3n_g1h_2.9b_state_operations.dev.json",
+            ),
+            (
+                "impl2c_random_matched.dev.json",
+                "impl3o_g1h_2.9b_random_matched.dev.json",
+            ),
+        )
+        for baseline_name, replay_name in pairs:
+            with self.subTest(replay=replay_name):
+                baseline = json.loads(
+                    (PROJECT_ROOT / "configs" / "gates" / baseline_name)
+                    .read_text(encoding="utf-8")
+                )
+                replay = json.loads(
+                    (PROJECT_ROOT / "configs" / "gates" / replay_name)
+                    .read_text(encoding="utf-8")
+                )
+                self.assertEqual(replay["gate_version"], "0.1")
+                self.assertTrue(replay["development_only"])
+                self.assertEqual(
+                    replay["repeat_count"], baseline["repeat_count"]
+                )
+                self.assertEqual(
+                    replay["determinism"], baseline["determinism"]
+                )
+                self.assertEqual(replay["acceptance"], baseline["acceptance"])
+        random_baseline = json.loads(
+            (
+                PROJECT_ROOT
+                / "configs"
+                / "gates"
+                / "impl2c_random_matched.dev.json"
+            ).read_text(encoding="utf-8")
+        )
+        random_replay = json.loads(
+            (
+                PROJECT_ROOT
+                / "configs"
+                / "gates"
+                / "impl3o_g1h_2.9b_random_matched.dev.json"
+            ).read_text(encoding="utf-8")
+        )
+        for key in ("base_seed", "alternate_seed", "max_relative_l2_error"):
+            self.assertEqual(random_replay[key], random_baseline[key])
+
+    def test_code_marginalized_readout_is_frozen_without_fitted_offsets(
+        self,
+    ) -> None:
+        readout = json.loads(
+            (
+                PROJECT_ROOT
+                / "configs"
+                / "readouts"
+                / "exp001_g1h_2.9b_code_marginalized.dev.json"
+            ).read_text(encoding="utf-8")
+        )
+        self.assertEqual(readout["answer_codes"], ["A", "B", "C", "D"])
+        self.assertEqual(readout["rotation_count"], 4)
+        self.assertEqual(
+            readout["aggregation"]["operation"],
+            "arithmetic_mean_across_answer_code_rotations",
+        )
+        self.assertEqual(readout["calibration"]["fitted_parameters"], [])
+        self.assertFalse(
+            readout["calibration"]["uses_post_hoc_label_offsets"]
+        )
+        self.assertEqual(
+            readout["development_qualification"]["correct_case_count"], 32
+        )
 
     def test_l1_verification_accepts_intact_payloads(self) -> None:
         with tempfile.TemporaryDirectory() as directory:

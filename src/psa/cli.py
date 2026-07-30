@@ -42,6 +42,15 @@ def _parse_pair(value: str) -> tuple[str, str]:
     return parts[0], parts[1]
 
 
+def _configured_gate_name(path: str | Path, fallback: str) -> str:
+    try:
+        value = json.loads(Path(path).read_text(encoding="utf-8"))
+    except (OSError, json.JSONDecodeError):
+        return fallback
+    gate = value.get("gate") if isinstance(value, dict) else None
+    return gate if isinstance(gate, str) and gate else fallback
+
+
 def _task_generate(args: argparse.Namespace) -> int:
     config: dict[str, Any] = {}
     config_provenance: dict[str, str] | None = None
@@ -214,7 +223,9 @@ def _checkpoint_roundtrip_gate(args: argparse.Namespace) -> int:
             "failure_version": "0.1",
             "created_at_utc": datetime.now(timezone.utc).isoformat(),
             "development_only": True,
-            "gate": "impl2_checkpoint_roundtrip",
+            "gate": _configured_gate_name(
+                args.gate_config, "impl2_checkpoint_roundtrip"
+            ),
             "exception_type": type(exc).__name__,
             "message": str(exc),
             "config": str(Path(args.config).resolve()),
@@ -268,7 +279,9 @@ def _state_operations_gate(args: argparse.Namespace) -> int:
             "failure_version": "0.1",
             "created_at_utc": datetime.now(timezone.utc).isoformat(),
             "development_only": True,
-            "gate": "impl2b_state_operations",
+            "gate": _configured_gate_name(
+                args.gate_config, "impl2b_state_operations"
+            ),
             "exception_type": type(exc).__name__,
             "message": str(exc),
             "config": str(Path(args.config).resolve()),
@@ -295,7 +308,9 @@ def _random_state_gate(args: argparse.Namespace) -> int:
             "failure_version": "0.1",
             "created_at_utc": datetime.now(timezone.utc).isoformat(),
             "development_only": True,
-            "gate": "impl2c_random_matched",
+            "gate": _configured_gate_name(
+                args.gate_config, "impl2c_random_matched"
+            ),
             "exception_type": type(exc).__name__,
             "message": str(exc),
             "config": str(Path(args.config).resolve()),
