@@ -326,6 +326,37 @@ two_field_valid
 - `revise_compositional_matching`：前两层通过，双字段组合失败；
 - `go_batch2`：三层均通过，可以进入参数冻结。
 
+本次云端结果为 `valid=true`、`copy_code_valid=true`、
+`single_field_valid=false`、`route_decision=revise_single_field_matching`。
+copy accuracy 为 1.0，single-field accuracy 为 0.25，且后者仍只会选 A。
+这说明答案接口有效，但 World 0.4B 不具备 EXP-001 所需的最小查表能力。
+
+### 5.6 运行 Impl-3c G1h 1.5B 候选接口门
+
+不要覆盖 World 0.4B 的任何结果。先下载已固定版本的新候选：
+
+```bash
+bash scripts/prepare_g1h_1.5b_candidate.sh
+```
+
+然后只运行接口兼容门：
+
+```bash
+bash scripts/run_g1h_1.5b_interface_gate.sh
+```
+
+查看：
+
+```bash
+cat results/development/impl3c_g1h_1.5b_interface/summary.json
+cat results/development/impl3c_g1h_1.5b_interface/model_interface_report.json
+cat results/development/impl3c_g1h_1.5b_interface/state_inventory.json
+```
+
+`valid=true` 只表示 G1h 1.5B 能被当前框架加载、读取和复制 state。下一步仍
+要用官方 G1 提示格式重新跑三层能力门；在此之前不要运行正式 state 实验。
+完整迁移顺序见 `docs/checkpoint_migration.md`。
+
 ## 6. 运行纯逻辑测试
 
 ```bash

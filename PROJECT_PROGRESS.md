@@ -1,7 +1,7 @@
 # Persistent Self Architecture 项目进度表
 
 > 最后更新：2026-07-30
-> 当前节点：Impl-3b 分层能力诊断已实现，等待云端验证
+> 当前节点：Impl-3b 已定位基础模型能力不足；Impl-3c 正在迁移验证 G1h 1.5B
 > 研究状态：尚未进入正式确认性实验，尚未实现显式 Self Model
 
 ## 1. 这张表怎么使用
@@ -31,7 +31,7 @@
 | 3. 划清概念边界 | ✅ 完成 | 区分 Prompt、Memory、原生 recurrent state 和显式 Self State | 模型“记住了内容”不等于模型“拥有 Self Model” | 已明确：只有状态能持续、更新、被干预并因果影响行为，才有资格继续讨论 Self | Codex |
 | 4. 设计总体架构 | ✅ 初版完成 | 设计 World Model、Memory、原生 state、Self Store、Encoder、注入和更新模块 | 先画清楚未来系统由什么组成，再决定先验证哪一块 | 显式 Self Model 已完成理论设计，但尚未写入模型 | Codex |
 | 5. 设计 EXP-001 | ✅ 完成 | 设计“身份约束 × 当前目标”的四状态任务 | 用一个很小、可量化的任务测试状态是否真的影响选择 | 已形成四组合任务、swap/reset/random 对照和评价指标 | Codex |
-| 6. 建立代码与实验骨架 | ✅ 完成 | 实现任务生成、泄漏检查、统计方法、配置和报告格式 | 相当于先把实验室的记录表、评分器和质检流程搭好 | 本地纯逻辑测试目前达到 51 项全部通过 | Codex |
+| 6. 建立代码与实验骨架 | ✅ 完成 | 实现任务生成、泄漏检查、统计方法、配置和报告格式 | 相当于先把实验室的记录表、评分器和质检流程搭好 | 本地纯逻辑测试目前达到 57 项全部通过 | Codex |
 | 7. 准备模型和数据下载 | ✅ 完成 | 提供脚本下载固定版本的 RWKV 模型和 tokenizer | 云服务器只需运行脚本，不用手动寻找文件 | 模型约 861 MB、tokenizer 约 1.1 MB，哈希验证通过 | Codex 编写；项目负责人云端执行 |
 | 8. 检查云端环境 | ✅ 通过 | 核对 GPU、CUDA、PyTorch、Python、RWKV 和磁盘 | 先确认实验机器不会因为版本问题产生假结果 | RTX 5090 32 GB、CUDA 13.2、PyTorch 2.12、RWKV 0.8.32，环境有效 | 项目负责人运行；Codex 分析 |
 | 9. Impl-1：模型接口 | ✅ 通过 | 加载模型、测试 tokenizer、读取 recurrent state | 确认我们真的能够观察和操作模型内部状态 | RWKV-7 0.4B 加载成功；24 层、每层 3 个组件，共 72 个 state tensors | 共同完成 |
@@ -44,13 +44,16 @@
 | 16. 排查 A 偏置 | ✅ 完成 | 检查答案 token、分数和前两组正确答案映射 | 判断是答案 token 不公平，还是模型没理解题目 | A–D 都是等长单 token；非 A 分数变化也未稳定指向正确项，不采用事后分数校正 | 共同完成 |
 | 17. 修复 JSONL 输出 | ✅ 完成 | 修正原始结果文件中的多余空行 | 保证以后每行都是一个可直接读取的 JSON 记录 | 已修复并添加回归测试；旧数据内容没有损坏 | Codex |
 | 18. Impl-3 v0.2：新能力模板 | ⚠️ Revise | 直接显示 `CURRENT DOMAIN`、`CURRENT OPERATION` 和结构化选项 | 检查 v0.1 失败是否只是措辞或 filler 造成 | 模型仍在全部 32 条轨迹中选择 A；联合准确率 0.25，两个边际准确率 0.5，格式有效率降至 0.5 | 项目负责人运行；Codex 诊断 |
-| 19. Impl-3b：分层能力诊断 | 🟡 等待云端 | 分别测试“直接抄代码”和“单字段匹配”，并复用 v0.2 双字段结果 | 不再盲目换措辞，而是定位模型究竟在哪一级能力上失败 | 代码、平衡样本、判定规则和独立脚本已完成；等待云端结果 | Codex 已完成；项目负责人运行 |
-| 20. Batch 2：冻结任务参数 | ⏳ 未开始 | 冻结标签池、模板、delay、答案格式和阈值 | 一旦冻结，后面不能因为结果不好随意改题 | 必须等待 Impl-3b 给出模型路线判断 | 共同审阅 |
-| 21. Impl-4：预注册 | ⏳ 未开始 | 固定代码、配置、样本量、随机种子和判断标准 | 防止看到正式结果后改变成功标准 | 尚未开始 | Codex 整理；项目负责人确认 |
-| 22. Phase 2：正式原生 state 实验 | ⏳ 未开始 | 比较 original/reset/random/swap 等条件 | 这一步才真正测试 recurrent state 是否是跨时间因果载体 | 尚无研究结论 | 项目负责人运行；Codex 分析 |
-| 23. Phase 3：显式 Self Model | ⏳ 未开始 | 实现 Self Store、Self Encoder 和 gated injection | 只有原生状态基线可靠后，才能判断显式 Self Model 是否带来额外价值 | 目前只有设计，没有加入模型 | 后续由 Codex 实现 |
-| 24. Self 更新与演化 | ⏳ 未开始 | 让 Self State 根据经历受控更新、回滚和分化 | 这是“持续自我”真正更深入的部分 | 尚未开始 | 后续阶段 |
-| 25. 最终研究结论 | ⏳ 未开始 | 汇总统计结果、失败案例和替代解释 | 最终回答项目假设是否得到支持，而不是只展示几个有趣案例 | 尚未开始 | 共同完成 |
+| 19. Impl-3b：分层能力诊断 | ⚠️ Revise | 分别测试“直接抄代码”和“单字段匹配”，并复用 v0.2 双字段结果 | 不再盲目换措辞，而是定位模型究竟在哪一级能力上失败 | 诊断有效；copy 32/32 正确，但 single-field 仅 8/32，仍固定选 A；路线为 `revise_single_field_matching` | 项目负责人运行；Codex 诊断 |
+| 20. Impl-3c：checkpoint 迁移 | 🟡 等待云端 | 固定官方 G1h 1.5B 候选，先验证加载、tokenizer 与 recurrent state 接口 | 当前 0.4B 会抄答案但不会查表，不能用来区分“任务能力不足”和“state 失效” | 候选版本、哈希、模型配置、下载脚本和独立接口门已完成；尚未获得云端兼容结果 | Codex 已完成；项目负责人运行 |
+| 21. 新模型分层能力复验 | ⏳ 未开始 | 使用官方 G1 提示格式重新测试 copy、single-field 和 two-field | 更换模型后必须取得新的显式任务能力证据，不能复用旧模型结果 | 等待 G1h 1.5B 接口门通过；1.5B 失败时才升级 2.9B | Codex 实现；项目负责人运行 |
+| 22. 新模型 state 工程门复验 | ⏳ 未开始 | 重跑磁盘恢复、reset/diff/swap 和 matched random | 新模型的 state 形状和数值尺度不同，旧模型的通过记录不能替代复验 | 等待新模型三层能力门通过 | 共同完成 |
+| 23. Batch 2：冻结任务参数 | ⏳ 未开始 | 冻结 checkpoint、标签池、模板、delay、答案格式和阈值 | 一旦冻结，后面不能因为结果不好随意改题或换模型 | 必须等待新模型能力门与 state 工程门都通过 | 共同审阅 |
+| 24. Impl-4：预注册 | ⏳ 未开始 | 固定代码、配置、样本量、随机种子和判断标准 | 防止看到正式结果后改变成功标准 | 尚未开始 | Codex 整理；项目负责人确认 |
+| 25. Phase 2：正式原生 state 实验 | ⏳ 未开始 | 比较 original/reset/random/swap 等条件 | 这一步才真正测试 recurrent state 是否是跨时间因果载体 | 尚无研究结论 | 项目负责人运行；Codex 分析 |
+| 26. Phase 3：显式 Self Model | ⏳ 未开始 | 实现 Self Store、Self Encoder 和 gated injection | 只有原生状态基线可靠后，才能判断显式 Self Model 是否带来额外价值 | 目前只有设计，没有加入模型 | 后续由 Codex 实现 |
+| 27. Self 更新与演化 | ⏳ 未开始 | 让 Self State 根据经历受控更新、回滚和分化 | 这是“持续自我”真正更深入的部分 | 尚未开始 | 后续阶段 |
+| 28. 最终研究结论 | ⏳ 未开始 | 汇总统计结果、失败案例和替代解释 | 最终回答项目假设是否得到支持，而不是只展示几个有趣案例 | 尚未开始 | 共同完成 |
 
 ## 3. 当前所在位置
 
@@ -66,7 +69,9 @@
 模型是否看得懂考题
    ⚠️ v0.1/v0.2 均为固定 A 策略
 能力失败发生在哪一层
-   🟡 等待 Impl-3b 云端诊断
+   ⚠️ copy 通过；single-field 失败，定位为 0.4B checkpoint 能力不足
+更强 checkpoint 的受控迁移
+   🟡 G1h 1.5B 接口门等待云端验证
 正式 state 因果实验
    ⏳
 显式 Self Model
@@ -78,35 +83,42 @@
 - 不能说模型已经拥有 Self；
 - 不能说 recurrent state 已经具有身份或目标语义；
 - 不能把工程门通过当成研究假设通过；
-- 不能因为 v0.1/v0.2 失败就断言 state persistence 不存在，因为当前证据首先指向模型任务能力不足。
+- 不能因为 v0.1/v0.2/Impl-3b 失败就断言 state persistence 不存在，因为当前证据首先指向 0.4B checkpoint 的任务能力不足；
+- 不能把 G1h 1.5B 的官方能力描述当成本项目任务已通过，必须实际复验；
+- 不能把 World 0.4B 的 state 工程门结果直接移植到 G1h 1.5B。
 
 ## 4. 当前下一步
 
-Impl-3b 不修改双字段题，也不根据结果校正答案分数。它新增两个更简单的
-开发控制：
+Impl-3b 已完成：模型能 100% 照抄答案代码，说明 tokenizer、候选答案评分和
+A–D 接口有效；但单字段查表只有 25%，且逐答案位置准确率为
+`A=1, B=C=D=0`。因此当前 World 0.4B checkpoint 不进入 state-only
+实验。
 
-1. **Copy code**：Prompt 直接写出目标代码，检查模型能否照抄；
-2. **Single field**：只匹配一个符号，检查模型能否完成基本查表；
-3. **Two field**：直接复用已经完成的 v0.2 结果，不重复寻找有利模板。
-
-项目负责人在云服务器执行：
+下一步是 Impl-3c：先验证官方 RWKV-7 G1h 1.5B 候选是否与现有 state
+实验框架兼容。项目负责人在云服务器执行：
 
 ```bash
 git pull --ff-only
 source .venv/bin/activate
-bash scripts/run_impl3b_capability_ladder_gate.sh
-cat results/development/impl3b_capability_ladder/summary.json
+bash scripts/prepare_g1h_1.5b_candidate.sh
+bash scripts/run_g1h_1.5b_interface_gate.sh
+cat results/development/impl3c_g1h_1.5b_interface/summary.json
+cat results/development/impl3c_g1h_1.5b_interface/model_interface_report.json
+cat results/development/impl3c_g1h_1.5b_interface/state_inventory.json
 ```
 
-决策规则：
+当前门只检查加载、tokenizer、state inventory 和同进程恢复。它不运行正式
+实验，也不自动宣布替换基础模型。
 
-| `route_decision` | 通俗解释 | 下一步 |
+| 接口门结果 | 通俗解释 | 下一步 |
 |---|---|---|
-| `revise_checkpoint_or_answer_interface` | 连明确写出的代码都不能稳定照抄 | 检查模型/提示格式，优先评估更合适的 instruction checkpoint |
-| `revise_single_field_matching` | 会照抄，但不会做最简单的一字段查表 | 当前 checkpoint 不适合 EXP-001，不进入 state-only 实验 |
-| `revise_compositional_matching` | 会照抄和单字段匹配，但不会组合两个字段 | 将结论记录为组合能力限制，评估更合适 checkpoint |
-| `go_batch2` | 三层能力都通过 | 进入 Batch 2，共同审阅并冻结任务参数 |
-| 基础设施失败 | 诊断没有完整执行 | 使用完全相同的配置修复重跑 |
+| `valid=true` | 当前 `rwkv` 运行库能可靠操作 G1h 1.5B 的 recurrent state | 实现并运行使用官方 G1 格式的新模型能力阶梯 |
+| 模型加载失败 | checkpoint 与当前运行库或策略不兼容 | 保留失败报告，先处理兼容性 |
+| tokenizer roundtrip 失败 | 文本接口不可靠 | 停止能力实验，修复 tokenizer 配置 |
+| state roundtrip 失败 | 不能可靠复制和恢复新模型 state | 不继续使用该候选做持久状态实验 |
+
+完整选择依据和后续复验顺序见
+[checkpoint 迁移方案](docs/checkpoint_migration.md)。
 
 ## 5. 分工
 
@@ -137,3 +149,4 @@ cat results/development/impl3b_capability_ladder/summary.json
 |---|---|---|
 | 2026-07-30 | 建立项目进度表；汇总 Phase 0 至 Impl-3 v0.2 的设计、实现和云端结果 | Git 历史、云端 environment/Impl-1/Impl-2/Impl-2b/Impl-2c/Impl-3 v0.1 summaries |
 | 2026-07-30 | Impl-3 v0.2 再次得到固定 A 的机会水平策略；记录为 Revise，并增加不改双字段题的 Impl-3b 分层能力诊断 | `results/development/impl3_development_v02/summary.json` |
+| 2026-07-30 | Impl-3b 证明答案接口有效，但 World 0.4B 在单字段查表层失败；停止该 checkpoint 的 state-only 路线，固定 G1h 1.5B 候选和独立接口门 | `results/development/impl3b_capability_ladder/summary.json`、`docs/checkpoint_migration.md` |

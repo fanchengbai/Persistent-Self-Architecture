@@ -1,0 +1,47 @@
+{
+  "config_version": "0.1",
+  "model_id": "rwkv7-g1h-1.5b-20260710",
+  "family": "RWKV",
+  "architecture": "RWKV-7",
+  "weights": {
+    "path": ".psa-assets/models/rwkv7-g1h-1.5b/rwkv7-g1h-1.5b-20260710-ctx10240.pth",
+    "revision": "bc3b5c8dae5b09db2445bf4f7589fe800d88688e",
+    "sha256": "737079d81865801fd85e5459488d89a36d5304a524e890244eb83d44f531c89c",
+    "size_bytes": 3055444605
+  },
+  "tokenizer": {
+    "path": ".psa-assets/tokenizers/rwkv_vocab_v20230424.txt",
+    "revision": "8cc2ab5d72b0a75713a62be5192a6e39b28df0ed",
+    "sha256": "e6dee3d4e31b4d5c40ac99508ac6c701ceef4bed681bf2167ce9a908552bca89",
+    "size_bytes": 1093733,
+    "vocab_size": 65536
+  },
+  "architecture_hint": {
+    "n_layer": 24,
+    "n_embd": 2048,
+    "head_size": 64
+  },
+  "runtime": {
+    "python": ">=3.11,<3.13",
+    "numpy": "1.26.4",
+    "torch": "2.12.0",
+    "torch_cuda": "13.2",
+    "rwkv": "0.8.32",
+    "safetensors": "0.8.0",
+    "strategy": "cuda fp16",
+    "environment": {
+      "RWKV_V7_ON": "1",
+      "RWKV_JIT_ON": "0",
+      "RWKV_CUDA_ON": "0"
+    }
+  },
+  "development_only": true,
+  "candidate": true,
+  "prompt_family": "rwkv7-g1",
+  "notes": [
+    "This checkpoint is a development candidate selected after the World 0.4B model failed the single-field capability gate.",
+    "The first cloud run is an interface compatibility test, not a research result.",
+    "The official G1 prompt format must be qualified separately after the interface gate passes.",
+    "All recurrent-state gates must be rerun before this model can replace the frozen baseline."
+  ]
+}

@@ -154,3 +154,22 @@ export HF_TOKEN="..."
 - 生成后数据的 digest。
 
 这些信息确定后，把数据项加入新的训练资源清单，而不是直接修改已经用于 EXP-001 的冻结清单。
+
+## 9. G1h 1.5B 开发候选
+
+World 0.4B 在 Impl-3b 中通过 copy control、但未通过 single-field matching，
+因此它不再进入 EXP-001 的 state-only 实验。新的开发候选使用独立清单：
+
+```text
+configs/assets/exp001_rwkv7_g1h_1.5b_candidate.json
+```
+
+下载并验证：
+
+```bash
+bash scripts/prepare_g1h_1.5b_candidate.sh
+```
+
+该清单固定到官方 Hugging Face revision、文件大小和 SHA-256。它不会修改或
+删除原有 World 0.4B 资源，两个 checkpoint 可以在 `.psa-assets/models/`
+中并存。候选通过接口门和能力门之前，不得改写原 EXP-001 冻结清单。

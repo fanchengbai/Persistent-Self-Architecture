@@ -1,0 +1,40 @@
+{
+  "manifest_version": "0.1",
+  "bundle_id": "exp001-rwkv7-g1h-1.5b-candidate",
+  "description": "Pinned candidate checkpoint and tokenizer for the EXP-001 checkpoint migration gate.",
+  "assets": [
+    {
+      "id": "rwkv7-g1h-1.5b-20260710",
+      "kind": "model",
+      "destination": "models/rwkv7-g1h-1.5b/rwkv7-g1h-1.5b-20260710-ctx10240.pth",
+      "license": "Apache-2.0",
+      "source_page": "https://huggingface.co/BlinkDL/rwkv7-g1/blob/bc3b5c8dae5b09db2445bf4f7589fe800d88688e/rwkv7-g1h-1.5b-20260710-ctx10240.pth",
+      "source": {
+        "type": "huggingface",
+        "repo_type": "model",
+        "repo_id": "BlinkDL/rwkv7-g1",
+        "revision": "bc3b5c8dae5b09db2445bf4f7589fe800d88688e",
+        "filename": "rwkv7-g1h-1.5b-20260710-ctx10240.pth"
+      },
+      "sha256": "737079d81865801fd85e5459488d89a36d5304a524e890244eb83d44f531c89c",
+      "size_bytes": 3055444605
+    },
+    {
+      "id": "rwkv-world-tokenizer-20230424",
+      "kind": "tokenizer",
+      "destination": "tokenizers/rwkv_vocab_v20230424.txt",
+      "license": "Apache-2.0",
+      "source_page": "https://huggingface.co/RWKV/v6-Finch-7B-World3-HF/blob/8cc2ab5d72b0a75713a62be5192a6e39b28df0ed/rwkv_vocab_v20230424.txt",
+      "source": {
+        "type": "huggingface",
+        "repo_type": "model",
+        "repo_id": "RWKV/v6-Finch-7B-World3-HF",
+        "revision": "8cc2ab5d72b0a75713a62be5192a6e39b28df0ed",
+        "filename": "rwkv_vocab_v20230424.txt"
+      },
+      "sha256": "e6dee3d4e31b4d5c40ac99508ac6c701ceef4bed681bf2167ce9a908552bca89",
+      "size_bytes": 1093733
+    }
+  ],
+  "generated_assets": []
+}

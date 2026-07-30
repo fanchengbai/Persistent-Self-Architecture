@@ -14,6 +14,12 @@ PROJECT_ROOT = Path(__file__).resolve().parents[1]
 EXP001_MANIFEST = (
     PROJECT_ROOT / "configs" / "assets" / "exp001_rwkv7_world_0.4b.json"
 )
+G1H_CANDIDATE_MANIFEST = (
+    PROJECT_ROOT
+    / "configs"
+    / "assets"
+    / "exp001_rwkv7_g1h_1.5b_candidate.json"
+)
 
 
 class AssetManifestTests(unittest.TestCase):
@@ -28,6 +34,24 @@ class AssetManifestTests(unittest.TestCase):
             root = Path(directory).resolve()
             for asset in plan["assets"]:
                 self.assertIn(root, Path(asset["destination"]).parents)
+
+    def test_g1h_candidate_manifest_is_pinned_and_separate(self) -> None:
+        manifest = load_manifest(G1H_CANDIDATE_MANIFEST)
+        self.assertEqual(
+            manifest.bundle_id,
+            "exp001-rwkv7-g1h-1.5b-candidate",
+        )
+        model = manifest.assets[0]
+        self.assertEqual(model.revision, "bc3b5c8dae5b09db2445bf4f7589fe800d88688e")
+        self.assertEqual(
+            model.expected_sha256,
+            "737079d81865801fd85e5459488d89a36d5304a524e890244eb83d44f531c89c",
+        )
+        self.assertEqual(model.expected_size_bytes, 3055444605)
+        self.assertNotEqual(
+            model.destination,
+            load_manifest(EXP001_MANIFEST).assets[0].destination,
+        )
 
     def test_mutable_revision_is_rejected(self) -> None:
         with tempfile.TemporaryDirectory() as directory:

@@ -170,9 +170,11 @@ Phase 0 → Phase 1 — Research Design / State Infrastructure
 10. official reset、state diff 与不可变 full-state swap 云端开发门已通过。
 11. `random_matched` 数值对照云端开发门已通过：72 个组件可由 seed
     逐位重建，不同 seed 可区分，逐组件尺度误差最大约 `0.0038%`，且续算稳定。
-12. Impl-3 v0.1 与显式精确匹配 v0.2 均出现固定选择 A 的机会水平策略；
-    已停止继续试探措辞，并实现 copy → single-field → two-field 的 Impl-3b
-    分层能力诊断，等待云端定位失败层级。
+12. Impl-3 v0.1 与显式精确匹配 v0.2 均出现固定选择 A 的机会水平策略。
+13. Impl-3b 已定位失败层级：World 0.4B 能 100% 照抄 A–D，但单字段查表
+    只有 25%，说明答案接口正常而 checkpoint 基础任务能力不足。
+14. 已停止让 World 0.4B 进入 state-only 实验，并固定官方 RWKV-7 G1h
+    1.5B 为首个迁移候选；当前等待云端接口兼容门。
 
 ## 项目文档
 
@@ -189,6 +191,7 @@ Phase 0 → Phase 1 — Research Design / State Infrastructure
 - [实现与远程执行规范](docs/implementation_spec.md)
 - [云服务器开发门运行手册](docs/cloud_runbook.md)
 - [模型与数据资源管理](docs/asset_management.md)
+- [Checkpoint 迁移方案](docs/checkpoint_migration.md)
 
 ## 云服务器一键准备
 
