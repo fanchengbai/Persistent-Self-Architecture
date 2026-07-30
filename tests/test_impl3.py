@@ -1,5 +1,8 @@
 from __future__ import annotations
 
+import json
+from pathlib import Path
+import tempfile
 import unittest
 
 from psa.development import (
@@ -8,6 +11,7 @@ from psa.development import (
     inspect_dataset_tokenization,
     inspect_label_pairs,
 )
+from psa.development.impl3 import _write_jsonl
 from psa.tasks import generate_dataset, generate_factorial_group
 
 
@@ -22,6 +26,15 @@ class ByteTokenizerAdapter:
 
 
 class Impl3DevelopmentTests(unittest.TestCase):
+    def test_jsonl_writer_emits_exactly_one_json_object_per_line(self) -> None:
+        records = [{"record": 1}, {"record": 2}]
+        with tempfile.TemporaryDirectory() as directory:
+            path = Path(directory) / "records.jsonl"
+            _write_jsonl(path, records)
+            lines = path.read_text(encoding="utf-8").splitlines()
+        self.assertEqual(len(lines), 2)
+        self.assertEqual([json.loads(line) for line in lines], records)
+
     def test_label_selection_uses_declared_order_and_token_rules(self) -> None:
         report = inspect_label_pairs(
             ByteTokenizerAdapter(),

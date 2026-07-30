@@ -33,8 +33,9 @@ def _write_json(path: Path, payload: Any) -> None:
 
 def _write_jsonl(path: Path, records: Iterable[dict[str, Any]]) -> None:
     path.parent.mkdir(parents=True, exist_ok=True)
-    lines = [canonical_json_bytes(record).decode("utf-8") for record in records]
-    path.write_text("\n".join(lines) + ("\n" if lines else ""), encoding="utf-8")
+    path.write_bytes(
+        b"".join(canonical_json_bytes(record) for record in records)
+    )
 
 
 def _require_int(payload: dict[str, Any], field: str, minimum: int = 0) -> int:
