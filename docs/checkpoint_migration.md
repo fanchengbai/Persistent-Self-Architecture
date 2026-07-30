@@ -1,6 +1,6 @@
 # EXP-001 checkpoint 迁移方案
 
-> 状态：开发候选已固定，等待云端接口门
+> 状态：开发候选接口门已通过，等待三层能力门
 >
 > 日期：2026-07-30
 >
@@ -97,18 +97,38 @@ Assistant:
 旧 World 0.4B 的 v0.1/v0.2/Impl-3b 结果不会被重写；G1h 使用新的配置、
 输出目录和报告版本。
 
-## 6. 云端执行：当前只做接口门
+## 6. Impl-3c 接口门结果
 
-拉取本次代码后运行：
+2026-07-30 云端结果：
+
+```text
+固定权重大小：3,055,444,605 bytes
+权重 SHA-256：有效
+tokenizer SHA-256：有效
+模型加载：成功
+state inventory：已生成
+同进程 state roundtrip：valid=true
+```
+
+这只回答“新模型能否被当前框架可靠操作”，不回答任务能力或 Self 假设。
+
+## 7. 云端执行：Impl-3d 三层能力门
+
+拉取新提交后运行：
 
 ```bash
 source .venv/bin/activate
-bash scripts/prepare_g1h_1.5b_candidate.sh
-bash scripts/run_g1h_1.5b_interface_gate.sh
-cat results/development/impl3c_g1h_1.5b_interface/summary.json
-cat results/development/impl3c_g1h_1.5b_interface/model_interface_report.json
-cat results/development/impl3c_g1h_1.5b_interface/state_inventory.json
+bash scripts/run_impl3d_g1h_capability_ladder_gate.sh
+cat results/development/impl3d_g1h_1.5b_capability_ladder/summary.json
 ```
 
-这一步只回答“新模型能否被当前实验框架可靠操作”，不回答 Self 假设，也不
-运行正式实验。
+本门现场运行 96 条平衡诊断，不复用 World 0.4B 的 two-field 结果：
+
+```text
+copy_code:    32
+single_field: 32
+two_field:    32
+```
+
+`valid=true` 只代表诊断完整。只有 `capability_gate_passed=true` 才允许进入
+G1h 的 state 工程门复验。

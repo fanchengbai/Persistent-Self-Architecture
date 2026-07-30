@@ -174,7 +174,9 @@ Phase 0 → Phase 1 — Research Design / State Infrastructure
 13. Impl-3b 已定位失败层级：World 0.4B 能 100% 照抄 A–D，但单字段查表
     只有 25%，说明答案接口正常而 checkpoint 基础任务能力不足。
 14. 已停止让 World 0.4B 进入 state-only 实验，并固定官方 RWKV-7 G1h
-    1.5B 为首个迁移候选；当前等待云端接口兼容门。
+    1.5B 为首个迁移候选；固定资源校验与云端接口兼容门已经通过。
+15. 已实现 G1h 1.5B 专用 Impl-3d 能力阶梯：使用官方 G1 对话格式现场运行
+    32 条 copy、32 条 single-field 和 32 条 two-field，等待云端结果。
 
 ## 项目文档
 

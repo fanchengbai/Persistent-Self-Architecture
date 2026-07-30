@@ -11,9 +11,11 @@ from psa.development import (
     evaluate_capability_level,
     evaluate_prompt_visible,
     generate_capability_manifest,
+    generate_g1_capability_manifest,
     inspect_dataset_tokenization,
     inspect_label_pairs,
     render_prompt_visible,
+    render_g1_chat_prompt,
     write_jsonl,
 )
 from psa.tasks import generate_dataset, generate_factorial_group
@@ -45,6 +47,32 @@ class Impl3DevelopmentTests(unittest.TestCase):
                     code = trial["target_code"]
                     counts[code] = counts.get(code, 0) + 1
             self.assertEqual(counts, {"A": 3, "B": 3, "C": 3, "D": 3})
+
+    def test_g1_manifest_runs_all_levels_live_and_balanced(self) -> None:
+        manifest = generate_g1_capability_manifest(
+            answer_codes=("A", "B", "C", "D"),
+            symbols=("baf", "zom", "niv", "teg"),
+            identity_label_pairs=(("baf", "zom"), ("niv", "teg")),
+            goal_label_pairs=(("vam", "zep"), ("qir", "bok")),
+            repetitions=3,
+            base_seed=41,
+        )
+        self.assertEqual(manifest["trial_count"], 36)
+        self.assertEqual(manifest["prompt_format"], "rwkv7-g1-chat-v0.1")
+        for level in ("copy_code", "single_field", "two_field"):
+            counts = {}
+            for trial in manifest["trials"]:
+                if trial["task_level"] == level:
+                    code = trial["target_code"]
+                    counts[code] = counts.get(code, 0) + 1
+                    self.assertTrue(trial["prompt"].startswith("User: "))
+                    self.assertTrue(trial["prompt"].endswith("Assistant:"))
+                    self.assertFalse(trial["prompt"].endswith(" "))
+            self.assertEqual(counts, {"A": 3, "B": 3, "C": 3, "D": 3})
+
+    def test_g1_prompt_cleans_round_separators_and_trailing_space(self) -> None:
+        prompt = render_g1_chat_prompt(" first\r\n\r\nsecond \n")
+        self.assertEqual(prompt, "User: first\nsecond\n\nAssistant:")
 
     def test_capability_level_evaluation_passes_ideal_records(self) -> None:
         manifest = generate_capability_manifest(

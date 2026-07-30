@@ -233,6 +233,32 @@ class CliTests(unittest.TestCase):
             self.assertEqual(report["gate"], "impl3b_capability_ladder")
             self.assertEqual(report["message"], "v0.2 evidence is missing")
 
+    def test_g1_capability_ladder_failure_writes_diagnostic_report(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            output_dir = Path(directory) / "gate"
+            with patch(
+                "psa.cli.run_g1_capability_ladder_gate",
+                side_effect=RuntimeError("G1 interface evidence is missing"),
+            ):
+                exit_code = main(
+                    [
+                        "g1-capability-ladder-gate",
+                        "--config",
+                        "configs/models/test.json",
+                        "--gate-config",
+                        "configs/gates/test.json",
+                        "--output-dir",
+                        str(output_dir),
+                    ]
+                )
+
+            self.assertEqual(exit_code, 2)
+            report = json.loads(
+                (output_dir / "failure_report.json").read_text(encoding="utf-8")
+            )
+            self.assertEqual(report["gate"], "impl3d_g1_capability_ladder")
+            self.assertEqual(report["message"], "G1 interface evidence is missing")
+
 
 if __name__ == "__main__":
     unittest.main()

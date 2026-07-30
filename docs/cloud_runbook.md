@@ -357,6 +357,32 @@ cat results/development/impl3c_g1h_1.5b_interface/state_inventory.json
 要用官方 G1 提示格式重新跑三层能力门；在此之前不要运行正式 state 实验。
 完整迁移顺序见 `docs/checkpoint_migration.md`。
 
+本次 Impl-3c 云端结果已经通过：固定权重和 tokenizer 哈希有效，模型加载
+成功，接口门 `valid=true`。
+
+### 5.7 运行 Impl-3d G1h 三层能力门
+
+拉取包含 Impl-3d 的提交后运行：
+
+```bash
+bash scripts/run_impl3d_g1h_capability_ladder_gate.sh
+```
+
+查看：
+
+```bash
+cat results/development/impl3d_g1h_1.5b_capability_ladder/summary.json
+```
+
+本门对 G1h 现场运行 96 条平衡样本，不读取旧模型的 v0.2 能力结果。Prompt
+使用官方 G1 对话结构，末尾没有空格。
+
+判断时区分：
+
+- `valid=true`：程序和全部样本运行完整；
+- `capability_gate_passed=true`：copy、single-field、two-field 都达到门槛；
+- `route_decision`：若失败，指出第一次失败发生在哪一层。
+
 ## 6. 运行纯逻辑测试
 
 ```bash

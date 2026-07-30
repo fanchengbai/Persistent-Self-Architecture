@@ -11,6 +11,7 @@ from psa.assets import fetch_manifest, load_manifest, plan_manifest, verify_mani
 from psa.artifacts import canonical_json_bytes, sha256_file, sha256_json
 from psa.development import (
     run_capability_ladder_gate,
+    run_g1_capability_ladder_gate,
     run_impl3_development_gate,
 )
 from psa.environment import collect_environment
@@ -357,6 +358,33 @@ def _capability_ladder_gate(args: argparse.Namespace) -> int:
     return 0 if result["valid"] else 2
 
 
+def _g1_capability_ladder_gate(args: argparse.Namespace) -> int:
+    failure_path = Path(args.output_dir) / "failure_report.json"
+    failure_path.unlink(missing_ok=True)
+    try:
+        result = run_g1_capability_ladder_gate(
+            config_path=args.config,
+            gate_config_path=args.gate_config,
+            output_dir=args.output_dir,
+            project_root=args.project_root,
+        )
+    except Exception as exc:
+        failure = {
+            "failure_version": "0.1",
+            "created_at_utc": datetime.now(timezone.utc).isoformat(),
+            "development_only": True,
+            "gate": "impl3d_g1_capability_ladder",
+            "exception_type": type(exc).__name__,
+            "message": str(exc),
+            "config": str(Path(args.config).resolve()),
+            "gate_config": str(Path(args.gate_config).resolve()),
+        }
+        _write_json(failure_path, failure)
+        raise
+    print(json.dumps(result, ensure_ascii=False, indent=2))
+    return 0 if result["valid"] else 2
+
+
 def _add_asset_common_arguments(parser: argparse.ArgumentParser) -> None:
     parser.add_argument("--manifest", required=True)
     parser.add_argument("--root", default=".psa-assets")
@@ -500,6 +528,16 @@ def build_parser() -> argparse.ArgumentParser:
     capability_ladder_gate.add_argument("--output-dir", required=True)
     capability_ladder_gate.add_argument("--project-root", default=".")
     capability_ladder_gate.set_defaults(handler=_capability_ladder_gate)
+
+    g1_capability_ladder_gate = subparsers.add_parser(
+        "g1-capability-ladder-gate",
+        help="run live copy, single-field, and two-field checks with G1 prompts",
+    )
+    g1_capability_ladder_gate.add_argument("--config", required=True)
+    g1_capability_ladder_gate.add_argument("--gate-config", required=True)
+    g1_capability_ladder_gate.add_argument("--output-dir", required=True)
+    g1_capability_ladder_gate.add_argument("--project-root", default=".")
+    g1_capability_ladder_gate.set_defaults(handler=_g1_capability_ladder_gate)
     return parser
 
 

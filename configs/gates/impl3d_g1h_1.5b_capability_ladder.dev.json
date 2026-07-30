@@ -1,0 +1,28 @@
+{
+  "config_version": "0.1",
+  "gate": "impl3d_g1_capability_ladder",
+  "development_only": true,
+  "interface_summary": "results/development/impl3c_g1h_1.5b_interface/summary.json",
+  "answer_codes": ["A", "B", "C", "D"],
+  "answer_continuation_prefix": " ",
+  "single_field_symbols": ["baf", "zom", "niv", "teg"],
+  "identity_label_pairs": [
+    ["baf", "zom"],
+    ["niv", "teg"]
+  ],
+  "goal_label_pairs": [
+    ["vam", "zep"],
+    ["qir", "bok"]
+  ],
+  "repetitions": 8,
+  "base_seed": 20260730,
+  "max_generation_tokens": 4,
+  "bootstrap_replicates": 10000,
+  "bootstrap_seed": 910251,
+  "thresholds": {
+    "accuracy_lower_bound": 0.8,
+    "format_valid_rate": 0.99,
+    "max_answer_position_accuracy_gap": 0.25,
+    "max_infrastructure_failure_rate": 0.01
+  }
+}

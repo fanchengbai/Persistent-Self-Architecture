@@ -2,9 +2,11 @@ from __future__ import annotations
 
 from datetime import datetime, timezone
 from importlib import import_module
+import itertools
 import json
 from pathlib import Path
 import random
+import re
 import time
 from typing import Any, Sequence
 
@@ -13,11 +15,13 @@ from psa.development.impl3 import (
     greedy_format_probe,
     inspect_answer_codes,
     normalized_probabilities,
+    render_prompt_visible,
     score_continuations,
     write_jsonl,
 )
 from psa.evaluation import bca_mean_interval
 from psa.model import RWKV7Adapter, load_model_config
+from psa.tasks import generate_factorial_group
 
 
 def _utc_now() -> str:
@@ -94,6 +98,45 @@ def _single_field_prompt(
         "Reply with the matching option code only.\n"
         "ANSWER:"
     )
+
+
+def render_g1_chat_prompt(user_content: str) -> str:
+    cleaned = re.sub(
+        r"\n{2,}",
+        "\n",
+        user_content.replace("\r\n", "\n").replace("\r", "\n"),
+    ).strip()
+    if not cleaned:
+        raise ValueError("G1 user content must be non-empty")
+    return f"User: {cleaned}\n\nAssistant:"
+
+
+def _without_answer_marker(prompt: str) -> str:
+    cleaned = prompt.strip()
+    if cleaned.endswith("ANSWER:"):
+        cleaned = cleaned[: -len("ANSWER:")].rstrip()
+    return cleaned
+
+
+def _require_label_pairs(value: Any, field: str) -> tuple[tuple[str, str], ...]:
+    if not isinstance(value, list) or not value:
+        raise ValueError(f"{field} must be a non-empty array")
+    pairs = []
+    flattened = []
+    for index, pair in enumerate(value):
+        if (
+            not isinstance(pair, list)
+            or len(pair) != 2
+            or not all(isinstance(label, str) and label.strip() for label in pair)
+            or pair[0] == pair[1]
+        ):
+            raise ValueError(f"{field}[{index}] must contain two distinct labels")
+        normalized = (pair[0].strip(), pair[1].strip())
+        pairs.append(normalized)
+        flattened.extend(normalized)
+    if len(flattened) != len(set(flattened)):
+        raise ValueError(f"{field} labels must be distinct across pairs")
+    return tuple(pairs)
 
 
 def generate_capability_manifest(
@@ -174,6 +217,125 @@ def generate_capability_manifest(
         "repetitions": repetitions,
         "answer_codes": list(answer_codes),
         "symbols": list(symbols),
+        "trial_count": len(trials),
+        "trials": trials,
+        "manifest_digest_sha256": sha256_json(trials),
+    }
+
+
+def generate_g1_capability_manifest(
+    *,
+    answer_codes: Sequence[str],
+    symbols: Sequence[str],
+    identity_label_pairs: Sequence[Sequence[str]],
+    goal_label_pairs: Sequence[Sequence[str]],
+    repetitions: int,
+    base_seed: int,
+) -> dict[str, Any]:
+    base = generate_capability_manifest(
+        answer_codes=answer_codes,
+        symbols=symbols,
+        repetitions=repetitions,
+        base_seed=base_seed,
+    )
+    trials = []
+    for trial in base["trials"]:
+        prompt = render_g1_chat_prompt(
+            _without_answer_marker(str(trial["prompt"]))
+        )
+        trials.append(
+            {
+                **trial,
+                "sample_id": "g1diag-" + sha256_json(
+                    {
+                        "prompt_format": "rwkv7-g1-chat-v0.1",
+                        "task_level": trial["task_level"],
+                        "block_id": trial["block_id"],
+                        "target_code": trial["target_code"],
+                        "prompt": prompt,
+                    }
+                )[:24],
+                "prompt": prompt,
+                "prompt_digest_sha256": sha256_json(prompt),
+            }
+        )
+
+    pair_combinations = tuple(
+        itertools.product(identity_label_pairs, goal_label_pairs)
+    )
+    if not pair_combinations:
+        raise ValueError("two-field label pair combinations must be non-empty")
+    rng = random.Random(base_seed ^ 0x473148)
+    for repetition in range(repetitions):
+        block_id = f"block-{repetition:03d}"
+        identity_labels, goal_labels = pair_combinations[
+            repetition % len(pair_combinations)
+        ]
+        group = generate_factorial_group(
+            group_seed=rng.getrandbits(63),
+            track="synthetic",
+            identity_labels=identity_labels,
+            goal_labels=goal_labels,
+            answer_codes=answer_codes,
+            delay_units=0,
+            generator_version="g1-capability-v0.1",
+            history_order="I_G",
+        )
+        for sample in group.trajectories:
+            task_prompt = render_prompt_visible(
+                group,
+                sample,
+                template_version="explicit-match-v0.2",
+            )
+            prompt = render_g1_chat_prompt(_without_answer_marker(task_prompt))
+            trials.append(
+                {
+                    "sample_id": "g1diag-" + sha256_json(
+                        {
+                            "prompt_format": "rwkv7-g1-chat-v0.1",
+                            "task_level": "two_field",
+                            "block_id": block_id,
+                            "group_id": group.group_id,
+                            "identity": sample.identity,
+                            "goal": sample.goal,
+                            "prompt": prompt,
+                        }
+                    )[:24],
+                    "task_level": "two_field",
+                    "block_id": block_id,
+                    "prompt": prompt,
+                    "prompt_digest_sha256": sha256_json(prompt),
+                    "target_code": sample.correct_code,
+                    "target_symbol": None,
+                    "target_fields": {
+                        "domain": group.identity_labels[sample.identity],
+                        "operation": group.goal_labels[sample.goal],
+                    },
+                    "option_mapping": [
+                        {
+                            "code": option.code,
+                            "domain": group.identity_labels[option.identity],
+                            "operation": group.goal_labels[option.goal],
+                        }
+                        for option in group.options
+                    ],
+                }
+            )
+
+    return {
+        "manifest_version": "0.2",
+        "development_only": True,
+        "prompt_format": "rwkv7-g1-chat-v0.1",
+        "prompt_source": (
+            "https://github.com/BlinkDL/RWKV-LM/blob/main/"
+            "RWKV-v7/RWKV7-G1x-templates.txt"
+        ),
+        "base_seed": base_seed,
+        "repetitions": repetitions,
+        "answer_codes": list(answer_codes),
+        "symbols": list(symbols),
+        "identity_label_pairs": [list(pair) for pair in identity_label_pairs],
+        "goal_label_pairs": [list(pair) for pair in goal_label_pairs],
         "trial_count": len(trials),
         "trials": trials,
         "manifest_digest_sha256": sha256_json(trials),
@@ -292,6 +454,48 @@ def evaluate_capability_level(
         "thresholds": thresholds,
         "checks": checks,
         "valid": all(checks.values()),
+    }
+
+
+def _verify_g1_interface_evidence(
+    root: Path,
+    relative_path: str,
+    expected_model_id: str,
+) -> dict[str, Any]:
+    relative = Path(relative_path)
+    if relative.is_absolute() or ".." in relative.parts:
+        raise ValueError("G1 interface evidence path must stay inside project root")
+    summary_path = (root / relative).resolve()
+    if root not in summary_path.parents or not summary_path.is_file():
+        raise FileNotFoundError(
+            f"G1 interface evidence is missing: {summary_path}"
+        )
+    summary = _load_object(summary_path, "G1 interface summary")
+    report_path = summary_path.parent / "model_interface_report.json"
+    roundtrip_path = summary_path.parent / "roundtrip_validation.json"
+    if not report_path.is_file() or not roundtrip_path.is_file():
+        raise FileNotFoundError("G1 interface reports are incomplete")
+    report = _load_object(report_path, "G1 model interface report")
+    roundtrip = _load_object(roundtrip_path, "G1 roundtrip report")
+    observed_model_id = report.get("model", {}).get("model_id")
+    valid = bool(
+        summary.get("gate") == "impl1_model_interface"
+        and summary.get("valid") is True
+        and observed_model_id == expected_model_id
+        and report.get("tokenizer_roundtrip", {}).get("prefix_exact") is True
+        and report.get("tokenizer_roundtrip", {}).get("suffix_exact") is True
+        and roundtrip.get("valid") is True
+    )
+    return {
+        "summary_path": str(summary_path),
+        "summary_sha256": sha256_file(summary_path),
+        "model_interface_report_path": str(report_path),
+        "model_interface_report_sha256": sha256_file(report_path),
+        "roundtrip_report_path": str(roundtrip_path),
+        "roundtrip_report_sha256": sha256_file(roundtrip_path),
+        "expected_model_id": expected_model_id,
+        "observed_model_id": observed_model_id,
+        "valid": valid,
     }
 
 
@@ -571,6 +775,244 @@ def run_capability_ladder_gate(
         "cuda_peak_memory_bytes": int(torch.cuda.max_memory_allocated()),
         "reports": [
             "impl3_v02_evidence.json",
+            "answer_interface_report.json",
+            "capability_manifest.json",
+            "raw_capability_ladder.jsonl",
+            "capability_ladder_report.json",
+        ],
+        "valid": diagnostic_valid,
+    }
+    _write_json(destination / "summary.json", summary)
+    return summary
+
+
+def run_g1_capability_ladder_gate(
+    *,
+    config_path: str | Path,
+    gate_config_path: str | Path,
+    output_dir: str | Path,
+    project_root: str | Path = ".",
+) -> dict[str, Any]:
+    root = Path(project_root).resolve()
+    destination = Path(output_dir).resolve()
+    destination.mkdir(parents=True, exist_ok=True)
+    gate_path = Path(gate_config_path).resolve()
+    gate_config = _load_object(gate_path, "G1 capability ladder config")
+    if gate_config.get("gate") != "impl3d_g1_capability_ladder":
+        raise ValueError("gate config is not for impl3d_g1_capability_ladder")
+    started_at = _utc_now()
+
+    model_config = load_model_config(config_path, root, verify_files=True)
+    evidence = _verify_g1_interface_evidence(
+        root,
+        str(gate_config.get("interface_summary")),
+        model_config.model_id,
+    )
+    _write_json(destination / "interface_evidence.json", evidence)
+    if not evidence["valid"]:
+        raise RuntimeError("G1 interface evidence is incomplete or incompatible")
+
+    answer_codes = _require_codes(gate_config.get("answer_codes"))
+    raw_symbols = gate_config.get("single_field_symbols")
+    if (
+        not isinstance(raw_symbols, list)
+        or len(raw_symbols) != 4
+        or not all(isinstance(symbol, str) and symbol.strip() for symbol in raw_symbols)
+        or len(set(raw_symbols)) != 4
+    ):
+        raise ValueError(
+            "single_field_symbols must contain four distinct strings"
+        )
+    symbols = tuple(symbol.strip() for symbol in raw_symbols)
+    identity_pairs = _require_label_pairs(
+        gate_config.get("identity_label_pairs"),
+        "identity_label_pairs",
+    )
+    goal_pairs = _require_label_pairs(
+        gate_config.get("goal_label_pairs"),
+        "goal_label_pairs",
+    )
+    continuation_prefix = str(gate_config.get("answer_continuation_prefix", ""))
+    repetitions = gate_config.get("repetitions")
+    base_seed = gate_config.get("base_seed")
+    bootstrap_replicates = gate_config.get("bootstrap_replicates")
+    bootstrap_seed = gate_config.get("bootstrap_seed")
+    max_generation_tokens = gate_config.get("max_generation_tokens")
+    for field, value, minimum in (
+        ("repetitions", repetitions, 2),
+        ("base_seed", base_seed, 0),
+        ("bootstrap_replicates", bootstrap_replicates, 100),
+        ("bootstrap_seed", bootstrap_seed, 0),
+        ("max_generation_tokens", max_generation_tokens, 1),
+    ):
+        if not isinstance(value, int) or isinstance(value, bool) or value < minimum:
+            raise ValueError(f"{field} must be an integer >= {minimum}")
+    thresholds = _require_thresholds(gate_config.get("thresholds"))
+
+    manifest = generate_g1_capability_manifest(
+        answer_codes=answer_codes,
+        symbols=symbols,
+        identity_label_pairs=identity_pairs,
+        goal_label_pairs=goal_pairs,
+        repetitions=repetitions,
+        base_seed=base_seed,
+    )
+    _write_json(destination / "capability_manifest.json", manifest)
+
+    torch = import_module("torch")
+    if not torch.cuda.is_available():
+        raise RuntimeError("CUDA is not available")
+    torch.cuda.reset_peak_memory_stats()
+    load_started = time.perf_counter()
+    adapter = RWKV7Adapter.load(model_config)
+    torch.cuda.synchronize()
+    load_seconds = time.perf_counter() - load_started
+
+    answer_report = inspect_answer_codes(
+        adapter,
+        answer_codes,
+        continuation_prefix=continuation_prefix,
+        require_equal_token_count=True,
+    )
+    _write_json(destination / "answer_interface_report.json", answer_report)
+    if not answer_report["valid"]:
+        raise RuntimeError("answer interface tokenization is invalid")
+
+    rendered_answers = {
+        code: f"{continuation_prefix}{code}" for code in answer_codes
+    }
+    records = []
+    run_started = time.perf_counter()
+    for trial in manifest["trials"]:
+        trial_started = time.perf_counter()
+        base_record = {
+            "record_version": "0.2",
+            "experiment_id": "EXP-001",
+            "batch_id": "impl3d_g1_capability_ladder",
+            "run_id": "run-" + trial["sample_id"].removeprefix("g1diag-"),
+            "sample_id": trial["sample_id"],
+            "task_level": trial["task_level"],
+            "block_id": trial["block_id"],
+            "prompt_digest_sha256": trial["prompt_digest_sha256"],
+            "prompt_format": manifest["prompt_format"],
+        }
+        try:
+            scores, logits, state, prompt_token_count = score_continuations(
+                adapter,
+                trial["prompt"],
+                rendered_answers,
+            )
+            format_probe = greedy_format_probe(
+                adapter,
+                logits,
+                state,
+                answer_codes=answer_codes,
+                max_tokens=max_generation_tokens,
+            )
+            records.append(
+                {
+                    **base_record,
+                    "prompt_token_count": prompt_token_count,
+                    "option_scores": scores,
+                    "option_probabilities": normalized_probabilities(scores),
+                    "argmax_choice": max(scores, key=scores.__getitem__),
+                    **format_probe,
+                    "timing_seconds": time.perf_counter() - trial_started,
+                    "status": "success",
+                    "error": None,
+                }
+            )
+        except Exception as exc:
+            records.append(
+                {
+                    **base_record,
+                    "prompt_token_count": None,
+                    "option_scores": {},
+                    "option_probabilities": {},
+                    "argmax_choice": None,
+                    "generated_token_ids": [],
+                    "generated_text": "",
+                    "generated_choice": None,
+                    "format_valid": False,
+                    "timing_seconds": time.perf_counter() - trial_started,
+                    "status": "failed",
+                    "error": {
+                        "type": type(exc).__name__,
+                        "message": str(exc),
+                    },
+                }
+            )
+    torch.cuda.synchronize()
+    run_seconds = time.perf_counter() - run_started
+    write_jsonl(destination / "raw_capability_ladder.jsonl", records)
+
+    reports = {}
+    for index, task_level in enumerate(
+        ("copy_code", "single_field", "two_field")
+    ):
+        reports[task_level] = evaluate_capability_level(
+            manifest=manifest,
+            records=records,
+            task_level=task_level,
+            bootstrap_replicates=bootstrap_replicates,
+            bootstrap_seed=bootstrap_seed + index,
+            thresholds=thresholds,
+        )
+    route = classify_capability_route(
+        copy_valid=reports["copy_code"]["valid"],
+        single_field_valid=reports["single_field"]["valid"],
+        two_field_valid=reports["two_field"]["valid"],
+    )
+    ladder_report = {
+        "report_version": "0.2",
+        "created_at_utc": _utc_now(),
+        "development_only": True,
+        "model_id": model_config.model_id,
+        "prompt_format": manifest["prompt_format"],
+        **reports,
+        "route_decision": route,
+        "capability_gate_passed": route == "go_batch2",
+    }
+    _write_json(destination / "capability_ladder_report.json", ladder_report)
+
+    diagnostic_valid = bool(
+        evidence["valid"]
+        and answer_report["valid"]
+        and all(report["failed_trial_count"] == 0 for report in reports.values())
+    )
+
+    def compact_metrics(report: dict[str, Any]) -> dict[str, Any]:
+        return {
+            "accuracy": report["accuracy"],
+            "accuracy_interval": report["accuracy_interval"],
+            "format_valid_rate": report["format_valid_rate"],
+            "answer_position_accuracy": report["answer_position_accuracy"],
+        }
+
+    summary = {
+        "gate": "impl3d_g1_capability_ladder",
+        "started_at_utc": started_at,
+        "finished_at_utc": _utc_now(),
+        "development_only": True,
+        "model_id": model_config.model_id,
+        "prompt_format": manifest["prompt_format"],
+        "gate_config_sha256": sha256_file(gate_path),
+        "interface_evidence_valid": evidence["valid"],
+        "answer_interface_valid": answer_report["valid"],
+        "copy_code_valid": reports["copy_code"]["valid"],
+        "single_field_valid": reports["single_field"]["valid"],
+        "two_field_valid": reports["two_field"]["valid"],
+        "capability_gate_passed": route == "go_batch2",
+        "route_decision": route,
+        "copy_code_metrics": compact_metrics(reports["copy_code"]),
+        "single_field_metrics": compact_metrics(reports["single_field"]),
+        "two_field_metrics": compact_metrics(reports["two_field"]),
+        "trial_count": manifest["trial_count"],
+        "load_seconds": load_seconds,
+        "run_seconds": run_seconds,
+        "cuda_peak_memory_bytes": int(torch.cuda.max_memory_allocated()),
+        "reports": [
+            "interface_evidence.json",
             "answer_interface_report.json",
             "capability_manifest.json",
             "raw_capability_ladder.jsonl",
