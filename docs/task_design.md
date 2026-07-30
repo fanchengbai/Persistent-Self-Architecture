@@ -806,6 +806,12 @@ Impl-3 Prompt-visible v0.1 使用历史声明加通用规则时，RWKV-7 0.4B �
 只回答“模型是否会做精确二字段匹配”。标准 delay 不进入 T0，仍独立标定；
 state-only 模板是否保留通用规则继续在 Batch 2 冻结。
 
+v0.2 仍在全部 32 条轨迹中固定选择 A，因此不再继续按结果修改双字段措辞。
+Impl-3b 改为能力分解：先测直接 copy code，再测 single-field matching，最后
+引用既有 two-field 结果。这样可以判断当前 checkpoint 是不遵循答案接口、
+不会基本查表，还是只缺少组合能力；任何一种失败都不能解释成 state
+persistence 失败。
+
 ### Q4 身份写入是否需要确认步骤
 
 建议开发阶段比较：

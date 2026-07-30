@@ -291,6 +291,41 @@ cat results/development/impl3_development_v02/summary.json
 Revise 记录。v0.2 仍使用相同模型、标签筛选规则、任务 seed、答案代码和
 验收阈值。
 
+v0.2 云端结果同样为 `decision=revise`：32/32 条仍选择 A，joint accuracy
+为 0.25，两个 marginal accuracy 均为 0.5，format-valid rate 为 0.5。
+因此不再继续修改双字段措辞，改运行独立的 Impl-3b 能力阶梯。
+
+### 5.5 运行 Impl-3b 分层能力诊断
+
+保留 v0.2 结果原路径，然后执行：
+
+```bash
+bash scripts/run_impl3b_capability_ladder_gate.sh
+```
+
+查看：
+
+```bash
+cat results/development/impl3b_capability_ladder/summary.json
+```
+
+`valid=true` 表示诊断完整运行，不等于任务能力通过。真正的路线判断看：
+
+```text
+capability_gate_passed
+route_decision
+copy_code_valid
+single_field_valid
+two_field_valid
+```
+
+`route_decision` 的含义：
+
+- `revise_checkpoint_or_answer_interface`：连直接照抄代码都失败；
+- `revise_single_field_matching`：会照抄，但不会单字段查表；
+- `revise_compositional_matching`：前两层通过，双字段组合失败；
+- `go_batch2`：三层均通过，可以进入参数冻结。
+
 ## 6. 运行纯逻辑测试
 
 ```bash

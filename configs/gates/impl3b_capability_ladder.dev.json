@@ -1,0 +1,19 @@
+{
+  "config_version": "0.1",
+  "gate": "impl3b_capability_ladder",
+  "development_only": true,
+  "impl3_v02_summary": "results/development/impl3_development_v02/summary.json",
+  "answer_codes": ["A", "B", "C", "D"],
+  "answer_continuation_prefix": " ",
+  "repetitions": 8,
+  "base_seed": 20260730,
+  "max_generation_tokens": 4,
+  "bootstrap_replicates": 10000,
+  "bootstrap_seed": 910241,
+  "thresholds": {
+    "accuracy_lower_bound": 0.8,
+    "format_valid_rate": 0.99,
+    "max_answer_position_accuracy_gap": 0.25,
+    "max_infrastructure_failure_rate": 0.01
+  }
+}

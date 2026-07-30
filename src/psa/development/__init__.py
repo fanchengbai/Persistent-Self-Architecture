@@ -1,17 +1,35 @@
+from psa.development.capability_ladder import (
+    classify_capability_route,
+    evaluate_capability_level,
+    generate_capability_manifest,
+    run_capability_ladder_gate,
+)
 from psa.development.impl3 import (
     calibrate_standard_delay,
     evaluate_prompt_visible,
+    greedy_format_probe,
     inspect_dataset_tokenization,
     inspect_label_pairs,
+    normalized_probabilities,
     render_prompt_visible,
     run_impl3_development_gate,
+    score_continuations,
+    write_jsonl,
 )
 
 __all__ = [
     "calibrate_standard_delay",
+    "classify_capability_route",
     "evaluate_prompt_visible",
+    "evaluate_capability_level",
+    "generate_capability_manifest",
+    "greedy_format_probe",
     "inspect_dataset_tokenization",
     "inspect_label_pairs",
+    "normalized_probabilities",
     "render_prompt_visible",
     "run_impl3_development_gate",
+    "run_capability_ladder_gate",
+    "score_continuations",
+    "write_jsonl",
 ]

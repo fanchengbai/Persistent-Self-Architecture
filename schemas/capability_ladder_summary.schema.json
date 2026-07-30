@@ -1,0 +1,65 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://persistent-self-architecture.local/capability_ladder_summary.schema.json",
+  "title": "PSA Impl-3b Capability Ladder Summary",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "gate",
+    "started_at_utc",
+    "finished_at_utc",
+    "development_only",
+    "model_id",
+    "gate_config_sha256",
+    "impl3_v02_evidence_valid",
+    "answer_interface_valid",
+    "copy_code_valid",
+    "single_field_valid",
+    "two_field_valid",
+    "capability_gate_passed",
+    "route_decision",
+    "copy_code_metrics",
+    "single_field_metrics",
+    "load_seconds",
+    "run_seconds",
+    "cuda_peak_memory_bytes",
+    "reports",
+    "valid"
+  ],
+  "properties": {
+    "gate": {"const": "impl3b_capability_ladder"},
+    "started_at_utc": {"type": "string", "format": "date-time"},
+    "finished_at_utc": {"type": "string", "format": "date-time"},
+    "development_only": {"const": true},
+    "model_id": {"type": "string"},
+    "gate_config_sha256": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{64}$"
+    },
+    "impl3_v02_evidence_valid": {"type": "boolean"},
+    "answer_interface_valid": {"type": "boolean"},
+    "copy_code_valid": {"type": "boolean"},
+    "single_field_valid": {"type": "boolean"},
+    "two_field_valid": {"type": "boolean"},
+    "capability_gate_passed": {"type": "boolean"},
+    "route_decision": {
+      "enum": [
+        "revise_checkpoint_or_answer_interface",
+        "revise_single_field_matching",
+        "revise_compositional_matching",
+        "go_batch2"
+      ]
+    },
+    "copy_code_metrics": {"type": "object"},
+    "single_field_metrics": {"type": "object"},
+    "load_seconds": {"type": "number", "minimum": 0},
+    "run_seconds": {"type": "number", "minimum": 0},
+    "cuda_peak_memory_bytes": {"type": "integer", "minimum": 1},
+    "reports": {
+      "type": "array",
+      "minItems": 1,
+      "items": {"type": "string"}
+    },
+    "valid": {"type": "boolean"}
+  }
+}

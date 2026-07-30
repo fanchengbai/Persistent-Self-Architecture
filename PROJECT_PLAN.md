@@ -402,7 +402,7 @@ Persistent-Self-Architecture/
 3. 冻结 EXP-001 的 A/B 变量、任务生成和混淆控制。
 4. 审阅评价、状态格式和实现规范，形成冻结候选。
 5. 实现不依赖目标模型的纯逻辑骨架和验证器。
-6. 确定远程环境与 checkpoint，完成接口调查、数值 roundtrip 和 Prompt-visible 开发门。**环境、接口调查、内存及磁盘/跨进程 roundtrip 已完成；Prompt-visible v0.1 因固定 A 策略进入 Revise，显式精确匹配模板 v0.2 待云端复核。**
+6. 确定远程环境与 checkpoint，完成接口调查、数值 roundtrip 和 Prompt-visible 开发门。**环境、接口调查、内存及磁盘/跨进程 roundtrip 已完成；Prompt-visible v0.1/v0.2 均因固定 A 策略进入 Revise，分层能力诊断 Impl-3b 待云端运行。**
 7. 填写工程参数并完成最终预注册。
 8. 只在预注册后运行确认性 state 实验。
 

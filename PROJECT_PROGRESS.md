@@ -1,7 +1,7 @@
 # Persistent Self Architecture 项目进度表
 
 > 最后更新：2026-07-30
-> 当前节点：Impl-3 Prompt-visible 能力门 v0.2 等待云端验证
+> 当前节点：Impl-3b 分层能力诊断已实现，等待云端验证
 > 研究状态：尚未进入正式确认性实验，尚未实现显式 Self Model
 
 ## 1. 这张表怎么使用
@@ -43,13 +43,14 @@
 | 15. Impl-3 v0.1：任务能力门 | ⚠️ Revise | 明示身份和目标，检查模型能否完成四选一任务 | 在测试“状态记不记得”之前，先确认模型看着答案条件时会不会做题 | 基础设施全部正常，但模型 32 次都选 A；联合准确率 0.25，等于机会水平 | 项目负责人运行；Codex 诊断 |
 | 16. 排查 A 偏置 | ✅ 完成 | 检查答案 token、分数和前两组正确答案映射 | 判断是答案 token 不公平，还是模型没理解题目 | A–D 都是等长单 token；非 A 分数变化也未稳定指向正确项，不采用事后分数校正 | 共同完成 |
 | 17. 修复 JSONL 输出 | ✅ 完成 | 修正原始结果文件中的多余空行 | 保证以后每行都是一个可直接读取的 JSON 记录 | 已修复并添加回归测试；旧数据内容没有损坏 | Codex |
-| 18. Impl-3 v0.2：新能力模板 | 🟡 等待云端 | 改成直接显示 `CURRENT DOMAIN`、`CURRENT OPERATION` 和结构化选项 | 把题目改成最简单的“两字段精确匹配”，不再夹带持久记忆要求 | 代码、独立配置和脚本已完成；等待云端结果 | Codex 已完成；项目负责人运行 |
-| 19. Batch 2：冻结任务参数 | ⏳ 未开始 | 冻结标签池、模板、delay、答案格式和阈值 | 一旦冻结，后面不能因为结果不好随意改题 | 必须等待 v0.2 能力门结果 | 共同审阅 |
-| 20. Impl-4：预注册 | ⏳ 未开始 | 固定代码、配置、样本量、随机种子和判断标准 | 防止看到正式结果后改变成功标准 | 尚未开始 | Codex 整理；项目负责人确认 |
-| 21. Phase 2：正式原生 state 实验 | ⏳ 未开始 | 比较 original/reset/random/swap 等条件 | 这一步才真正测试 recurrent state 是否是跨时间因果载体 | 尚无研究结论 | 项目负责人运行；Codex 分析 |
-| 22. Phase 3：显式 Self Model | ⏳ 未开始 | 实现 Self Store、Self Encoder 和 gated injection | 只有原生状态基线可靠后，才能判断显式 Self Model 是否带来额外价值 | 目前只有设计，没有加入模型 | 后续由 Codex 实现 |
-| 23. Self 更新与演化 | ⏳ 未开始 | 让 Self State 根据经历受控更新、回滚和分化 | 这是“持续自我”真正更深入的部分 | 尚未开始 | 后续阶段 |
-| 24. 最终研究结论 | ⏳ 未开始 | 汇总统计结果、失败案例和替代解释 | 最终回答项目假设是否得到支持，而不是只展示几个有趣案例 | 尚未开始 | 共同完成 |
+| 18. Impl-3 v0.2：新能力模板 | ⚠️ Revise | 直接显示 `CURRENT DOMAIN`、`CURRENT OPERATION` 和结构化选项 | 检查 v0.1 失败是否只是措辞或 filler 造成 | 模型仍在全部 32 条轨迹中选择 A；联合准确率 0.25，两个边际准确率 0.5，格式有效率降至 0.5 | 项目负责人运行；Codex 诊断 |
+| 19. Impl-3b：分层能力诊断 | 🟡 等待云端 | 分别测试“直接抄代码”和“单字段匹配”，并复用 v0.2 双字段结果 | 不再盲目换措辞，而是定位模型究竟在哪一级能力上失败 | 代码、平衡样本、判定规则和独立脚本已完成；等待云端结果 | Codex 已完成；项目负责人运行 |
+| 20. Batch 2：冻结任务参数 | ⏳ 未开始 | 冻结标签池、模板、delay、答案格式和阈值 | 一旦冻结，后面不能因为结果不好随意改题 | 必须等待 Impl-3b 给出模型路线判断 | 共同审阅 |
+| 21. Impl-4：预注册 | ⏳ 未开始 | 固定代码、配置、样本量、随机种子和判断标准 | 防止看到正式结果后改变成功标准 | 尚未开始 | Codex 整理；项目负责人确认 |
+| 22. Phase 2：正式原生 state 实验 | ⏳ 未开始 | 比较 original/reset/random/swap 等条件 | 这一步才真正测试 recurrent state 是否是跨时间因果载体 | 尚无研究结论 | 项目负责人运行；Codex 分析 |
+| 23. Phase 3：显式 Self Model | ⏳ 未开始 | 实现 Self Store、Self Encoder 和 gated injection | 只有原生状态基线可靠后，才能判断显式 Self Model 是否带来额外价值 | 目前只有设计，没有加入模型 | 后续由 Codex 实现 |
+| 24. Self 更新与演化 | ⏳ 未开始 | 让 Self State 根据经历受控更新、回滚和分化 | 这是“持续自我”真正更深入的部分 | 尚未开始 | 后续阶段 |
+| 25. 最终研究结论 | ⏳ 未开始 | 汇总统计结果、失败案例和替代解释 | 最终回答项目假设是否得到支持，而不是只展示几个有趣案例 | 尚未开始 | 共同完成 |
 
 ## 3. 当前所在位置
 
@@ -63,7 +64,9 @@
 随机状态对照
    ✅
 模型是否看得懂考题
-   🟡 正在复核 v0.2
+   ⚠️ v0.1/v0.2 均为固定 A 策略
+能力失败发生在哪一层
+   🟡 等待 Impl-3b 云端诊断
 正式 state 因果实验
    ⏳
 显式 Self Model
@@ -75,27 +78,35 @@
 - 不能说模型已经拥有 Self；
 - 不能说 recurrent state 已经具有身份或目标语义；
 - 不能把工程门通过当成研究假设通过；
-- 不能因为 v0.1 失败就断言 state persistence 不存在，因为模型还没有通过最小任务能力门。
+- 不能因为 v0.1/v0.2 失败就断言 state persistence 不存在，因为当前证据首先指向模型任务能力不足。
 
 ## 4. 当前下一步
+
+Impl-3b 不修改双字段题，也不根据结果校正答案分数。它新增两个更简单的
+开发控制：
+
+1. **Copy code**：Prompt 直接写出目标代码，检查模型能否照抄；
+2. **Single field**：只匹配一个符号，检查模型能否完成基本查表；
+3. **Two field**：直接复用已经完成的 v0.2 结果，不重复寻找有利模板。
 
 项目负责人在云服务器执行：
 
 ```bash
 git pull --ff-only
 source .venv/bin/activate
-bash scripts/run_impl3_development_v02_gate.sh
-cat results/development/impl3_development_v02/summary.json
+bash scripts/run_impl3b_capability_ladder_gate.sh
+cat results/development/impl3b_capability_ladder/summary.json
 ```
 
 决策规则：
 
-| v0.2 结果 | 下一步 |
-|---|---|
-| `decision=go` 且 `valid=true` | 进入 Batch 2，共同审阅并冻结任务参数 |
-| `decision=revise`，但输出显示部分正确理解 | 只使用开发集进行一次有明确理由的受控修订 |
-| `decision=revise`，仍是固定位置或机会水平策略 | 评估其他合理模板或更合适 checkpoint，不进入 state-only 实验 |
-| 基础设施失败 | 修复工程问题后使用完全相同的配置重跑，不改变任务 seed |
+| `route_decision` | 通俗解释 | 下一步 |
+|---|---|---|
+| `revise_checkpoint_or_answer_interface` | 连明确写出的代码都不能稳定照抄 | 检查模型/提示格式，优先评估更合适的 instruction checkpoint |
+| `revise_single_field_matching` | 会照抄，但不会做最简单的一字段查表 | 当前 checkpoint 不适合 EXP-001，不进入 state-only 实验 |
+| `revise_compositional_matching` | 会照抄和单字段匹配，但不会组合两个字段 | 将结论记录为组合能力限制，评估更合适 checkpoint |
+| `go_batch2` | 三层能力都通过 | 进入 Batch 2，共同审阅并冻结任务参数 |
+| 基础设施失败 | 诊断没有完整执行 | 使用完全相同的配置修复重跑 |
 
 ## 5. 分工
 
@@ -125,3 +136,4 @@ cat results/development/impl3_development_v02/summary.json
 | 日期 | 更新内容 | 证据 |
 |---|---|---|
 | 2026-07-30 | 建立项目进度表；汇总 Phase 0 至 Impl-3 v0.2 的设计、实现和云端结果 | Git 历史、云端 environment/Impl-1/Impl-2/Impl-2b/Impl-2c/Impl-3 v0.1 summaries |
+| 2026-07-30 | Impl-3 v0.2 再次得到固定 A 的机会水平策略；记录为 Revise，并增加不改双字段题的 Impl-3b 分层能力诊断 | `results/development/impl3_development_v02/summary.json` |

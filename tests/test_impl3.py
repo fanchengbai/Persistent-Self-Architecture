@@ -7,12 +7,15 @@ import unittest
 
 from psa.development import (
     calibrate_standard_delay,
+    classify_capability_route,
+    evaluate_capability_level,
     evaluate_prompt_visible,
+    generate_capability_manifest,
     inspect_dataset_tokenization,
     inspect_label_pairs,
     render_prompt_visible,
+    write_jsonl,
 )
-from psa.development.impl3 import _write_jsonl
 from psa.tasks import generate_dataset, generate_factorial_group
 
 
@@ -27,11 +30,94 @@ class ByteTokenizerAdapter:
 
 
 class Impl3DevelopmentTests(unittest.TestCase):
+    def test_capability_manifest_balances_codes_at_each_level(self) -> None:
+        manifest = generate_capability_manifest(
+            answer_codes=("A", "B", "C", "D"),
+            symbols=("baf", "zom", "niv", "teg"),
+            repetitions=3,
+            base_seed=29,
+        )
+        self.assertEqual(manifest["trial_count"], 24)
+        for level in ("copy_code", "single_field"):
+            counts = {}
+            for trial in manifest["trials"]:
+                if trial["task_level"] == level:
+                    code = trial["target_code"]
+                    counts[code] = counts.get(code, 0) + 1
+            self.assertEqual(counts, {"A": 3, "B": 3, "C": 3, "D": 3})
+
+    def test_capability_level_evaluation_passes_ideal_records(self) -> None:
+        manifest = generate_capability_manifest(
+            answer_codes=("A", "B", "C", "D"),
+            symbols=("baf", "zom", "niv", "teg"),
+            repetitions=4,
+            base_seed=31,
+        )
+        records = [
+            {
+                "sample_id": trial["sample_id"],
+                "task_level": trial["task_level"],
+                "status": "success",
+                "argmax_choice": trial["target_code"],
+                "format_valid": True,
+            }
+            for trial in manifest["trials"]
+        ]
+        report = evaluate_capability_level(
+            manifest=manifest,
+            records=records,
+            task_level="copy_code",
+            bootstrap_replicates=500,
+            bootstrap_seed=37,
+            thresholds={
+                "accuracy_lower_bound": 0.8,
+                "format_valid_rate": 0.99,
+                "max_answer_position_accuracy_gap": 0.25,
+                "max_infrastructure_failure_rate": 0.01,
+            },
+        )
+        self.assertTrue(report["valid"])
+        self.assertEqual(report["accuracy_interval"], [1.0, 1.0])
+
+    def test_capability_route_identifies_first_failed_level(self) -> None:
+        self.assertEqual(
+            classify_capability_route(
+                copy_valid=False,
+                single_field_valid=False,
+                two_field_valid=False,
+            ),
+            "revise_checkpoint_or_answer_interface",
+        )
+        self.assertEqual(
+            classify_capability_route(
+                copy_valid=True,
+                single_field_valid=False,
+                two_field_valid=False,
+            ),
+            "revise_single_field_matching",
+        )
+        self.assertEqual(
+            classify_capability_route(
+                copy_valid=True,
+                single_field_valid=True,
+                two_field_valid=False,
+            ),
+            "revise_compositional_matching",
+        )
+        self.assertEqual(
+            classify_capability_route(
+                copy_valid=True,
+                single_field_valid=True,
+                two_field_valid=True,
+            ),
+            "go_batch2",
+        )
+
     def test_jsonl_writer_emits_exactly_one_json_object_per_line(self) -> None:
         records = [{"record": 1}, {"record": 2}]
         with tempfile.TemporaryDirectory() as directory:
             path = Path(directory) / "records.jsonl"
-            _write_jsonl(path, records)
+            write_jsonl(path, records)
             lines = path.read_text(encoding="utf-8").splitlines()
         self.assertEqual(len(lines), 2)
         self.assertEqual([json.loads(line) for line in lines], records)

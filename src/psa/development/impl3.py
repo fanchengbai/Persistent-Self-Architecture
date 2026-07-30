@@ -31,7 +31,7 @@ def _write_json(path: Path, payload: Any) -> None:
     path.write_bytes(canonical_json_bytes(payload))
 
 
-def _write_jsonl(path: Path, records: Iterable[dict[str, Any]]) -> None:
+def write_jsonl(path: Path, records: Iterable[dict[str, Any]]) -> None:
     path.parent.mkdir(parents=True, exist_ok=True)
     path.write_bytes(
         b"".join(canonical_json_bytes(record) for record in records)
@@ -247,7 +247,7 @@ def calibrate_standard_delay(
     }
 
 
-def _score_continuations(
+def score_continuations(
     adapter: Any,
     prompt: str,
     rendered_answers: dict[str, str],
@@ -270,14 +270,14 @@ def _score_continuations(
     return scores, prompt_logits, prompt_state, len(prompt_tokens)
 
 
-def _normalized_probabilities(scores: dict[str, float]) -> dict[str, float]:
+def normalized_probabilities(scores: dict[str, float]) -> dict[str, float]:
     maximum = max(scores.values())
     weights = {key: math.exp(value - maximum) for key, value in scores.items()}
     denominator = sum(weights.values())
     return {key: value / denominator for key, value in weights.items()}
 
 
-def _greedy_format_probe(
+def greedy_format_probe(
     adapter: Any,
     logits: Any,
     state: Any,
@@ -895,12 +895,12 @@ def run_impl3_development_gate(
                 "query_digest_sha256": sha256_json(prompt),
             }
             try:
-                scores, logits, state, prompt_token_count = _score_continuations(
+                scores, logits, state, prompt_token_count = score_continuations(
                     adapter,
                     prompt,
                     rendered_answers,
                 )
-                format_probe = _greedy_format_probe(
+                format_probe = greedy_format_probe(
                     adapter,
                     logits,
                     state,
@@ -925,7 +925,7 @@ def run_impl3_development_gate(
                         **base_record,
                         "prompt_token_count": prompt_token_count,
                         "option_scores": scores,
-                        "option_probabilities": _normalized_probabilities(scores),
+                        "option_probabilities": normalized_probabilities(scores),
                         "argmax_choice": predicted_code,
                         **format_probe,
                         "timing": {
@@ -971,7 +971,7 @@ def run_impl3_development_gate(
                 )
     torch.cuda.synchronize()
     batch_seconds = time.perf_counter() - run_started
-    _write_jsonl(destination / "raw_prompt_visible.jsonl", records)
+    write_jsonl(destination / "raw_prompt_visible.jsonl", records)
 
     thresholds = {
         "joint_lower_bound": _require_number(

@@ -170,9 +170,9 @@ Phase 0 → Phase 1 — Research Design / State Infrastructure
 10. official reset、state diff 与不可变 full-state swap 云端开发门已通过。
 11. `random_matched` 数值对照云端开发门已通过：72 个组件可由 seed
     逐位重建，不同 seed 可区分，逐组件尺度误差最大约 `0.0038%`，且续算稳定。
-12. Impl-3 v0.1 基础设施、标签池、delay 与资源门通过，但 Prompt-visible
-    出现固定选择 A 的机会水平策略；已按开发协议形成显式精确匹配模板 v0.2，
-    等待云端复核。
+12. Impl-3 v0.1 与显式精确匹配 v0.2 均出现固定选择 A 的机会水平策略；
+    已停止继续试探措辞，并实现 copy → single-field → two-field 的 Impl-3b
+    分层能力诊断，等待云端定位失败层级。
 
 ## 项目文档
 

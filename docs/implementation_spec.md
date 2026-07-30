@@ -1,7 +1,7 @@
 # PSA 实现与远程执行规范
 
 > 版本：v0.2-dev
-> 状态：Impl-0 至 Impl-2c 云端开发门已通过；Impl-3 Batch 1 v0.1 为 Revise，模板 v0.2 等待云端验证
+> 状态：Impl-0 至 Impl-2c 云端开发门已通过；Impl-3 v0.1/v0.2 均为 Revise，Impl-3b 分层能力诊断等待云端验证
 > 日期：2026-07-30
 > 依赖：[`architecture.md`](architecture.md)、[`state_format.md`](state_format.md)、[`task_design.md`](task_design.md)、[`evaluation_protocol.md`](evaluation_protocol.md)  
 > 边界：本机用于代码、配置、文档和结果分析；模型实验只在明确的远程 GPU 环境运行。
@@ -867,6 +867,21 @@ identity/goal marginal accuracy 均为 0.5，Gate 1 决策为 `revise`。
 T0 改为直接列出 `CURRENT DOMAIN`、`CURRENT OPERATION` 和四个结构化选项的
 精确字段匹配；能力门不再夹带标准 delay filler，delay 仍独立完成 tokenizer
 标定。v0.1 artifacts 必须保留，v0.2 写入独立目录。
+
+v0.2 云端运行仍在全部 32 条轨迹中固定选择 A：joint accuracy 0.25，
+identity/goal marginal accuracy 均为 0.5，format-valid rate 由 v0.1 的
+1.0 降至 0.5；基础设施失败率仍为 0。由此排除“只因 filler 或 v0.1 措辞
+导致失败”的简单解释。项目不继续尝试未预先定义的第三种双字段措辞。
+
+新增 Impl-3b development-only 能力阶梯：
+
+1. `copy_code`：Prompt 明确给出 A/B/C/D 中的目标，检查回答接口和最低指令跟随；
+2. `single_field`：四个符号与四个代码平衡轮换，检查单字段精确匹配；
+3. `two_field`：直接引用 v0.2 summary，不重跑或重新选择双字段模板。
+
+三层各使用 8 个完整平衡 blocks。诊断完成本身与能力门通过分开记录：
+`valid=true` 只表示诊断完整执行，`capability_gate_passed` 才表示可以进入
+Batch 2。`route_decision` 明确区分回答接口、单字段匹配和组合匹配限制。
 
 ### Impl-4：工程参数冻结与预注册
 
