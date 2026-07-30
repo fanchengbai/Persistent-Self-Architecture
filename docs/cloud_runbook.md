@@ -522,6 +522,20 @@ python -m psa g1-capability-audit \
 cat results/development/impl3i_g1h_2.9b_newline_aligned/audit_report.json
 ```
 
+审计结果显示换行前后都是相同 4 个 D-only 错误。停止修改答案边界，运行
+答案代码轮换诊断：
+
+### 5.14 运行 Impl-3k 答案代码轮换诊断
+
+```bash
+bash scripts/run_impl3k_g1h_2.9b_code_rotation_gate.sh
+cat results/development/impl3k_g1h_2.9b_code_rotation/summary.json
+```
+
+该门运行 128 条双字段配对题，预计耗时会高于此前 96 条混合层级能力门。
+它不下载新模型。查看 `per_code`、`multi_code_error_case_count` 和
+`route_decision`。
+
 ## 6. 运行纯逻辑测试
 
 ```bash

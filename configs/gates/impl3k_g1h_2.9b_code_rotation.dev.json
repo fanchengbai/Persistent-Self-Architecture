@@ -1,0 +1,22 @@
+{
+  "config_version": "0.1",
+  "gate": "impl3k_g1h_2_9b_code_rotation",
+  "development_only": true,
+  "revision_id": "g1h-2.9b-code-rotation-v0.1",
+  "interface_summary": "results/development/impl3f_g1h_2.9b_interface/summary.json",
+  "answer_codes": ["A", "B", "C", "D"],
+  "answer_continuation_prefix": "",
+  "assistant_prefix": "<think></think",
+  "forced_answer_prefix": ">\n",
+  "identity_label_pairs": [
+    ["baf", "zom"],
+    ["niv", "teg"]
+  ],
+  "goal_label_pairs": [
+    ["vam", "zep"],
+    ["qir", "bok"]
+  ],
+  "repetitions": 8,
+  "base_seed": 20260730,
+  "max_generation_tokens": 4
+}

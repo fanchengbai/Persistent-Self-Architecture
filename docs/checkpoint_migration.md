@@ -320,3 +320,32 @@ cat results/development/impl3i_g1h_2.9b_newline_aligned/audit_report.json
 
 重点比较 Impl-3g 与 Impl-3i 的 two-field 错误样本 ID、D→B/C 混淆方向
 和分差。若错误集合稳定，停止修改评分边界。
+
+审计确认错误集合完全稳定：
+
+- 同样 4 个 sample ID；
+- 同样 3 个 D→B、1 个 D→C；
+- 四个 `target_minus_predicted` 在新旧边界下均保持为负；
+- 两题的错误选项只匹配 domain，另两题只匹配 operation。
+
+这排除了随机数值翻转，也没有证据表明模型固定忽略某一个字段。剩余问题
+可能是答案代码 D 的系统偏差，也可能是字母偏差与组合语义的交互。
+
+## 15. Impl-3k：答案代码轮换诊断
+
+对每个相同的双字段语义案例，保持 domain、operation、选项语义和模型
+不变，只循环更换 A/B/C/D 的映射。32 个案例各 4 轮，共 128 条：
+
+```bash
+bash scripts/run_impl3k_g1h_2.9b_code_rotation_gate.sh
+cat results/development/impl3k_g1h_2.9b_code_rotation/summary.json
+```
+
+每个语义案例的正确答案在四轮中恰好分别为 A、B、C、D。报告提供：
+
+- `per_code`：每个答案代码的准确率；
+- `all_rotations_correct_case_count`：四轮全对的语义案例数；
+- `multi_code_error_case_count`：同一语义案例在多个字母下出错的数量；
+- `route_decision`：答案代码偏差、语义组合失败或混合效应。
+
+Impl-3k 是开发诊断，不会把原能力门的失败追溯改写为通过。

@@ -9,10 +9,12 @@ from psa.development import (
     audit_g1_capability_records,
     calibrate_standard_delay,
     classify_capability_route,
+    evaluate_g1_code_rotation,
     evaluate_capability_level,
     evaluate_prompt_visible,
     generate_capability_manifest,
     generate_g1_capability_manifest,
+    generate_g1_code_rotation_manifest,
     inspect_dataset_tokenization,
     inspect_label_pairs,
     render_prompt_visible,
@@ -33,6 +35,76 @@ class ByteTokenizerAdapter:
 
 
 class Impl3DevelopmentTests(unittest.TestCase):
+    def test_g1_code_rotation_balances_codes_within_each_semantic_case(
+        self,
+    ) -> None:
+        manifest = generate_g1_code_rotation_manifest(
+            answer_codes=("A", "B", "C", "D"),
+            identity_label_pairs=(("baf", "zom"),),
+            goal_label_pairs=(("vam", "zep"),),
+            repetitions=2,
+            base_seed=17,
+            assistant_prefix="<think></think",
+        )
+
+        self.assertEqual(manifest["trial_count"], 32)
+        self.assertEqual(manifest["semantic_case_count"], 8)
+        cases = {}
+        for trial in manifest["trials"]:
+            cases.setdefault(trial["semantic_case_id"], []).append(trial)
+        for trials in cases.values():
+            self.assertEqual(len(trials), 4)
+            self.assertEqual(
+                {trial["target_code"] for trial in trials},
+                {"A", "B", "C", "D"},
+            )
+            self.assertEqual(
+                len(
+                    {
+                        (
+                            trial["target_fields"]["domain"],
+                            trial["target_fields"]["operation"],
+                        )
+                        for trial in trials
+                    }
+                ),
+                1,
+            )
+
+    def test_g1_code_rotation_detects_answer_code_bias(self) -> None:
+        manifest = generate_g1_code_rotation_manifest(
+            answer_codes=("A", "B", "C", "D"),
+            identity_label_pairs=(("baf", "zom"),),
+            goal_label_pairs=(("vam", "zep"),),
+            repetitions=2,
+            base_seed=17,
+            assistant_prefix="<think></think",
+        )
+        records = []
+        for trial in manifest["trials"]:
+            target = trial["target_code"]
+            records.append(
+                {
+                    "sample_id": trial["sample_id"],
+                    "status": "success",
+                    "argmax_choice": "B" if target == "D" else target,
+                    "format_valid": True,
+                    "option_scores": {},
+                }
+            )
+
+        report = evaluate_g1_code_rotation(
+            manifest=manifest,
+            records=records,
+        )
+
+        self.assertTrue(report["valid"])
+        self.assertEqual(report["route_decision"], "answer_code_bias")
+        self.assertEqual(report["error_target_codes"], ["D"])
+        self.assertEqual(report["per_code"]["D"]["accuracy"], 0.0)
+        self.assertEqual(report["per_code"]["A"]["accuracy"], 1.0)
+        self.assertEqual(report["multi_code_error_case_count"], 0)
+
     def test_g1_result_audit_joins_targets_and_groups_outputs(self) -> None:
         manifest = {
             "manifest_digest_sha256": "digest",

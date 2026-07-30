@@ -1091,3 +1091,520 @@ def run_g1_capability_ladder_gate(
     }
     _write_json(destination / "summary.json", summary)
     return summary
+
+
+def generate_g1_code_rotation_manifest(
+    *,
+    answer_codes: Sequence[str],
+    identity_label_pairs: Sequence[Sequence[str]],
+    goal_label_pairs: Sequence[Sequence[str]],
+    repetitions: int,
+    base_seed: int,
+    assistant_prefix: str,
+) -> dict[str, Any]:
+    codes = tuple(answer_codes)
+    if len(codes) != 4 or len(set(codes)) != 4:
+        raise ValueError("answer_codes must contain four distinct values")
+    if repetitions < 2:
+        raise ValueError("repetitions must be at least two")
+    pair_combinations = tuple(
+        itertools.product(identity_label_pairs, goal_label_pairs)
+    )
+    if not pair_combinations:
+        raise ValueError("code rotation label pairs must be non-empty")
+
+    trials = []
+    rng = random.Random(base_seed ^ 0x473148)
+    for repetition in range(repetitions):
+        block_id = f"block-{repetition:03d}"
+        group_seed = rng.getrandbits(63)
+        identity_labels, goal_labels = pair_combinations[
+            repetition % len(pair_combinations)
+        ]
+        for rotation_index in range(4):
+            rotated_codes = (
+                codes[rotation_index:] + codes[:rotation_index]
+            )
+            group = generate_factorial_group(
+                group_seed=group_seed,
+                track="synthetic",
+                identity_labels=identity_labels,
+                goal_labels=goal_labels,
+                answer_codes=rotated_codes,
+                delay_units=0,
+                generator_version="g1-code-rotation-v0.1",
+                history_order="I_G",
+            )
+            for sample in group.trajectories:
+                task_prompt = render_prompt_visible(
+                    group,
+                    sample,
+                    template_version="explicit-match-v0.2",
+                )
+                prompt = render_g1_chat_prompt(
+                    _without_answer_marker(task_prompt),
+                    assistant_prefix=assistant_prefix,
+                )
+                semantic_case_id = "case-" + sha256_json(
+                    {
+                        "block_id": block_id,
+                        "group_seed": group_seed,
+                        "identity": sample.identity,
+                        "goal": sample.goal,
+                        "identity_labels": list(identity_labels),
+                        "goal_labels": list(goal_labels),
+                    }
+                )[:24]
+                sample_id = "g1rotate-" + sha256_json(
+                    {
+                        "semantic_case_id": semantic_case_id,
+                        "rotation_index": rotation_index,
+                        "target_code": sample.correct_code,
+                        "prompt": prompt,
+                    }
+                )[:24]
+                trials.append(
+                    {
+                        "sample_id": sample_id,
+                        "semantic_case_id": semantic_case_id,
+                        "task_level": "two_field_code_rotation",
+                        "block_id": block_id,
+                        "rotation_index": rotation_index,
+                        "rotated_answer_codes": list(rotated_codes),
+                        "prompt": prompt,
+                        "prompt_digest_sha256": sha256_json(prompt),
+                        "target_code": sample.correct_code,
+                        "target_fields": {
+                            "domain": group.identity_labels[
+                                sample.identity
+                            ],
+                            "operation": group.goal_labels[sample.goal],
+                        },
+                        "option_mapping": [
+                            {
+                                "code": option.code,
+                                "domain": group.identity_labels[
+                                    option.identity
+                                ],
+                                "operation": group.goal_labels[
+                                    option.goal
+                                ],
+                            }
+                            for option in group.options
+                        ],
+                    }
+                )
+
+    return {
+        "manifest_version": "0.1",
+        "development_only": True,
+        "diagnostic": "two_field_answer_code_rotation",
+        "prompt_format": "rwkv7-g1-fake-think-v0.2",
+        "assistant_prefix": assistant_prefix,
+        "base_seed": base_seed,
+        "repetitions": repetitions,
+        "rotation_count": 4,
+        "answer_codes": list(codes),
+        "identity_label_pairs": [
+            list(pair) for pair in identity_label_pairs
+        ],
+        "goal_label_pairs": [list(pair) for pair in goal_label_pairs],
+        "semantic_case_count": repetitions * 4,
+        "trial_count": len(trials),
+        "trials": trials,
+        "manifest_digest_sha256": sha256_json(trials),
+    }
+
+
+def evaluate_g1_code_rotation(
+    *,
+    manifest: dict[str, Any],
+    records: Sequence[dict[str, Any]],
+) -> dict[str, Any]:
+    trials_by_id = {
+        trial["sample_id"]: trial for trial in manifest["trials"]
+    }
+    outcomes = []
+    failures = 0
+    for record in records:
+        trial = trials_by_id[record["sample_id"]]
+        if record.get("status") != "success":
+            failures += 1
+            continue
+        target = trial["target_code"]
+        predicted = record.get("argmax_choice")
+        outcomes.append(
+            {
+                "sample_id": trial["sample_id"],
+                "semantic_case_id": trial["semantic_case_id"],
+                "rotation_index": trial["rotation_index"],
+                "target_code": target,
+                "predicted_code": predicted,
+                "correct": predicted == target,
+                "format_valid": bool(record.get("format_valid")),
+                "target_fields": trial["target_fields"],
+                "option_mapping": trial["option_mapping"],
+                "option_scores": record.get("option_scores", {}),
+            }
+        )
+
+    answer_codes = tuple(manifest["answer_codes"])
+    per_code = {}
+    confusion = {}
+    for code in answer_codes:
+        code_outcomes = [
+            outcome
+            for outcome in outcomes
+            if outcome["target_code"] == code
+        ]
+        per_code[code] = {
+            "trial_count": len(code_outcomes),
+            "correct_count": sum(
+                outcome["correct"] for outcome in code_outcomes
+            ),
+            "accuracy": (
+                sum(outcome["correct"] for outcome in code_outcomes)
+                / len(code_outcomes)
+                if code_outcomes
+                else 0.0
+            ),
+        }
+        predictions = {}
+        for outcome in code_outcomes:
+            predicted = str(outcome["predicted_code"])
+            predictions[predicted] = predictions.get(predicted, 0) + 1
+        confusion[code] = dict(sorted(predictions.items()))
+
+    cases = {}
+    for outcome in outcomes:
+        cases.setdefault(outcome["semantic_case_id"], []).append(outcome)
+    case_reports = []
+    for case_id, case_outcomes in sorted(cases.items()):
+        errors = [
+            outcome for outcome in case_outcomes if not outcome["correct"]
+        ]
+        case_reports.append(
+            {
+                "semantic_case_id": case_id,
+                "target_fields": case_outcomes[0]["target_fields"],
+                "correct_count": len(case_outcomes) - len(errors),
+                "error_count": len(errors),
+                "error_target_codes": sorted(
+                    {str(error["target_code"]) for error in errors}
+                ),
+                "rotations": [
+                    {
+                        "rotation_index": outcome["rotation_index"],
+                        "target_code": outcome["target_code"],
+                        "predicted_code": outcome["predicted_code"],
+                        "correct": outcome["correct"],
+                    }
+                    for outcome in sorted(
+                        case_outcomes,
+                        key=lambda item: item["rotation_index"],
+                    )
+                ],
+            }
+        )
+
+    scoring_errors = [
+        {
+            "sample_id": outcome["sample_id"],
+            "semantic_case_id": outcome["semantic_case_id"],
+            "rotation_index": outcome["rotation_index"],
+            "target_code": outcome["target_code"],
+            "predicted_code": outcome["predicted_code"],
+            "target_fields": outcome["target_fields"],
+            "option_mapping": outcome["option_mapping"],
+            "target_score": outcome["option_scores"].get(
+                outcome["target_code"]
+            ),
+            "predicted_score": outcome["option_scores"].get(
+                outcome["predicted_code"]
+            ),
+        }
+        for outcome in outcomes
+        if not outcome["correct"]
+    ]
+    error_target_codes = sorted(
+        {str(error["target_code"]) for error in scoring_errors}
+    )
+    multi_code_error_case_count = sum(
+        len(case["error_target_codes"]) >= 2 for case in case_reports
+    )
+    if not scoring_errors:
+        route = "no_answer_code_bias_detected"
+    elif (
+        len(error_target_codes) == 1
+        and multi_code_error_case_count == 0
+    ):
+        route = "answer_code_bias"
+    elif multi_code_error_case_count > 0:
+        route = "semantic_composition_failure"
+    else:
+        route = "mixed_answer_code_and_semantic_effect"
+
+    denominator = len(records)
+    return {
+        "report_version": "0.1",
+        "created_at_utc": _utc_now(),
+        "development_only": True,
+        "trial_count": manifest["trial_count"],
+        "semantic_case_count": manifest["semantic_case_count"],
+        "successful_trial_count": len(outcomes),
+        "failed_trial_count": failures,
+        "accuracy": (
+            sum(outcome["correct"] for outcome in outcomes) / denominator
+            if denominator
+            else 0.0
+        ),
+        "format_valid_rate": (
+            sum(outcome["format_valid"] for outcome in outcomes)
+            / denominator
+            if denominator
+            else 0.0
+        ),
+        "scoring_error_count": len(scoring_errors),
+        "error_target_codes": error_target_codes,
+        "all_rotations_correct_case_count": sum(
+            case["error_count"] == 0 for case in case_reports
+        ),
+        "multi_code_error_case_count": multi_code_error_case_count,
+        "per_code": per_code,
+        "confusion_matrix": confusion,
+        "case_reports": case_reports,
+        "scoring_errors": scoring_errors,
+        "route_decision": route,
+        "valid": failures == 0 and len(outcomes) == denominator,
+    }
+
+
+def run_g1_code_rotation_gate(
+    *,
+    config_path: str | Path,
+    gate_config_path: str | Path,
+    output_dir: str | Path,
+    project_root: str | Path = ".",
+) -> dict[str, Any]:
+    root = Path(project_root).resolve()
+    destination = Path(output_dir).resolve()
+    destination.mkdir(parents=True, exist_ok=True)
+    gate_path = Path(gate_config_path).resolve()
+    gate_config = _load_object(gate_path, "G1 code rotation config")
+    gate_name = "impl3k_g1h_2_9b_code_rotation"
+    if gate_config.get("gate") != gate_name:
+        raise ValueError("gate config is not for Impl-3k code rotation")
+    started_at = _utc_now()
+
+    model_config = load_model_config(config_path, root, verify_files=True)
+    evidence = _verify_g1_interface_evidence(
+        root,
+        str(gate_config.get("interface_summary")),
+        model_config.model_id,
+    )
+    _write_json(destination / "interface_evidence.json", evidence)
+    if not evidence["valid"]:
+        raise RuntimeError("G1 interface evidence is incomplete or incompatible")
+
+    answer_codes = _require_codes(gate_config.get("answer_codes"))
+    identity_pairs = _require_label_pairs(
+        gate_config.get("identity_label_pairs"),
+        "identity_label_pairs",
+    )
+    goal_pairs = _require_label_pairs(
+        gate_config.get("goal_label_pairs"),
+        "goal_label_pairs",
+    )
+    repetitions = gate_config.get("repetitions")
+    base_seed = gate_config.get("base_seed")
+    max_generation_tokens = gate_config.get("max_generation_tokens")
+    if not isinstance(repetitions, int) or repetitions < 2:
+        raise ValueError("repetitions must be an integer >= 2")
+    if not isinstance(base_seed, int) or base_seed < 0:
+        raise ValueError("base_seed must be a non-negative integer")
+    if (
+        not isinstance(max_generation_tokens, int)
+        or max_generation_tokens < 1
+    ):
+        raise ValueError("max_generation_tokens must be an integer >= 1")
+    assistant_prefix = str(gate_config.get("assistant_prefix", ""))
+    forced_answer_prefix = str(
+        gate_config.get("forced_answer_prefix", "")
+    )
+    continuation_prefix = str(
+        gate_config.get("answer_continuation_prefix", "")
+    )
+    if (
+        assistant_prefix != "<think></think"
+        or forced_answer_prefix != ">\n"
+        or continuation_prefix != ""
+    ):
+        raise ValueError("Impl-3k requires the audited newline answer boundary")
+
+    manifest = generate_g1_code_rotation_manifest(
+        answer_codes=answer_codes,
+        identity_label_pairs=identity_pairs,
+        goal_label_pairs=goal_pairs,
+        repetitions=repetitions,
+        base_seed=base_seed,
+        assistant_prefix=assistant_prefix,
+    )
+    _write_json(destination / "code_rotation_manifest.json", manifest)
+
+    torch = import_module("torch")
+    if not torch.cuda.is_available():
+        raise RuntimeError("CUDA is not available")
+    torch.cuda.reset_peak_memory_stats()
+    load_started = time.perf_counter()
+    adapter = RWKV7Adapter.load(model_config)
+    torch.cuda.synchronize()
+    load_seconds = time.perf_counter() - load_started
+
+    answer_report = inspect_answer_codes(
+        adapter,
+        answer_codes,
+        continuation_prefix=continuation_prefix,
+        require_equal_token_count=True,
+    )
+    _write_json(destination / "answer_interface_report.json", answer_report)
+    if not answer_report["valid"]:
+        raise RuntimeError("answer interface tokenization is invalid")
+
+    rendered_answers = {
+        code: f"{continuation_prefix}{code}" for code in answer_codes
+    }
+    records = []
+    run_started = time.perf_counter()
+    for trial in manifest["trials"]:
+        try:
+            (
+                scores,
+                logits,
+                state,
+                prompt_token_count,
+                forced_prefix_report,
+            ) = score_continuations_after_prefix(
+                adapter,
+                trial["prompt"],
+                rendered_answers,
+                forced_prefix=forced_answer_prefix,
+            )
+            format_probe = greedy_format_probe(
+                adapter,
+                logits,
+                state,
+                answer_codes=answer_codes,
+                max_tokens=max_generation_tokens,
+            )
+            records.append(
+                {
+                    "record_version": "0.1",
+                    "sample_id": trial["sample_id"],
+                    "semantic_case_id": trial["semantic_case_id"],
+                    "task_level": trial["task_level"],
+                    "rotation_index": trial["rotation_index"],
+                    "prompt_token_count": prompt_token_count,
+                    "option_scores": scores,
+                    "option_probabilities": normalized_probabilities(scores),
+                    "argmax_choice": max(scores, key=scores.__getitem__),
+                    "forced_prefix": forced_prefix_report,
+                    **format_probe,
+                    "status": "success",
+                    "error": None,
+                }
+            )
+        except Exception as exc:
+            records.append(
+                {
+                    "record_version": "0.1",
+                    "sample_id": trial["sample_id"],
+                    "semantic_case_id": trial["semantic_case_id"],
+                    "task_level": trial["task_level"],
+                    "rotation_index": trial["rotation_index"],
+                    "option_scores": {},
+                    "argmax_choice": None,
+                    "forced_prefix": None,
+                    "generated_token_ids": [],
+                    "generated_text": "",
+                    "generated_choice": None,
+                    "format_valid": False,
+                    "status": "failed",
+                    "error": {
+                        "type": type(exc).__name__,
+                        "message": str(exc),
+                    },
+                }
+            )
+    torch.cuda.synchronize()
+    run_seconds = time.perf_counter() - run_started
+    write_jsonl(destination / "raw_code_rotation.jsonl", records)
+
+    report = evaluate_g1_code_rotation(
+        manifest=manifest,
+        records=records,
+    )
+    successful_records = [
+        record for record in records if record["status"] == "success"
+    ]
+    forced_prefix_greedy_exact_rate = (
+        sum(
+            bool(record["forced_prefix"]["greedy_exact"])
+            for record in successful_records
+        )
+        / len(successful_records)
+        if successful_records
+        else 0.0
+    )
+    report["forced_prefix_greedy_exact_rate"] = (
+        forced_prefix_greedy_exact_rate
+    )
+    report["valid"] = bool(
+        report["valid"]
+        and evidence["valid"]
+        and answer_report["valid"]
+        and forced_prefix_greedy_exact_rate == 1.0
+    )
+    _write_json(destination / "code_rotation_report.json", report)
+
+    summary = {
+        "gate": gate_name,
+        "started_at_utc": started_at,
+        "finished_at_utc": _utc_now(),
+        "development_only": True,
+        "model_id": model_config.model_id,
+        "gate_config_sha256": sha256_file(gate_path),
+        "trial_count": manifest["trial_count"],
+        "semantic_case_count": manifest["semantic_case_count"],
+        "manifest_digest_sha256": manifest[
+            "manifest_digest_sha256"
+        ],
+        "forced_prefix_greedy_exact_rate": (
+            forced_prefix_greedy_exact_rate
+        ),
+        "accuracy": report["accuracy"],
+        "format_valid_rate": report["format_valid_rate"],
+        "scoring_error_count": report["scoring_error_count"],
+        "error_target_codes": report["error_target_codes"],
+        "all_rotations_correct_case_count": report[
+            "all_rotations_correct_case_count"
+        ],
+        "multi_code_error_case_count": report[
+            "multi_code_error_case_count"
+        ],
+        "per_code": report["per_code"],
+        "confusion_matrix": report["confusion_matrix"],
+        "route_decision": report["route_decision"],
+        "load_seconds": load_seconds,
+        "run_seconds": run_seconds,
+        "cuda_peak_memory_bytes": int(torch.cuda.max_memory_allocated()),
+        "reports": [
+            "interface_evidence.json",
+            "answer_interface_report.json",
+            "code_rotation_manifest.json",
+            "raw_code_rotation.jsonl",
+            "code_rotation_report.json",
+        ],
+        "valid": report["valid"],
+    }
+    _write_json(destination / "summary.json", summary)
+    return summary

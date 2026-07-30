@@ -1,7 +1,7 @@
 # Persistent Self Architecture 项目进度表
 
 > 最后更新：2026-07-30
-> 当前节点：Impl-3i 已修复单字段评分错位；正在审计仍未改善的双字段 D 偏差
+> 当前节点：Impl-3j 已确认稳定的 D-only 双字段错误；Impl-3k 等待答案代码轮换诊断
 > 研究状态：尚未进入正式确认性实验，尚未实现显式 Self Model
 
 ## 1. 这张表怎么使用
@@ -31,7 +31,7 @@
 | 3. 划清概念边界 | ✅ 完成 | 区分 Prompt、Memory、原生 recurrent state 和显式 Self State | 模型“记住了内容”不等于模型“拥有 Self Model” | 已明确：只有状态能持续、更新、被干预并因果影响行为，才有资格继续讨论 Self | Codex |
 | 4. 设计总体架构 | ✅ 初版完成 | 设计 World Model、Memory、原生 state、Self Store、Encoder、注入和更新模块 | 先画清楚未来系统由什么组成，再决定先验证哪一块 | 显式 Self Model 已完成理论设计，但尚未写入模型 | Codex |
 | 5. 设计 EXP-001 | ✅ 完成 | 设计“身份约束 × 当前目标”的四状态任务 | 用一个很小、可量化的任务测试状态是否真的影响选择 | 已形成四组合任务、swap/reset/random 对照和评价指标 | Codex |
-| 6. 建立代码与实验骨架 | ✅ 完成 | 实现任务生成、泄漏检查、统计方法、配置和报告格式 | 相当于先把实验室的记录表、评分器和质检流程搭好 | 本地纯逻辑测试目前达到 67 项全部通过 | Codex |
+| 6. 建立代码与实验骨架 | ✅ 完成 | 实现任务生成、泄漏检查、统计方法、配置和报告格式 | 相当于先把实验室的记录表、评分器和质检流程搭好 | 本地纯逻辑测试目前达到 69 项全部通过 | Codex |
 | 7. 准备模型和数据下载 | ✅ 完成 | 提供脚本下载固定版本的 RWKV 模型和 tokenizer | 云服务器只需运行脚本，不用手动寻找文件 | 模型约 861 MB、tokenizer 约 1.1 MB，哈希验证通过 | Codex 编写；项目负责人云端执行 |
 | 8. 检查云端环境 | ✅ 通过 | 核对 GPU、CUDA、PyTorch、Python、RWKV 和磁盘 | 先确认实验机器不会因为版本问题产生假结果 | RTX 5090 32 GB、CUDA 13.2、PyTorch 2.12、RWKV 0.8.32，环境有效 | 项目负责人运行；Codex 分析 |
 | 9. Impl-1：模型接口 | ✅ 通过 | 加载模型、测试 tokenizer、读取 recurrent state | 确认我们真的能够观察和操作模型内部状态 | RWKV-7 0.4B 加载成功；24 层、每层 3 个组件，共 72 个 state tensors | 共同完成 |
@@ -53,14 +53,15 @@
 | 25. Impl-3g：2.9B 能力门复验 | ⚠️ Revise | 使用已审计的 fake-think 接口重跑与 1.5B 完全相同的 96 条能力题 | 公平检验“只增大模型”能否解决 1.5B 的组合能力和答案位置偏差 | 诊断有效但能力门失败：copy 评分 1.0/格式 0.75；single 评分 0.90625/格式 0.875；two-field 评分 0.875/格式 0.90625；D 位置仍为 0.5 | 项目负责人运行；Codex 诊断 |
 | 26. Impl-3h：2.9B 原始结果审计 | ✅ 完成 | 不重跑模型，读取已有 JSONL，汇总输出变体、混淆矩阵、格式异常和 7 个评分错误 | 判断失败究竟来自答案接口，还是 checkpoint 的真实组合能力与位置偏差 | 7 个评分错误全部以 D 为正确答案，其中 6 个 D→B、1 个 D→C；4 个同时格式失败、3 个是正常格式下的真实错误；模型 96/96 次在 `>` 后先换行，而旧评分比较的是空格+A–D | 项目负责人运行；Codex 诊断 |
 | 27. Impl-3i：自然换行对齐复验 | ⚠️ Revise | 保持相同模型、96 条题、seed 和阈值，只把评分边界从 `> A` 改为模型自然生成的 `>\nA` | 检验 D 偏差是否由候选评分路径与自然回答路径错位造成 | `>\n` 贪心一致率 1.0；single-field 从 0.90625 修复到 1.0，D 从 0.625 修复到 1.0；two-field 完全不变，仍为 0.875、D=0.5；格式率也按预期不变 | 项目负责人运行；Codex 诊断 |
-| 28. Impl-3j：换行对齐后的双字段错误审计 | 🟡 等待云端 | 只读 Impl-3i 的已有 JSONL，核对 4 个双字段错误是否与 Impl-3g 相同 | 区分“稳定的组合能力缺口”与“边界改变后发生的随机换错题” | 无需加载模型或使用 GPU；等待错误样本、混淆方向和分差 | 项目负责人运行；Codex 诊断 |
-| 29. 新模型 state 工程门复验 | ⏳ 未开始 | 重跑磁盘恢复、reset/diff/swap 和 matched random | 新模型的 state 形状和数值尺度不同，旧模型的通过记录不能替代复验 | 等待最终候选通过能力门 | 共同完成 |
-| 30. Batch 2：冻结任务参数 | ⏳ 未开始 | 冻结 checkpoint、标签池、模板、delay、答案格式和阈值 | 一旦冻结，后面不能因为结果不好随意改题或换模型 | 必须等待新模型能力门与 state 工程门都通过 | 共同审阅 |
-| 31. Impl-4：预注册 | ⏳ 未开始 | 固定代码、配置、样本量、随机种子和判断标准 | 防止看到正式结果后改变成功标准 | 尚未开始 | Codex 整理；项目负责人确认 |
-| 32. Phase 2：正式原生 state 实验 | ⏳ 未开始 | 比较 original/reset/random/swap 等条件 | 这一步才真正测试 recurrent state 是否是跨时间因果载体 | 尚无研究结论 | 项目负责人运行；Codex 分析 |
-| 33. Phase 3：显式 Self Model | ⏳ 未开始 | 实现 Self Store、Self Encoder 和 gated injection | 只有原生状态基线可靠后，才能判断显式 Self Model 是否带来额外价值 | 目前只有设计，没有加入模型 | 后续由 Codex 实现 |
-| 34. Self 更新与演化 | ⏳ 未开始 | 让 Self State 根据经历受控更新、回滚和分化 | 这是“持续自我”真正更深入的部分 | 尚未开始 | 后续阶段 |
-| 35. 最终研究结论 | ⏳ 未开始 | 汇总统计结果、失败案例和替代解释 | 最终回答项目假设是否得到支持，而不是只展示几个有趣案例 | 尚未开始 | 共同完成 |
+| 28. Impl-3j：换行对齐后的双字段错误审计 | ✅ 完成 | 只读 Impl-3i 的已有 JSONL，核对 4 个双字段错误是否与 Impl-3g 相同 | 区分“稳定的组合能力缺口”与“边界改变后发生的随机换错题” | 错误仍是完全相同的 4 个样本、3 个 D→B 和 1 个 D→C；全部分差仍为负；两题只匹配 domain、两题只匹配 operation，说明没有固定忽略同一个字段 | 项目负责人运行；Codex 诊断 |
+| 29. Impl-3k：答案代码轮换诊断 | 🟡 等待云端 | 让 32 个相同语义案例各自轮换使用 A/B/C/D，共 128 条配对题 | 判断错误究竟跟随字母 D，还是跟随特定语义组合 | 代码、配置、报告和测试已完成；每个语义案例四轮目标代码恰好各出现一次 | Codex 已完成；项目负责人运行 |
+| 30. 新模型 state 工程门复验 | ⏳ 未开始 | 重跑磁盘恢复、reset/diff/swap 和 matched random | 新模型的 state 形状和数值尺度不同，旧模型的通过记录不能替代复验 | 等待最终候选通过能力门 | 共同完成 |
+| 31. Batch 2：冻结任务参数 | ⏳ 未开始 | 冻结 checkpoint、标签池、模板、delay、答案格式和阈值 | 一旦冻结，后面不能因为结果不好随意改题或换模型 | 必须等待新模型能力门与 state 工程门都通过 | 共同审阅 |
+| 32. Impl-4：预注册 | ⏳ 未开始 | 固定代码、配置、样本量、随机种子和判断标准 | 防止看到正式结果后改变成功标准 | 尚未开始 | Codex 整理；项目负责人确认 |
+| 33. Phase 2：正式原生 state 实验 | ⏳ 未开始 | 比较 original/reset/random/swap 等条件 | 这一步才真正测试 recurrent state 是否是跨时间因果载体 | 尚无研究结论 | 项目负责人运行；Codex 分析 |
+| 34. Phase 3：显式 Self Model | ⏳ 未开始 | 实现 Self Store、Self Encoder 和 gated injection | 只有原生状态基线可靠后，才能判断显式 Self Model 是否带来额外价值 | 目前只有设计，没有加入模型 | 后续由 Codex 实现 |
+| 35. Self 更新与演化 | ⏳ 未开始 | 让 Self State 根据经历受控更新、回滚和分化 | 这是“持续自我”真正更深入的部分 | 尚未开始 | 后续阶段 |
+| 36. 最终研究结论 | ⏳ 未开始 | 汇总统计结果、失败案例和替代解释 | 最终回答项目假设是否得到支持，而不是只展示几个有趣案例 | 尚未开始 | 共同完成 |
 
 ## 3. 当前所在位置
 
@@ -94,7 +95,9 @@
 自然回答边界受控复验
    ⚠️ single-field 已完全修复；two-field 与 D 偏差完全不变
 换行对齐后的错误是否稳定
-   🟡 Impl-3j 只读审计等待运行
+   ✅ 同4个样本、同3次D→B和1次D→C；不是数值随机翻转
+错误跟着语义还是答案字母走
+   🟡 Impl-3k 轮换代码诊断等待云端
 正式 state 因果实验
    ⏳
 显式 Self Model
@@ -183,9 +186,28 @@ python -m psa g1-capability-audit \
 cat results/development/impl3i_g1h_2.9b_newline_aligned/audit_report.json
 ```
 
-该命令不重跑模型、不使用 GPU。若 4 个双字段错误仍集中于原来的 D
-样本和相同混淆方向，就把它记录为稳定的组合能力/答案位置缺口，下一步
-转向任务接口或 checkpoint 选择，而不是继续微调 fake-think 边界。
+Impl-3j 证明 4 个错误与 Impl-3g 完全相同：相同样本、3 个 D→B、1 个
+D→C，而且新旧评分下分差都保持负值。错误分别表现为两次只保留 domain、
+两次只保留 operation，并没有固定忽略某一个字段。至此停止修改
+fake-think 和空格/换行边界。
+
+剩余歧义是：错误究竟跟随答案字母 D，还是跟随这 4 个语义案例。Impl-3k
+用配对轮换回答这个问题：32 个语义案例各运行 4 次，每次只循环替换
+A/B/C/D 映射，共 128 条。运行：
+
+```bash
+git pull --ff-only
+source .venv/bin/activate
+bash scripts/run_impl3k_g1h_2.9b_code_rotation_gate.sh
+cat results/development/impl3k_g1h_2.9b_code_rotation/summary.json
+```
+
+重点看 `route_decision`：
+
+- `answer_code_bias`：错误跟着某个字母走，应重构答案接口；
+- `semantic_composition_failure`：同一语义案例换字母仍错，应更换 checkpoint
+  或降低任务复杂度；
+- `mixed_answer_code_and_semantic_effect`：两种因素同时存在。
 
 完整选择依据和后续复验顺序见
 [checkpoint 迁移方案](docs/checkpoint_migration.md)。
@@ -228,3 +250,4 @@ cat results/development/impl3i_g1h_2.9b_newline_aligned/audit_report.json
 | 2026-07-30 | Impl-3g 诊断完整但能力门未通过：2.9B 没有消除格式失败，single/two-field 也未达阈值且 D 位置仍弱；新增无需 GPU 的 Impl-3h 原始结果审计 | `results/development/impl3g_g1h_2.9b_fake_think/summary.json`、`scripts/audit_impl3g_g1h_2.9b_results.sh` |
 | 2026-07-30 | Impl-3h 发现全部 7 个评分错误都以 D 为目标，同时确认模型 96/96 次在 `>` 后自然先换行，而 Impl-3g 候选使用空格；新增只对齐这一自然回答边界的 Impl-3i 复验 | `results/development/impl3g_g1h_2.9b_fake_think/audit_report.json`、`configs/gates/impl3i_g1h_2.9b_newline_aligned.dev.json` |
 | 2026-07-30 | Impl-3i 将 single-field 与 D 位置完全修复到 1.0，证明换行边界修正有效；但 two-field 仍为 0.875、D 仍为 0.5，说明剩余组合错误不是该边界造成；进入 Impl-3j 只读错误审计 | `results/development/impl3i_g1h_2.9b_newline_aligned/summary.json` |
+| 2026-07-30 | Impl-3j 确认换行前后是相同 4 个 D-only 双字段错误，且分别保留不同单字段；停止边界调试，新增每个语义案例完整轮换 A–D 的 Impl-3k 配对诊断 | `results/development/impl3i_g1h_2.9b_newline_aligned/audit_report.json`、`configs/gates/impl3k_g1h_2.9b_code_rotation.dev.json` |

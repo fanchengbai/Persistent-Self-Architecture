@@ -1,10 +1,13 @@
 from psa.development.capability_ladder import (
     classify_capability_route,
+    evaluate_g1_code_rotation,
     evaluate_capability_level,
     generate_capability_manifest,
+    generate_g1_code_rotation_manifest,
     generate_g1_capability_manifest,
     render_g1_chat_prompt,
     run_capability_ladder_gate,
+    run_g1_code_rotation_gate,
     run_g1_capability_ladder_gate,
 )
 from psa.development.impl3 import (
@@ -30,8 +33,10 @@ __all__ = [
     "classify_capability_route",
     "evaluate_prompt_visible",
     "evaluate_capability_level",
+    "evaluate_g1_code_rotation",
     "generate_capability_manifest",
     "generate_g1_capability_manifest",
+    "generate_g1_code_rotation_manifest",
     "greedy_format_probe",
     "inspect_dataset_tokenization",
     "inspect_label_pairs",
@@ -41,6 +46,7 @@ __all__ = [
     "run_impl3_development_gate",
     "run_capability_ladder_gate",
     "run_g1_capability_ladder_gate",
+    "run_g1_code_rotation_gate",
     "score_continuations",
     "score_continuations_after_prefix",
     "write_jsonl",

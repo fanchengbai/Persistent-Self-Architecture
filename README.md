@@ -194,6 +194,9 @@ Phase 0 → Phase 1 — Research Design / State Infrastructure
 21. Impl-3i 证明换行边界修正有效：single-field 与各答案位置均恢复到
     100%；但 two-field 仍为 87.5%、D 仍为 50%，因此剩余组合错误不是
     评分边界造成，下一步只读审计这 4 个错误。
+22. Impl-3j 确认换行前后都是相同的 4 个 D-only 错误；Impl-3k 将让
+    32 个相同语义案例各自完整轮换 A–D，共 128 条配对题，区分答案字母
+    偏差与真实双字段组合能力不足。
 
 ## 项目文档
 
