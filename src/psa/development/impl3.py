@@ -309,21 +309,49 @@ def _greedy_format_probe(
     }
 
 
-def _render_prompt_visible(sample: Any) -> str:
-    parts = []
-    if sample.common_suffix:
-        parts.append(sample.common_suffix)
-    # T0 measures task comprehension, not persistence: the active bindings are
-    # repeated immediately before the query. Delay material remains in the
-    # prompt only as a tokenizer/resource calibration load.
-    parts.append(sample.history)
-    parts.append(sample.query)
-    return "\n".join(parts)
+def render_prompt_visible(
+    group: Any,
+    sample: Any,
+    *,
+    template_version: str,
+) -> str:
+    if template_version == "history-query-v0.1":
+        parts = []
+        if sample.common_suffix:
+            parts.append(sample.common_suffix)
+        parts.append(sample.history)
+        parts.append(sample.query)
+        return "\n".join(parts)
+    if template_version == "explicit-match-v0.2":
+        identity_label = group.identity_labels[sample.identity]
+        goal_label = group.goal_labels[sample.goal]
+        options = "\n".join(
+            (
+                f"{option.code}. DOMAIN: "
+                f"{group.identity_labels[option.identity]} | OPERATION: "
+                f"{group.goal_labels[option.goal]}"
+            )
+            for option in group.options
+        )
+        return (
+            "TASK: exact two-field match.\n"
+            "Choose the option whose DOMAIN equals CURRENT DOMAIN and whose "
+            "OPERATION equals CURRENT OPERATION.\n"
+            f"CURRENT DOMAIN: {identity_label}\n"
+            f"CURRENT OPERATION: {goal_label}\n"
+            "OPTIONS:\n"
+            f"{options}\n"
+            "Reply with the matching option code only.\n"
+            "ANSWER:"
+        )
+    raise ValueError(f"unsupported prompt_template_version: {template_version}")
 
 
 def inspect_dataset_tokenization(
     adapter: Any,
     groups: Sequence[Any],
+    *,
+    template_version: str = "history-query-v0.1",
 ) -> dict[str, Any]:
     group_records = []
     for group in groups:
@@ -331,7 +359,11 @@ def inspect_dataset_tokenization(
         prompt_counts = []
         roundtrip_exact = True
         for sample in group.trajectories:
-            prompt = _render_prompt_visible(sample)
+            prompt = render_prompt_visible(
+                group,
+                sample,
+                template_version=template_version,
+            )
             for text in (sample.history, sample.common_suffix, sample.query, prompt):
                 if text:
                     tokens = adapter.encode(text)
@@ -356,6 +388,7 @@ def inspect_dataset_tokenization(
             }
         )
     return {
+        "prompt_template_version": template_version,
         "group_count": len(group_records),
         "groups": group_records,
         "valid": bool(group_records)
@@ -572,10 +605,21 @@ def _resource_estimate(
     peak_memory_bytes: int,
     planned_core_groups: int,
     planned_conditions_per_trajectory: int,
+    projection_extra_tokens_per_trajectory: int,
 ) -> dict[str, Any]:
     planned_trials = planned_core_groups * 4 * planned_conditions_per_trajectory
     per_trial_seconds = batch_seconds / record_count if record_count else 0.0
     per_trial_tokens = total_forward_tokens / record_count if record_count else 0.0
+    seconds_per_token = (
+        batch_seconds / total_forward_tokens if total_forward_tokens else 0.0
+    )
+    projected_tokens_per_trial = (
+        per_trial_tokens + projection_extra_tokens_per_trajectory
+    )
+    projected_forward_tokens = int(
+        math.ceil(projected_tokens_per_trial * planned_trials)
+    )
+    projected_gpu_seconds = seconds_per_token * projected_forward_tokens
     checkpoint_bytes = 0
     for evidence in batch0["evidence"]:
         value = evidence["summary"].get("checkpoint_payload_size_bytes")
@@ -596,6 +640,7 @@ def _resource_estimate(
             "trajectory_count": record_count,
             "forward_token_count": total_forward_tokens,
             "mean_forward_tokens_per_trajectory": per_trial_tokens,
+            "mean_seconds_per_forward_token": seconds_per_token,
             "model_load_seconds": model_load_seconds,
             "batch_seconds": batch_seconds,
             "mean_seconds_per_trajectory": per_trial_seconds,
@@ -608,11 +653,12 @@ def _resource_estimate(
             "trajectories_per_group": 4,
             "conditions_per_trajectory": planned_conditions_per_trajectory,
             "trial_count": planned_trials,
-            "estimated_forward_token_count": int(
-                math.ceil(per_trial_tokens * planned_trials)
+            "extra_delay_tokens_per_trajectory": (
+                projection_extra_tokens_per_trajectory
             ),
-            "estimated_gpu_seconds": per_trial_seconds * planned_trials,
-            "estimated_gpu_hours": per_trial_seconds * planned_trials / 3600.0,
+            "estimated_forward_token_count": projected_forward_tokens,
+            "estimated_gpu_seconds": projected_gpu_seconds,
+            "estimated_gpu_hours": projected_gpu_seconds / 3600.0,
             "estimated_raw_result_bytes": estimated_result_bytes,
             "planned_checkpoint_count": planned_checkpoint_count,
             "estimated_checkpoint_bytes": estimated_checkpoint_bytes,
@@ -732,6 +778,12 @@ def run_impl3_development_gate(
         raise RuntimeError("tokenizer label-pool qualification failed")
 
     track = str(batch1_config.get("track", "synthetic"))
+    prompt_template_version = str(
+        batch1_config.get(
+            "prompt_template_version",
+            "history-query-v0.1",
+        )
+    )
     delay_report = calibrate_standard_delay(
         adapter,
         track=track,
@@ -766,7 +818,11 @@ def run_impl3_development_gate(
         generator_version=str(batch1_config.get("generator_version", "0.1")),
     )
     validation = validate_dataset(groups)
-    tokenizer_validation = inspect_dataset_tokenization(adapter, groups)
+    tokenizer_validation = inspect_dataset_tokenization(
+        adapter,
+        groups,
+        template_version=prompt_template_version,
+    )
     group_payloads = [group.to_dict() for group in groups]
     dataset = {
         "dataset_version": "0.1",
@@ -775,6 +831,7 @@ def run_impl3_development_gate(
         "group_count": len(groups),
         "base_seed": batch1_config["base_seed"],
         "generator_version": str(batch1_config.get("generator_version", "0.1")),
+        "prompt_template_version": prompt_template_version,
         "delay_units": delay_report["selected_delay_units"],
         "delay_token_count": delay_report["selected_token_count"],
         "label_pool_report_sha256": sha256_file(
@@ -814,7 +871,11 @@ def run_impl3_development_gate(
     run_started = time.perf_counter()
     for group in groups:
         for sample in group.trajectories:
-            prompt = _render_prompt_visible(sample)
+            prompt = render_prompt_visible(
+                group,
+                sample,
+                template_version=prompt_template_version,
+            )
             trial_started = time.perf_counter()
             base_record = {
                 "record_version": "0.1",
@@ -874,6 +935,7 @@ def run_impl3_development_gate(
                         "runtime": {
                             "model_id": model_config.model_id,
                             "strategy": model_config.strategy,
+                            "prompt_template_version": prompt_template_version,
                         },
                         "status": "success",
                         "error": None,
@@ -898,6 +960,7 @@ def run_impl3_development_gate(
                         "runtime": {
                             "model_id": model_config.model_id,
                             "strategy": model_config.strategy,
+                            "prompt_template_version": prompt_template_version,
                         },
                         "status": "failed",
                         "error": {
@@ -958,6 +1021,9 @@ def run_impl3_development_gate(
         planned_conditions_per_trajectory=_require_int(
             projection_config, "conditions_per_trajectory", 1
         ),
+        projection_extra_tokens_per_trajectory=delay_report[
+            "selected_token_count"
+        ],
     )
     _write_json(destination / "resource_estimate.json", resource)
 
@@ -976,6 +1042,8 @@ def run_impl3_development_gate(
         "finished_at_utc": _utc_now(),
         "development_only": True,
         "model_id": model_config.model_id,
+        "revision_id": str(gate_config.get("revision_id", "initial-v0.1")),
+        "prompt_template_version": prompt_template_version,
         "gate_config_sha256": sha256_file(gate_path),
         "batch0_valid": batch0["valid"],
         "task_leakage_valid": validation.valid,

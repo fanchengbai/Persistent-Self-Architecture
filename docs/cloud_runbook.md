@@ -270,6 +270,27 @@ results/development/impl3_development/
 参数审阅与冻结；若为 `revise`，先查看 `prompt_visible_report.json` 中失败的
 具体门槛。Batch 1 只检验模型是否理解任务，不提供 persistence 或 Self 证据。
 
+首次 v0.1 云端运行得到 `decision=revise`：模型在全部 32 条轨迹中固定选择
+A，joint accuracy 为 0.25，两个 marginal accuracy 均为 0.5。A–D 已确认
+都是独立且等长的单 token，因此 v0.2 不修改答案分数，也不做事后先验校正；
+只把 T0 改成更直接的显式精确字段匹配，并将结果写入新目录。
+
+运行 v0.2：
+
+```bash
+bash scripts/run_impl3_development_v02_gate.sh
+```
+
+查看：
+
+```bash
+cat results/development/impl3_development_v02/summary.json
+```
+
+不要删除或覆盖 `results/development/impl3_development/`，它是有效的首次
+Revise 记录。v0.2 仍使用相同模型、标签筛选规则、任务 seed、答案代码和
+验收阈值。
+
 ## 6. 运行纯逻辑测试
 
 ```bash

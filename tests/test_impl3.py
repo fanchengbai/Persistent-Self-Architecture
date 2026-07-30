@@ -10,6 +10,7 @@ from psa.development import (
     evaluate_prompt_visible,
     inspect_dataset_tokenization,
     inspect_label_pairs,
+    render_prompt_visible,
 )
 from psa.development.impl3 import _write_jsonl
 from psa.tasks import generate_dataset, generate_factorial_group
@@ -105,6 +106,26 @@ class Impl3DevelopmentTests(unittest.TestCase):
         self.assertTrue(
             all(group["prompt_token_balanced"] for group in report["groups"])
         )
+
+    def test_explicit_match_template_keeps_bindings_next_to_query(self) -> None:
+        group = generate_factorial_group(group_seed=23, delay_units=3)
+        sample = group.trajectories[0]
+        prompt = render_prompt_visible(
+            group,
+            sample,
+            template_version="explicit-match-v0.2",
+        )
+        self.assertNotIn("NEUTRAL-FILLER", prompt)
+        self.assertIn(
+            f"CURRENT DOMAIN: {group.identity_labels[sample.identity]}",
+            prompt,
+        )
+        self.assertIn(
+            f"CURRENT OPERATION: {group.goal_labels[sample.goal]}",
+            prompt,
+        )
+        self.assertEqual(prompt.count("DOMAIN:"), 5)
+        self.assertEqual(prompt.count("OPERATION:"), 5)
 
 
 if __name__ == "__main__":

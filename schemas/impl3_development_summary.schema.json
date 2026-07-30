@@ -34,6 +34,10 @@
     "finished_at_utc": {"type": "string", "format": "date-time"},
     "development_only": {"const": true},
     "model_id": {"type": "string"},
+    "revision_id": {"type": "string"},
+    "prompt_template_version": {
+      "enum": ["history-query-v0.1", "explicit-match-v0.2"]
+    },
     "gate_config_sha256": {
       "type": "string",
       "pattern": "^[0-9a-f]{64}$"

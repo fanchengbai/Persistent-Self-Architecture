@@ -1,7 +1,7 @@
 # PSA 实现与远程执行规范
 
 > 版本：v0.2-dev
-> 状态：Impl-0 至 Impl-2c 云端开发门已通过；Impl-3 Batch 1 能力门已实现、等待云端验证
+> 状态：Impl-0 至 Impl-2c 云端开发门已通过；Impl-3 Batch 1 v0.1 为 Revise，模板 v0.2 等待云端验证
 > 日期：2026-07-30
 > 依赖：[`architecture.md`](architecture.md)、[`state_format.md`](state_format.md)、[`task_design.md`](task_design.md)、[`evaluation_protocol.md`](evaluation_protocol.md)  
 > 边界：本机用于代码、配置、文档和结果分析；模型实验只在明确的远程 GPU 环境运行。
@@ -856,7 +856,17 @@ Impl-2/2b/2c 的不可变 summary 证据；随后只按 tokenizer roundtrip、�
 Prompt-visible T0：I/G 紧邻 query 明示，四个答案按序列 log-likelihood
 评分，并另行做最多 4 token 的 greedy 格式探测。能力报告以 group 为 cluster
 计算 BCa 区间，资源报告按实测时间、token、显存、结果大小和 state 大小外推
-320-group Core Set。当前等待云端验证；所有结果仍为 development-only。
+320-group Core Set。
+
+首次云端运行的 Batch 0、标签池、task leakage、tokenizer 等长和资源报告均
+有效；A–D 均为独立且等长的单 token，格式有效率为 1.0、基础设施失败率为
+0。但模型在全部 32 条轨迹中固定选择 A，导致 joint accuracy 为 0.25，
+identity/goal marginal accuracy 均为 0.5，Gate 1 决策为 `revise`。
+前两组中非 A 分数变化也未与正确项稳定对齐，因此不采用事后减去 A 先验的
+校正。v0.2 保持模型、标签选择规则、样本 seed、答案代码和阈值不变，只将
+T0 改为直接列出 `CURRENT DOMAIN`、`CURRENT OPERATION` 和四个结构化选项的
+精确字段匹配；能力门不再夹带标准 delay filler，delay 仍独立完成 tokenizer
+标定。v0.1 artifacts 必须保留，v0.2 写入独立目录。
 
 ### Impl-4：工程参数冻结与预注册
 

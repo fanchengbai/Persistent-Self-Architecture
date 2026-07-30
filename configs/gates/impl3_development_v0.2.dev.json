@@ -1,0 +1,76 @@
+{
+  "config_version": "0.1",
+  "gate": "impl3_development",
+  "development_only": true,
+  "revision_id": "prompt-template-v0.2",
+  "revision_reason": "v0.1 produced a fixed-A strategy at chance joint accuracy",
+  "batch0_evidence": [
+    {
+      "gate": "impl2_checkpoint_roundtrip",
+      "path": "results/development/impl2_checkpoint_roundtrip/summary.json"
+    },
+    {
+      "gate": "impl2b_state_operations",
+      "path": "results/development/impl2b_state_operations/summary.json"
+    },
+    {
+      "gate": "impl2c_random_matched",
+      "path": "results/development/impl2c_random_matched/summary.json"
+    }
+  ],
+  "label_pool": {
+    "selection_rule_version": "tokenizer-only-v0.1",
+    "selected_pair_count": 2,
+    "max_tokens_per_form": 4,
+    "require_equal_answer_token_count": true,
+    "identity_candidates": [
+      ["dax", "kel"],
+      ["baf", "zom"],
+      ["niv", "teg"],
+      ["luk", "pem"],
+      ["vos", "gan"],
+      ["rif", "tub"],
+      ["kez", "mor"],
+      ["wex", "jup"]
+    ],
+    "goal_candidates": [
+      ["mip", "rov"],
+      ["sul", "vek"],
+      ["paz", "lum"],
+      ["jot", "fen"],
+      ["kib", "nor"],
+      ["gud", "tes"],
+      ["vam", "zep"],
+      ["qir", "bok"]
+    ]
+  },
+  "standard_delay": {
+    "selection_rule_version": "tokenizer-distance-only-v0.1",
+    "target_token_count": 128,
+    "max_absolute_error": 16,
+    "max_units": 32
+  },
+  "batch1": {
+    "track": "synthetic",
+    "generator_version": "0.1",
+    "prompt_template_version": "explicit-match-v0.2",
+    "group_count": 8,
+    "base_seed": 20260730,
+    "answer_codes": ["A", "B", "C", "D"],
+    "answer_continuation_prefix": " ",
+    "max_generation_tokens": 4,
+    "bootstrap_replicates": 10000,
+    "bootstrap_seed": 731031
+  },
+  "thresholds": {
+    "joint_lower_bound": 0.8,
+    "marginal_lower_bound": 0.9,
+    "format_valid_rate": 0.99,
+    "max_answer_position_accuracy_gap": 0.25,
+    "max_infrastructure_failure_rate": 0.01
+  },
+  "resource_projection": {
+    "planned_core_groups": 320,
+    "conditions_per_trajectory": 6
+  }
+}

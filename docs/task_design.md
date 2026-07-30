@@ -800,6 +800,12 @@ bare 与 leading-space 两种形式都必须精确 roundtrip、pair 内 token �
 
 建议保留通用组合规则，只隐藏当前 I/G 取值。这样测试的是状态变量，而不是模型是否记得题型说明。
 
+Impl-3 Prompt-visible v0.1 使用历史声明加通用规则时，RWKV-7 0.4B 在 32 条
+开发轨迹中固定选择 A。v0.2 的能力门因此改用无持久性要求的显式字段模板：
+直接给出 `CURRENT DOMAIN`、`CURRENT OPERATION` 和四个结构化候选，让 T0
+只回答“模型是否会做精确二字段匹配”。标准 delay 不进入 T0，仍独立标定；
+state-only 模板是否保留通用规则继续在 Batch 2 冻结。
+
 ### Q4 身份写入是否需要确认步骤
 
 建议开发阶段比较：
