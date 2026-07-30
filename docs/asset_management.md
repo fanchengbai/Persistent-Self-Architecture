@@ -173,3 +173,22 @@ bash scripts/prepare_g1h_1.5b_candidate.sh
 该清单固定到官方 Hugging Face revision、文件大小和 SHA-256。它不会修改或
 删除原有 World 0.4B 资源，两个 checkpoint 可以在 `.psa-assets/models/`
 中并存。候选通过接口门和能力门之前，不得改写原 EXP-001 冻结清单。
+
+## 10. G1h 2.9B 开发候选
+
+G1h 1.5B 在 fake-think 修订后仍未通过 two-field 准确率区间和答案位置平衡
+门，因此按预定升级路线增加独立的 2.9B 清单：
+
+```text
+configs/assets/exp001_rwkv7_g1h_2.9b_candidate.json
+```
+
+下载并验证：
+
+```bash
+HF_ENDPOINT=https://hf-mirror.com \
+  bash scripts/prepare_g1h_2.9b_candidate.sh
+```
+
+权重固定为 5,896,273,469 字节，并校验官方 SHA-256。它与 0.4B、1.5B
+并存，不修改任何旧资源或旧实验结果。

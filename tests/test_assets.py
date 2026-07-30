@@ -20,6 +20,12 @@ G1H_CANDIDATE_MANIFEST = (
     / "assets"
     / "exp001_rwkv7_g1h_1.5b_candidate.json"
 )
+G1H_2_9B_CANDIDATE_MANIFEST = (
+    PROJECT_ROOT
+    / "configs"
+    / "assets"
+    / "exp001_rwkv7_g1h_2.9b_candidate.json"
+)
 
 
 class AssetManifestTests(unittest.TestCase):
@@ -51,6 +57,24 @@ class AssetManifestTests(unittest.TestCase):
         self.assertNotEqual(
             model.destination,
             load_manifest(EXP001_MANIFEST).assets[0].destination,
+        )
+
+    def test_g1h_2_9b_candidate_manifest_is_pinned_and_separate(self) -> None:
+        manifest = load_manifest(G1H_2_9B_CANDIDATE_MANIFEST)
+        self.assertEqual(
+            manifest.bundle_id,
+            "exp001-rwkv7-g1h-2.9b-candidate",
+        )
+        model = manifest.assets[0]
+        self.assertEqual(model.revision, "ceb1830a7df8c9a7d9438ec56f308af41f4e3d62")
+        self.assertEqual(
+            model.expected_sha256,
+            "295595b3b8dbff3f8c2a0585975622ddaba4feea7a377022f0bd75347c90c9b3",
+        )
+        self.assertEqual(model.expected_size_bytes, 5896273469)
+        self.assertNotEqual(
+            model.destination,
+            load_manifest(G1H_CANDIDATE_MANIFEST).assets[0].destination,
         )
 
     def test_mutable_revision_is_rejected(self) -> None:

@@ -16,6 +16,9 @@ MODEL_CONFIG = (
 G1H_CANDIDATE_CONFIG = (
     PROJECT_ROOT / "configs" / "models" / "rwkv7_g1h_1.5b.candidate.json"
 )
+G1H_2_9B_CANDIDATE_CONFIG = (
+    PROJECT_ROOT / "configs" / "models" / "rwkv7_g1h_2.9b.candidate.json"
+)
 
 
 class Cloneable:
@@ -76,6 +79,18 @@ class ModelAdapterTests(unittest.TestCase):
         self.assertEqual(config.architecture_hint["n_embd"], 2048)
         self.assertEqual(config.architecture_hint["head_size"], 64)
         self.assertEqual(config.weights_size_bytes, 3055444605)
+
+    def test_g1h_2_9b_candidate_config_has_expected_architecture(self) -> None:
+        config = load_model_config(
+            G1H_2_9B_CANDIDATE_CONFIG,
+            project_root=PROJECT_ROOT,
+            verify_files=False,
+        )
+        self.assertEqual(config.model_id, "rwkv7-g1h-2.9b-20260710")
+        self.assertEqual(config.architecture_hint["n_layer"], 32)
+        self.assertEqual(config.architecture_hint["n_embd"], 2560)
+        self.assertEqual(config.architecture_hint["head_size"], 64)
+        self.assertEqual(config.weights_size_bytes, 5896273469)
 
     def test_clone_state_is_deep_for_tensor_like_values(self) -> None:
         original = [Cloneable(1), {"nested": Cloneable(2)}]

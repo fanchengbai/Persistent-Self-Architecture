@@ -425,6 +425,36 @@ cat results/development/impl3e_g1h_1.5b_fake_think/summary.json
 除原有字段外，还要看 `forced_prefix_greedy_exact_rate`。只有该值为 1.0，
 才说明固定补入的 `>` 与模型自身的下一 token 一致。
 
+本次 Impl-3e-b 得到 `forced_prefix_greedy_exact_rate=1.0`，two-field
+格式率也修复到 1.0；但 two-field accuracy 为 0.84375，区间下界 0.75，
+D 位置准确率仍为 0.5。因此 1.5B 能力门未通过，不再修改它的 Prompt。
+
+### 5.9 运行 Impl-3f G1h 2.9B 接口门
+
+下载固定的 2.9B 候选。此前服务器需要镜像，因此建议直接运行：
+
+```bash
+HF_ENDPOINT=https://hf-mirror.com \
+  bash scripts/prepare_g1h_2.9b_candidate.sh
+```
+
+下载器保留 `.part` 并支持断点续传。资源准备完成后运行：
+
+```bash
+bash scripts/run_g1h_2.9b_interface_gate.sh
+```
+
+查看：
+
+```bash
+cat results/development/impl3f_g1h_2.9b_interface/summary.json
+cat results/development/impl3f_g1h_2.9b_interface/model_interface_report.json
+cat results/development/impl3f_g1h_2.9b_interface/state_inventory.json
+```
+
+接口门通过后，才为 2.9B 固定 fake-think 能力门；不得直接复用 1.5B 的
+能力通过/失败字段。
+
 ## 6. 运行纯逻辑测试
 
 ```bash

@@ -180,6 +180,8 @@ Phase 0 → Phase 1 — Research Design / State Infrastructure
     two-field 的 D 位置只有 50%。
 16. 原始输出审计确认模型先进入 `<think>`，4 个真实错误均为 D→B；已实现
     仅采用官方 fake-think 前缀的单变量复验，其他数据与阈值全部保持不变。
+17. fake-think 将 two-field 格式修复到 100%，但准确率为 84.375%、D 位置
+    仍为 50%；停止继续调整 1.5B Prompt，转入 G1h 2.9B 接口迁移。
 
 ## 项目文档
 

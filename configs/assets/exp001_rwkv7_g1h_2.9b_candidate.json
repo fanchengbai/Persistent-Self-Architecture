@@ -1,0 +1,40 @@
+{
+  "manifest_version": "0.1",
+  "bundle_id": "exp001-rwkv7-g1h-2.9b-candidate",
+  "description": "Pinned 2.9B candidate checkpoint and tokenizer after the G1h 1.5B capability gate revision.",
+  "assets": [
+    {
+      "id": "rwkv7-g1h-2.9b-20260710",
+      "kind": "model",
+      "destination": "models/rwkv7-g1h-2.9b/rwkv7-g1h-2.9b-20260710-ctx10240.pth",
+      "license": "Apache-2.0",
+      "source_page": "https://huggingface.co/BlinkDL/rwkv7-g1/blob/ceb1830a7df8c9a7d9438ec56f308af41f4e3d62/rwkv7-g1h-2.9b-20260710-ctx10240.pth",
+      "source": {
+        "type": "huggingface",
+        "repo_type": "model",
+        "repo_id": "BlinkDL/rwkv7-g1",
+        "revision": "ceb1830a7df8c9a7d9438ec56f308af41f4e3d62",
+        "filename": "rwkv7-g1h-2.9b-20260710-ctx10240.pth"
+      },
+      "sha256": "295595b3b8dbff3f8c2a0585975622ddaba4feea7a377022f0bd75347c90c9b3",
+      "size_bytes": 5896273469
+    },
+    {
+      "id": "rwkv-world-tokenizer-20230424",
+      "kind": "tokenizer",
+      "destination": "tokenizers/rwkv_vocab_v20230424.txt",
+      "license": "Apache-2.0",
+      "source_page": "https://huggingface.co/RWKV/v6-Finch-7B-World3-HF/blob/8cc2ab5d72b0a75713a62be5192a6e39b28df0ed/rwkv_vocab_v20230424.txt",
+      "source": {
+        "type": "huggingface",
+        "repo_type": "model",
+        "repo_id": "RWKV/v6-Finch-7B-World3-HF",
+        "revision": "8cc2ab5d72b0a75713a62be5192a6e39b28df0ed",
+        "filename": "rwkv_vocab_v20230424.txt"
+      },
+      "sha256": "e6dee3d4e31b4d5c40ac99508ac6c701ceef4bed681bf2167ce9a908552bca89",
+      "size_bytes": 1093733
+    }
+  ],
+  "generated_assets": []
+}
