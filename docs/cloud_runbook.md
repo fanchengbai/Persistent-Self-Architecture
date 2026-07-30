@@ -383,6 +383,15 @@ cat results/development/impl3d_g1h_1.5b_capability_ladder/summary.json
 - `capability_gate_passed=true`：copy、single-field、two-field 都达到门槛；
 - `route_decision`：若失败，指出第一次失败发生在哪一层。
 
+本次 Impl-3d 结果为 `valid=true`、`capability_gate_passed=false`。候选评分
+准确率分别为 copy 1.0、single-field 1.0、two-field 0.875。copy 和
+two-field 的自由生成格式率为 0；two-field 的 A/B/C 位置准确率为 1.0，
+D 为 0.5。
+
+因此当前 `route_decision=revise_checkpoint_or_answer_interface` 不能直接
+解释为模型不会照抄：copy 的候选评分实际为 32/32。进入 Impl-3e 原始输出
+审计，在审计前不重跑、不改阈值、不升级 2.9B。
+
 ## 6. 运行纯逻辑测试
 
 ```bash

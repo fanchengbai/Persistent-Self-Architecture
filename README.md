@@ -175,8 +175,9 @@ Phase 0 → Phase 1 — Research Design / State Infrastructure
     只有 25%，说明答案接口正常而 checkpoint 基础任务能力不足。
 14. 已停止让 World 0.4B 进入 state-only 实验，并固定官方 RWKV-7 G1h
     1.5B 为首个迁移候选；固定资源校验与云端接口兼容门已经通过。
-15. 已实现 G1h 1.5B 专用 Impl-3d 能力阶梯：使用官方 G1 对话格式现场运行
-    32 条 copy、32 条 single-field 和 32 条 two-field，等待云端结果。
+15. G1h 1.5B 的 Impl-3d 已完整运行：候选评分的 copy 与 single-field 均为
+    100%，two-field 为 87.5%；但 copy/two-field 自由生成格式失败，且
+    two-field 的 D 位置只有 50%，当前进入原始输出审计，尚未放宽门槛。
 
 ## 项目文档
 

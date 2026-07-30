@@ -1,7 +1,7 @@
 # Persistent Self Architecture 项目进度表
 
 > 最后更新：2026-07-30
-> 当前节点：Impl-3c G1h 1.5B 接口门已通过；Impl-3d 能力复验等待云端
+> 当前节点：Impl-3d 已完成并进入结果审计；暂不升级模型，也暂不进入 state 实验
 > 研究状态：尚未进入正式确认性实验，尚未实现显式 Self Model
 
 ## 1. 这张表怎么使用
@@ -46,14 +46,15 @@
 | 18. Impl-3 v0.2：新能力模板 | ⚠️ Revise | 直接显示 `CURRENT DOMAIN`、`CURRENT OPERATION` 和结构化选项 | 检查 v0.1 失败是否只是措辞或 filler 造成 | 模型仍在全部 32 条轨迹中选择 A；联合准确率 0.25，两个边际准确率 0.5，格式有效率降至 0.5 | 项目负责人运行；Codex 诊断 |
 | 19. Impl-3b：分层能力诊断 | ⚠️ Revise | 分别测试“直接抄代码”和“单字段匹配”，并复用 v0.2 双字段结果 | 不再盲目换措辞，而是定位模型究竟在哪一级能力上失败 | 诊断有效；copy 32/32 正确，但 single-field 仅 8/32，仍固定选 A；路线为 `revise_single_field_matching` | 项目负责人运行；Codex 诊断 |
 | 20. Impl-3c：checkpoint 接口迁移 | ✅ 通过 | 固定官方 G1h 1.5B 候选，验证加载、tokenizer 与 recurrent state 接口 | 当前 0.4B 会抄答案但不会查表，不能用来区分“任务能力不足”和“state 失效” | 3,055,444,605 字节权重及 tokenizer 哈希有效；G1h 1.5B 加载、state inventory 与同进程恢复门 `valid=true` | 项目负责人运行；Codex 诊断 |
-| 21. Impl-3d：新模型分层能力复验 | 🟡 等待云端 | 使用官方 G1 提示格式，现场测试 copy、single-field 和 two-field 共 96 条 | 更换模型后必须取得新的显式任务能力证据，不能复用旧模型结果 | 独立配置、平衡样本、官方格式包装、三层评估和脚本已完成；本地逻辑测试通过 | Codex 已完成；项目负责人运行 |
-| 22. 新模型 state 工程门复验 | ⏳ 未开始 | 重跑磁盘恢复、reset/diff/swap 和 matched random | 新模型的 state 形状和数值尺度不同，旧模型的通过记录不能替代复验 | 等待新模型三层能力门通过 | 共同完成 |
-| 23. Batch 2：冻结任务参数 | ⏳ 未开始 | 冻结 checkpoint、标签池、模板、delay、答案格式和阈值 | 一旦冻结，后面不能因为结果不好随意改题或换模型 | 必须等待新模型能力门与 state 工程门都通过 | 共同审阅 |
-| 24. Impl-4：预注册 | ⏳ 未开始 | 固定代码、配置、样本量、随机种子和判断标准 | 防止看到正式结果后改变成功标准 | 尚未开始 | Codex 整理；项目负责人确认 |
-| 25. Phase 2：正式原生 state 实验 | ⏳ 未开始 | 比较 original/reset/random/swap 等条件 | 这一步才真正测试 recurrent state 是否是跨时间因果载体 | 尚无研究结论 | 项目负责人运行；Codex 分析 |
-| 26. Phase 3：显式 Self Model | ⏳ 未开始 | 实现 Self Store、Self Encoder 和 gated injection | 只有原生状态基线可靠后，才能判断显式 Self Model 是否带来额外价值 | 目前只有设计，没有加入模型 | 后续由 Codex 实现 |
-| 27. Self 更新与演化 | ⏳ 未开始 | 让 Self State 根据经历受控更新、回滚和分化 | 这是“持续自我”真正更深入的部分 | 尚未开始 | 后续阶段 |
-| 28. 最终研究结论 | ⏳ 未开始 | 汇总统计结果、失败案例和替代解释 | 最终回答项目假设是否得到支持，而不是只展示几个有趣案例 | 尚未开始 | 共同完成 |
+| 21. Impl-3d：新模型分层能力复验 | ⚠️ Revise | 使用官方 G1 提示格式，现场测试 copy、single-field 和 two-field 共 96 条 | 更换模型后必须取得新的显式任务能力证据，不能复用旧模型结果 | 诊断有效；评分准确率为 copy 1.0、single 1.0、two-field 0.875；但 copy/two-field 自由生成格式率为 0，two-field 的 D 准确率仅 0.5，综合门未通过 | 项目负责人运行；Codex 诊断 |
+| 22. Impl-3e：输出与错误审计 | 🟡 进行中 | 查看自由生成文本，并逐条检查 4 个 two-field 评分错误 | 当前自动路线被 copy 的格式项优先触发，不能把“格式不合规”误写成“不会查表” | 已确定选择评分能力远强于 0.4B；等待原始文本与错误样本证据后再冻结评价接口 | 共同完成 |
+| 23. 新模型 state 工程门复验 | ⏳ 未开始 | 重跑磁盘恢复、reset/diff/swap 和 matched random | 新模型的 state 形状和数值尺度不同，旧模型的通过记录不能替代复验 | 等待 Impl-3e 确认 G1h 能力门的有效评价接口 | 共同完成 |
+| 24. Batch 2：冻结任务参数 | ⏳ 未开始 | 冻结 checkpoint、标签池、模板、delay、答案格式和阈值 | 一旦冻结，后面不能因为结果不好随意改题或换模型 | 必须等待新模型能力门与 state 工程门都通过 | 共同审阅 |
+| 25. Impl-4：预注册 | ⏳ 未开始 | 固定代码、配置、样本量、随机种子和判断标准 | 防止看到正式结果后改变成功标准 | 尚未开始 | Codex 整理；项目负责人确认 |
+| 26. Phase 2：正式原生 state 实验 | ⏳ 未开始 | 比较 original/reset/random/swap 等条件 | 这一步才真正测试 recurrent state 是否是跨时间因果载体 | 尚无研究结论 | 项目负责人运行；Codex 分析 |
+| 27. Phase 3：显式 Self Model | ⏳ 未开始 | 实现 Self Store、Self Encoder 和 gated injection | 只有原生状态基线可靠后，才能判断显式 Self Model 是否带来额外价值 | 目前只有设计，没有加入模型 | 后续由 Codex 实现 |
+| 28. Self 更新与演化 | ⏳ 未开始 | 让 Self State 根据经历受控更新、回滚和分化 | 这是“持续自我”真正更深入的部分 | 尚未开始 | 后续阶段 |
+| 29. 最终研究结论 | ⏳ 未开始 | 汇总统计结果、失败案例和替代解释 | 最终回答项目假设是否得到支持，而不是只展示几个有趣案例 | 尚未开始 | 共同完成 |
 
 ## 3. 当前所在位置
 
@@ -73,7 +74,9 @@
 更强 checkpoint 的受控迁移
    ✅ G1h 1.5B 接口门通过
 新模型能否看懂考题
-   🟡 Impl-3d 三层能力门等待云端验证
+   ⚠️ 评分：copy 100% → single 100% → two-field 87.5%
+输出格式与剩余错误审计
+   🟡 copy/two-field 生成格式为 0；two-field 的 D 位置为 50%
 正式 state 因果实验
    ⏳
 显式 Self Model
@@ -87,7 +90,9 @@
 - 不能把工程门通过当成研究假设通过；
 - 不能因为 v0.1/v0.2/Impl-3b 失败就断言 state persistence 不存在，因为当前证据首先指向 0.4B checkpoint 的任务能力不足；
 - 不能把 G1h 1.5B 的官方能力描述当成本项目任务已通过，必须实际复验；
-- 不能把 World 0.4B 的 state 工程门结果直接移植到 G1h 1.5B。
+- 不能把 World 0.4B 的 state 工程门结果直接移植到 G1h 1.5B；
+- 不能仅根据当前 `route_decision` 就说 G1h 不会照抄或不会查表，因为它的选择评分准确率分别是 100% 和 100%；
+- 不能在看到 two-field 87.5% 后事后放宽原门槛，必须先解释格式失败与 D 位置偏差。
 
 ## 4. 当前下一步
 
@@ -99,25 +104,21 @@ A–D 接口有效；但单字段查表只有 25%，且逐答案位置准确率�
 Impl-3c 已通过，说明当前实验框架能够可靠加载和复制 G1h 1.5B 的 state。
 这仍不代表模型会做 EXP-001，也不代表 checkpoint 已正式替换。
 
-下一步是 Impl-3d：使用官方 G1 `User: ... / Assistant:` 结构，现场运行
-copy、single-field 和 two-field 三层能力门。项目负责人在云服务器执行：
+Impl-3d 已完成，不能直接按 `revise_checkpoint_or_answer_interface` 升级模型：
 
-```bash
-git pull --ff-only
-source .venv/bin/activate
-bash scripts/run_impl3d_g1h_capability_ladder_gate.sh
-cat results/development/impl3d_g1h_1.5b_capability_ladder/summary.json
-```
+- copy 的候选评分 32/32 正确，只是自由生成格式 0/32；
+- single-field 的评分和自由生成均为 32/32；
+- two-field 的候选评分为 28/32，但自由生成格式 0/32；
+- two-field 的 A/B/C 均为 100%，D 只有 50%。
 
-`valid=true` 只表示 96 条诊断完整执行。是否能继续看
-`capability_gate_passed`、`route_decision` 和三个 `*_valid` 字段。
+下一步 Impl-3e 不重新跑模型，先读取现有原始报告：
 
-| `route_decision` | 通俗解释 | 下一步 |
-|---|---|---|
-| `revise_checkpoint_or_answer_interface` | 连直接照抄代码都失败 | 检查 G1 答案接口 |
-| `revise_single_field_matching` | 会照抄，但不会单字段查表 | 1.5B 不合格，准备 2.9B 候选 |
-| `revise_compositional_matching` | 前两层通过，但双字段组合失败 | 记录组合限制，准备 2.9B 候选 |
-| `go_batch2` | 三层全部通过且答案位置均衡 | 重跑新模型 state 工程门 |
+1. copy 与 two-field 实际生成了什么文本；
+2. 4 个 two-field 错误是否集中于某种映射或标签；
+3. 正确答案与错误答案的分数差距；
+4. “候选评分”还是“自由生成”应作为 state 因果实验的主要行为指标。
+
+审计前既不放宽阈值，也不下载 2.9B。
 
 完整选择依据和后续复验顺序见
 [checkpoint 迁移方案](docs/checkpoint_migration.md)。
@@ -153,3 +154,4 @@ cat results/development/impl3d_g1h_1.5b_capability_ladder/summary.json
 | 2026-07-30 | Impl-3 v0.2 再次得到固定 A 的机会水平策略；记录为 Revise，并增加不改双字段题的 Impl-3b 分层能力诊断 | `results/development/impl3_development_v02/summary.json` |
 | 2026-07-30 | Impl-3b 证明答案接口有效，但 World 0.4B 在单字段查表层失败；停止该 checkpoint 的 state-only 路线，固定 G1h 1.5B 候选和独立接口门 | `results/development/impl3b_capability_ladder/summary.json`、`docs/checkpoint_migration.md` |
 | 2026-07-30 | G1h 1.5B 固定资源及 Impl-3c 接口门通过；新增不复用旧模型结果、使用官方 G1 提示格式的 Impl-3d 三层能力门 | `results/development/impl3c_g1h_1.5b_interface/summary.json`、`configs/gates/impl3d_g1h_1.5b_capability_ladder.dev.json` |
+| 2026-07-30 | Impl-3d 完整运行但综合门未通过；记录评分能力显著提升、自由生成格式失败和 two-field D 位置偏差，进入不重跑模型的 Impl-3e 原始结果审计 | `results/development/impl3d_g1h_1.5b_capability_ladder/summary.json` |
