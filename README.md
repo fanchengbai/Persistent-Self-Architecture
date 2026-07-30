@@ -182,6 +182,9 @@ Phase 0 → Phase 1 — Research Design / State Infrastructure
     仅采用官方 fake-think 前缀的单变量复验，其他数据与阈值全部保持不变。
 17. fake-think 将 two-field 格式修复到 100%，但准确率为 84.375%、D 位置
     仍为 50%；停止继续调整 1.5B Prompt，转入 G1h 2.9B 接口迁移。
+18. G1h 2.9B 接口门已通过：模型实际为 32 层、宽度 2560，共 96 个
+    recurrent state 组件，状态约 20.31 MiB，加载、tokenizer 与恢复验证均有效；
+    现已冻结相同 96 条题与阈值，等待运行 Impl-3g 能力复验。
 
 ## 项目文档
 

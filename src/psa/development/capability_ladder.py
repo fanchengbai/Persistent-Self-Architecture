@@ -821,6 +821,7 @@ def run_g1_capability_ladder_gate(
     if gate_name not in {
         "impl3d_g1_capability_ladder",
         "impl3e_g1_fake_think_capability_ladder",
+        "impl3g_g1h_2_9b_fake_think_capability_ladder",
     }:
         raise ValueError("unsupported G1 capability ladder gate")
     started_at = _utc_now()

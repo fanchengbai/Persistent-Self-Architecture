@@ -452,8 +452,37 @@ cat results/development/impl3f_g1h_2.9b_interface/model_interface_report.json
 cat results/development/impl3f_g1h_2.9b_interface/state_inventory.json
 ```
 
-接口门通过后，才为 2.9B 固定 fake-think 能力门；不得直接复用 1.5B 的
-能力通过/失败字段。
+本次云端结果已经通过接口门：模型实际为 32 层、96 个 state 组件，
+state 总量 21,299,200 字节且全部有限；峰值显存 6,232,199,168 字节，
+加载、tokenizer roundtrip 与同进程恢复均有效。
+
+### 5.10 运行 Impl-3g G1h 2.9B 能力复验
+
+先确保已经进入项目虚拟环境，然后运行：
+
+```bash
+source .venv/bin/activate
+bash scripts/run_impl3g_g1h_2.9b_fake_think_gate.sh
+```
+
+查看总结果：
+
+```bash
+cat results/development/impl3g_g1h_2.9b_fake_think/summary.json
+```
+
+这一步不会重新下载 2.9B 权重。它使用与 Impl-3e-b 完全相同的 96 条题、
+答案前缀、随机种子和阈值，只把模型配置与接口证据换成 2.9B。重点查看：
+
+- `capability_gate_passed`
+- `forced_prefix_greedy_exact_rate`
+- `copy_code_metrics`
+- `single_field_metrics`
+- `two_field_metrics`
+- `route_decision`
+
+`valid=true` 只表示诊断流程完整；是否通过能力门以
+`capability_gate_passed=true` 为准。
 
 ## 6. 运行纯逻辑测试
 

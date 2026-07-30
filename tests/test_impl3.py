@@ -122,6 +122,41 @@ class Impl3DevelopmentTests(unittest.TestCase):
         self.assertEqual(impl3e["assistant_prefix"], "<think></think")
         self.assertEqual(impl3e["forced_answer_prefix"], ">")
 
+    def test_impl3g_changes_only_the_model_interface_evidence(self) -> None:
+        project_root = Path(__file__).resolve().parents[1]
+        gate_dir = project_root / "configs" / "gates"
+        impl3e = json.loads(
+            (gate_dir / "impl3e_g1h_1.5b_fake_think.dev.json").read_text(
+                encoding="utf-8"
+            )
+        )
+        impl3g = json.loads(
+            (gate_dir / "impl3g_g1h_2.9b_fake_think.dev.json").read_text(
+                encoding="utf-8"
+            )
+        )
+        controlled_fields = (
+            "answer_codes",
+            "answer_continuation_prefix",
+            "assistant_prefix",
+            "forced_answer_prefix",
+            "single_field_symbols",
+            "identity_label_pairs",
+            "goal_label_pairs",
+            "repetitions",
+            "base_seed",
+            "max_generation_tokens",
+            "bootstrap_replicates",
+            "bootstrap_seed",
+            "thresholds",
+        )
+        for field in controlled_fields:
+            self.assertEqual(impl3g[field], impl3e[field])
+        self.assertEqual(
+            impl3g["interface_summary"],
+            "results/development/impl3f_g1h_2.9b_interface/summary.json",
+        )
+
     def test_capability_level_evaluation_passes_ideal_records(self) -> None:
         manifest = generate_capability_manifest(
             answer_codes=("A", "B", "C", "D"),

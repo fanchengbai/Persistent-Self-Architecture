@@ -207,5 +207,29 @@ SHA-256: 295595b3b8dbff3f8c2a0585975622ddaba4feea7a377022f0bd75347c90c9b3
 size: 5,896,273,469 bytes
 ```
 
-2.9B 为 32 层、宽度 2560、head size 64。第一步仍只运行接口门；通过后
-再复制已经审计过的 fake-think 评价接口，并保持相同的 96 条题与阈值。
+2.9B 为 32 层、宽度 2560、head size 64。Impl-3f 云端接口门已经通过：
+
+- 固定权重与 tokenizer 校验有效；
+- 实际观察到 32 层、96 个 state 组件；
+- state 总量为 21,299,200 字节，全部数值有限；
+- 峰值显存为 6,232,199,168 字节，加载约 5.93 秒；
+- tokenizer roundtrip 与同进程 state 恢复均有效。
+
+这说明 2.9B 与现有实验框架兼容，但不代表它已经通过 EXP-001 的能力门。
+
+## 11. Impl-3g：G1h 2.9B 受控能力复验
+
+Impl-3g 复制已经审计过的 1.5B fake-think 评价接口，只允许改变两项：
+
+1. 模型配置改为 `rwkv7_g1h_2.9b.candidate.json`；
+2. 接口证据改为 Impl-3f 的 2.9B 结果。
+
+以下内容保持完全相同：96 条题、label pairs、答案位置、随机种子、
+`<think></think` 与强制补入的 `>`、生成长度、bootstrap 参数和全部门槛。
+因此 1.5B 与 2.9B 的结果可以直接比较，不能把 Prompt 修改混入模型规模
+比较。
+
+```bash
+bash scripts/run_impl3g_g1h_2.9b_fake_think_gate.sh
+cat results/development/impl3g_g1h_2.9b_fake_think/summary.json
+```
