@@ -20,6 +20,10 @@ from psa.development.impl3 import (
     score_continuations_after_prefix,
     write_jsonl,
 )
+from psa.development.result_audit import (
+    audit_g1_capability_records,
+    run_g1_capability_audit,
+)
 
 __all__ = [
     "calibrate_standard_delay",
@@ -40,4 +44,6 @@ __all__ = [
     "score_continuations",
     "score_continuations_after_prefix",
     "write_jsonl",
+    "audit_g1_capability_records",
+    "run_g1_capability_audit",
 ]

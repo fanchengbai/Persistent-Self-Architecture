@@ -185,6 +185,9 @@ Phase 0 → Phase 1 — Research Design / State Infrastructure
 18. G1h 2.9B 接口门已通过：模型实际为 32 层、宽度 2560，共 96 个
     recurrent state 组件，状态约 20.31 MiB，加载、tokenizer 与恢复验证均有效；
     现已冻结相同 96 条题与阈值，等待运行 Impl-3g 能力复验。
+19. Impl-3g 运行有效但能力门未通过：copy/single/two-field 评分分别为
+    100%/90.625%/87.5%，三个层级均有格式失败，two-field 的 D 位置仍为
+    50%；现进入不重跑模型的原始输出与混淆矩阵审计。
 
 ## 项目文档
 

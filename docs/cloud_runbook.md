@@ -484,6 +484,19 @@ cat results/development/impl3g_g1h_2.9b_fake_think/summary.json
 `valid=true` 只表示诊断流程完整；是否通过能力门以
 `capability_gate_passed=true` 为准。
 
+本次结果为 `valid=true`、`capability_gate_passed=false`。不要重跑模型，
+先执行只读审计：
+
+### 5.11 审计 Impl-3g 原始输出
+
+```bash
+bash scripts/audit_impl3g_g1h_2.9b_results.sh
+cat results/development/impl3g_g1h_2.9b_fake_think/audit_report.json
+```
+
+该命令不加载 RWKV、不使用 GPU，也不改变原始 JSONL；它只新增
+`audit_report.json`，汇总输出变体、混淆矩阵和全部评分错误。
+
 ## 6. 运行纯逻辑测试
 
 ```bash

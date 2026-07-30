@@ -233,3 +233,34 @@ Impl-3g 复制已经审计过的 1.5B fake-think 评价接口，只允许改变�
 bash scripts/run_impl3g_g1h_2.9b_fake_think_gate.sh
 cat results/development/impl3g_g1h_2.9b_fake_think/summary.json
 ```
+
+实际结果为 `capability_gate_passed=false`：
+
+| 层级 | 评分准确率 | 区间 | 格式有效率 | D 位置准确率 |
+|---|---:|---|---:|---:|
+| copy | 1.0 | `[1.0, 1.0]` | 0.75 | 1.0 |
+| single-field | 0.90625 | `[0.78125, 0.96875]` | 0.875 | 0.625 |
+| two-field | 0.875 | `[0.78125, 0.9375]` | 0.90625 | 0.5 |
+
+因此“只把 1.5B 换成 2.9B”没有通过能力门。two-field 比 1.5B 的
+0.84375 略高，但区间仍未过线，D 偏差没有消失；同时 single-field 和
+输出格式反而出现新的失败，不能把这种波动写成规模提升成功。
+
+## 12. Impl-3h：原始结果只读审计
+
+下一步不重跑模型，也不立即下载更大的 checkpoint。审计命令读取 Impl-3g
+已有的 manifest 和 JSONL，生成：
+
+- 每个层级的输出文本与 token 变体计数；
+- target→predicted 混淆矩阵；
+- 全部评分错误的题目字段、选项映射和分差；
+- 格式异常数以及它与评分错误的重叠线索。
+
+```bash
+bash scripts/audit_impl3g_g1h_2.9b_results.sh
+cat results/development/impl3g_g1h_2.9b_fake_think/audit_report.json
+```
+
+若评分正确而格式异常集中在一种稳定续写，才允许设计一次预先声明的答案
+接口修订。若评分错误仍集中于 D 或双字段组合，则 checkpoint 能力不足的
+解释更强，不再用 Prompt 格式掩盖该结果。

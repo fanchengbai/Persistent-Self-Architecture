@@ -10,6 +10,7 @@ from typing import Any
 from psa.assets import fetch_manifest, load_manifest, plan_manifest, verify_manifest
 from psa.artifacts import canonical_json_bytes, sha256_file, sha256_json
 from psa.development import (
+    run_g1_capability_audit,
     run_capability_ladder_gate,
     run_g1_capability_ladder_gate,
     run_impl3_development_gate,
@@ -397,6 +398,12 @@ def _g1_capability_ladder_gate(args: argparse.Namespace) -> int:
     return 0 if result["valid"] else 2
 
 
+def _g1_capability_audit(args: argparse.Namespace) -> int:
+    result = run_g1_capability_audit(args.output_dir)
+    print(json.dumps(result, ensure_ascii=False, indent=2))
+    return 0 if result["valid"] else 2
+
+
 def _add_asset_common_arguments(parser: argparse.ArgumentParser) -> None:
     parser.add_argument("--manifest", required=True)
     parser.add_argument("--root", default=".psa-assets")
@@ -550,6 +557,13 @@ def build_parser() -> argparse.ArgumentParser:
     g1_capability_ladder_gate.add_argument("--output-dir", required=True)
     g1_capability_ladder_gate.add_argument("--project-root", default=".")
     g1_capability_ladder_gate.set_defaults(handler=_g1_capability_ladder_gate)
+
+    g1_capability_audit = subparsers.add_parser(
+        "g1-capability-audit",
+        help="audit G1 output variants, confusion matrices, and scoring errors",
+    )
+    g1_capability_audit.add_argument("--output-dir", required=True)
+    g1_capability_audit.set_defaults(handler=_g1_capability_audit)
     return parser
 
 

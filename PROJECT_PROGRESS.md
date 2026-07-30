@@ -1,7 +1,7 @@
 # Persistent Self Architecture 项目进度表
 
 > 最后更新：2026-07-30
-> 当前节点：Impl-3f G1h 2.9B 接口门已通过；Impl-3g 能力复验等待云端运行
+> 当前节点：Impl-3g G1h 2.9B 能力门未通过；正在进行原始输出与错误审计
 > 研究状态：尚未进入正式确认性实验，尚未实现显式 Self Model
 
 ## 1. 这张表怎么使用
@@ -31,7 +31,7 @@
 | 3. 划清概念边界 | ✅ 完成 | 区分 Prompt、Memory、原生 recurrent state 和显式 Self State | 模型“记住了内容”不等于模型“拥有 Self Model” | 已明确：只有状态能持续、更新、被干预并因果影响行为，才有资格继续讨论 Self | Codex |
 | 4. 设计总体架构 | ✅ 初版完成 | 设计 World Model、Memory、原生 state、Self Store、Encoder、注入和更新模块 | 先画清楚未来系统由什么组成，再决定先验证哪一块 | 显式 Self Model 已完成理论设计，但尚未写入模型 | Codex |
 | 5. 设计 EXP-001 | ✅ 完成 | 设计“身份约束 × 当前目标”的四状态任务 | 用一个很小、可量化的任务测试状态是否真的影响选择 | 已形成四组合任务、swap/reset/random 对照和评价指标 | Codex |
-| 6. 建立代码与实验骨架 | ✅ 完成 | 实现任务生成、泄漏检查、统计方法、配置和报告格式 | 相当于先把实验室的记录表、评分器和质检流程搭好 | 本地纯逻辑测试目前达到 65 项全部通过 | Codex |
+| 6. 建立代码与实验骨架 | ✅ 完成 | 实现任务生成、泄漏检查、统计方法、配置和报告格式 | 相当于先把实验室的记录表、评分器和质检流程搭好 | 本地纯逻辑测试目前达到 66 项全部通过 | Codex |
 | 7. 准备模型和数据下载 | ✅ 完成 | 提供脚本下载固定版本的 RWKV 模型和 tokenizer | 云服务器只需运行脚本，不用手动寻找文件 | 模型约 861 MB、tokenizer 约 1.1 MB，哈希验证通过 | Codex 编写；项目负责人云端执行 |
 | 8. 检查云端环境 | ✅ 通过 | 核对 GPU、CUDA、PyTorch、Python、RWKV 和磁盘 | 先确认实验机器不会因为版本问题产生假结果 | RTX 5090 32 GB、CUDA 13.2、PyTorch 2.12、RWKV 0.8.32，环境有效 | 项目负责人运行；Codex 分析 |
 | 9. Impl-1：模型接口 | ✅ 通过 | 加载模型、测试 tokenizer、读取 recurrent state | 确认我们真的能够观察和操作模型内部状态 | RWKV-7 0.4B 加载成功；24 层、每层 3 个组件，共 72 个 state tensors | 共同完成 |
@@ -50,14 +50,15 @@
 | 22. Impl-3e-a：输出与错误审计 | ✅ 完成 | 查看自由生成文本，并逐条检查 4 个 two-field 评分错误 | 当前自动路线被 copy 的格式项优先触发，不能把“格式不合规”误写成“不会查表” | copy 全部生成 `<think>`；two-field 全部生成 `<think>We`；4 个评分错误均为正确 D 被选成 B，分差约 0.95–1.33 | 共同完成 |
 | 23. Impl-3e-b：官方 fake-think 复验 | ⚠️ Revise | 只把 Assistant 前缀改为官方推荐的 `<think></think`，固定补全共同的 `>` 后重新评分 | 让 reasoning checkpoint 在受控条件下跳过自由思考，同时不事后修改样本、阈值或模型 | `>` 续写一致率 1.0；two-field 格式修复至 1.0，但准确率仅 0.84375、区间下界 0.75，D 仍为 0.5；1.5B 能力门未通过 | 项目负责人运行；Codex 诊断 |
 | 24. Impl-3f：G1h 2.9B 接口迁移 | ✅ 通过 | 验证固定权重、tokenizer、state inventory 和同进程恢复 | 先确认新模型能被现有实验框架可靠读取和保存状态，再谈能力 | 权重校验有效；实际为 32 层、宽度 2560、96 个 state 组件；state 共 21,299,200 字节且全部有限；峰值显存 6,232,199,168 字节；接口与恢复门 `valid=true` | 项目负责人运行；Codex 诊断 |
-| 25. Impl-3g：2.9B 能力门复验 | 🟡 等待云端 | 使用已审计的 fake-think 接口重跑与 1.5B 完全相同的 96 条能力题 | 公平检验“只增大模型”能否解决 1.5B 的组合能力和答案位置偏差 | 配置与脚本已完成；题目、随机种子、答案前缀和阈值均被冻结，只更换模型与接口证据 | Codex 已完成；项目负责人运行 |
-| 26. 新模型 state 工程门复验 | ⏳ 未开始 | 重跑磁盘恢复、reset/diff/swap 和 matched random | 新模型的 state 形状和数值尺度不同，旧模型的通过记录不能替代复验 | 等待最终候选通过能力门 | 共同完成 |
-| 27. Batch 2：冻结任务参数 | ⏳ 未开始 | 冻结 checkpoint、标签池、模板、delay、答案格式和阈值 | 一旦冻结，后面不能因为结果不好随意改题或换模型 | 必须等待新模型能力门与 state 工程门都通过 | 共同审阅 |
-| 28. Impl-4：预注册 | ⏳ 未开始 | 固定代码、配置、样本量、随机种子和判断标准 | 防止看到正式结果后改变成功标准 | 尚未开始 | Codex 整理；项目负责人确认 |
-| 29. Phase 2：正式原生 state 实验 | ⏳ 未开始 | 比较 original/reset/random/swap 等条件 | 这一步才真正测试 recurrent state 是否是跨时间因果载体 | 尚无研究结论 | 项目负责人运行；Codex 分析 |
-| 30. Phase 3：显式 Self Model | ⏳ 未开始 | 实现 Self Store、Self Encoder 和 gated injection | 只有原生状态基线可靠后，才能判断显式 Self Model 是否带来额外价值 | 目前只有设计，没有加入模型 | 后续由 Codex 实现 |
-| 31. Self 更新与演化 | ⏳ 未开始 | 让 Self State 根据经历受控更新、回滚和分化 | 这是“持续自我”真正更深入的部分 | 尚未开始 | 后续阶段 |
-| 32. 最终研究结论 | ⏳ 未开始 | 汇总统计结果、失败案例和替代解释 | 最终回答项目假设是否得到支持，而不是只展示几个有趣案例 | 尚未开始 | 共同完成 |
+| 25. Impl-3g：2.9B 能力门复验 | ⚠️ Revise | 使用已审计的 fake-think 接口重跑与 1.5B 完全相同的 96 条能力题 | 公平检验“只增大模型”能否解决 1.5B 的组合能力和答案位置偏差 | 诊断有效但能力门失败：copy 评分 1.0/格式 0.75；single 评分 0.90625/格式 0.875；two-field 评分 0.875/格式 0.90625；D 位置仍为 0.5 | 项目负责人运行；Codex 诊断 |
+| 26. Impl-3h：2.9B 原始结果审计 | 🟡 等待云端 | 不重跑模型，读取已有 JSONL，汇总输出变体、混淆矩阵、格式异常和 7 个评分错误 | 判断失败究竟来自答案接口，还是 checkpoint 的真实组合能力与位置偏差 | 已实现只读审计命令；当前已知共有 15 个格式异常，等待查看具体文本与错误方向 | Codex 已完成；项目负责人运行 |
+| 27. 新模型 state 工程门复验 | ⏳ 未开始 | 重跑磁盘恢复、reset/diff/swap 和 matched random | 新模型的 state 形状和数值尺度不同，旧模型的通过记录不能替代复验 | 等待最终候选通过能力门 | 共同完成 |
+| 28. Batch 2：冻结任务参数 | ⏳ 未开始 | 冻结 checkpoint、标签池、模板、delay、答案格式和阈值 | 一旦冻结，后面不能因为结果不好随意改题或换模型 | 必须等待新模型能力门与 state 工程门都通过 | 共同审阅 |
+| 29. Impl-4：预注册 | ⏳ 未开始 | 固定代码、配置、样本量、随机种子和判断标准 | 防止看到正式结果后改变成功标准 | 尚未开始 | Codex 整理；项目负责人确认 |
+| 30. Phase 2：正式原生 state 实验 | ⏳ 未开始 | 比较 original/reset/random/swap 等条件 | 这一步才真正测试 recurrent state 是否是跨时间因果载体 | 尚无研究结论 | 项目负责人运行；Codex 分析 |
+| 31. Phase 3：显式 Self Model | ⏳ 未开始 | 实现 Self Store、Self Encoder 和 gated injection | 只有原生状态基线可靠后，才能判断显式 Self Model 是否带来额外价值 | 目前只有设计，没有加入模型 | 后续由 Codex 实现 |
+| 32. Self 更新与演化 | ⏳ 未开始 | 让 Self State 根据经历受控更新、回滚和分化 | 这是“持续自我”真正更深入的部分 | 尚未开始 | 后续阶段 |
+| 33. 最终研究结论 | ⏳ 未开始 | 汇总统计结果、失败案例和替代解释 | 最终回答项目假设是否得到支持，而不是只展示几个有趣案例 | 尚未开始 | 共同完成 |
 
 ## 3. 当前所在位置
 
@@ -85,7 +86,9 @@
 更大 checkpoint 的受控迁移
    ✅ G1h 2.9B 接口门通过：32 层、96 个 state 组件、恢复有效
 新模型能否看懂相同能力题
-   🟡 Impl-3g 已实现，等待云端运行相同 96 条题
+   ⚠️ 2.9B 仍未通过：single/two-field 与格式门均有失败，D 位置仍为 50%
+失败来自答案接口还是 checkpoint
+   🟡 Impl-3h 只读审计已实现，等待分析已有原始记录
 正式 state 因果实验
    ⏳
 显式 Self Model
@@ -135,18 +138,27 @@ Impl-3e-b 已证明：
 - D 位置仍为 0.5，能力与位置平衡门都未通过。
 
 因此停止继续调 1.5B Prompt，也不放宽阈值。Impl-3f 已证明官方 G1h 2.9B
-能够被现有框架可靠加载、读取状态并完成同进程恢复。现在运行 Impl-3g：
+能够被现有框架可靠加载、读取状态并完成同进程恢复。Impl-3g 随后证明，
+仅提升到 2.9B 并不能通过能力门：
+
+- copy 评分仍为 1.0，但格式率只有 0.75；
+- single-field 评分为 0.90625，区间下界 0.78125，D 位置为 0.625；
+- two-field 评分为 0.875，区间下界 0.78125，D 位置仍为 0.5；
+- 共有 7 个评分错误和 15 个格式异常，二者可能重叠。
+
+现在不重跑 GPU 实验，也不立即换更大模型。先运行只读 Impl-3h 审计：
 
 ```bash
 git pull --ff-only
 source .venv/bin/activate
-bash scripts/run_impl3g_g1h_2.9b_fake_think_gate.sh
-cat results/development/impl3g_g1h_2.9b_fake_think/summary.json
+bash scripts/audit_impl3g_g1h_2.9b_results.sh
+cat results/development/impl3g_g1h_2.9b_fake_think/audit_report.json
 ```
 
-这一步不重新下载模型，也不修改题目。它复用已经校验好的 2.9B 权重和
-Impl-3f 接口证据，用与 1.5B 相同的 32 条 copy、32 条 single-field 和
-32 条 two-field 题进行公平复验。
+审计只读取现有 `capability_manifest.json` 和 `raw_capability_ladder.jsonl`，
+不加载模型、不使用 GPU。审计结果决定下一步：若失败集中于一种可重复的
+输出前缀，才设计一次受控答案接口修订；若评分错误继续集中于 D 或组合
+判断，则停止把问题归因于格式，重新选择 checkpoint 路线。
 
 完整选择依据和后续复验顺序见
 [checkpoint 迁移方案](docs/checkpoint_migration.md)。
@@ -186,3 +198,4 @@ Impl-3f 接口证据，用与 1.5B 相同的 32 条 copy、32 条 single-field �
 | 2026-07-30 | 原始输出证明 copy/two-field 先进入 `<think>`；4 个真实错误均为 D→B。新增仅改变官方 fake-think 答案前缀的 Impl-3e-b 受控复验 | `raw_capability_ladder.jsonl` 审计、`configs/gates/impl3e_g1h_1.5b_fake_think.dev.json` |
 | 2026-07-30 | fake-think 将 two-field 格式修复为 1.0，但准确率和 D 位置仍未达门槛；停止 1.5B 提示修订，按预定路线固定 G1h 2.9B 接口候选 | `results/development/impl3e_g1h_1.5b_fake_think/summary.json`、`configs/assets/exp001_rwkv7_g1h_2.9b_candidate.json` |
 | 2026-07-30 | Impl-3f G1h 2.9B 接口门通过：固定权重、tokenizer、32 层/96 组件 state inventory 与同进程恢复均有效；新增只更换模型证据、保持 96 条题和全部阈值不变的 Impl-3g 能力复验门 | `results/development/impl3f_g1h_2.9b_interface/summary.json`、`configs/gates/impl3g_g1h_2.9b_fake_think.dev.json` |
+| 2026-07-30 | Impl-3g 诊断完整但能力门未通过：2.9B 没有消除格式失败，single/two-field 也未达阈值且 D 位置仍弱；新增无需 GPU 的 Impl-3h 原始结果审计 | `results/development/impl3g_g1h_2.9b_fake_think/summary.json`、`scripts/audit_impl3g_g1h_2.9b_results.sh` |

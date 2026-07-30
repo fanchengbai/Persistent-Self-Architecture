@@ -6,6 +6,7 @@ import tempfile
 import unittest
 
 from psa.development import (
+    audit_g1_capability_records,
     calibrate_standard_delay,
     classify_capability_route,
     evaluate_capability_level,
@@ -32,6 +33,85 @@ class ByteTokenizerAdapter:
 
 
 class Impl3DevelopmentTests(unittest.TestCase):
+    def test_g1_result_audit_joins_targets_and_groups_outputs(self) -> None:
+        manifest = {
+            "manifest_digest_sha256": "digest",
+            "trials": [
+                {
+                    "sample_id": "copy-1",
+                    "task_level": "copy_code",
+                    "target_code": "A",
+                },
+                {
+                    "sample_id": "single-1",
+                    "task_level": "single_field",
+                    "target_code": "D",
+                    "target_fields": {"symbol": "teg"},
+                },
+                {
+                    "sample_id": "two-1",
+                    "task_level": "two_field",
+                    "target_code": "D",
+                    "target_fields": {"domain": "niv", "operation": "vam"},
+                },
+            ],
+        }
+        records = [
+            {
+                "sample_id": "copy-1",
+                "status": "success",
+                "argmax_choice": "A",
+                "option_scores": {"A": -0.1},
+                "generated_text": " A",
+                "generated_token_ids": [300],
+                "generated_choice": "A",
+                "format_valid": True,
+            },
+            {
+                "sample_id": "single-1",
+                "status": "success",
+                "argmax_choice": "B",
+                "option_scores": {"B": -0.2, "D": -1.2},
+                "generated_text": " answer",
+                "generated_token_ids": [11],
+                "generated_choice": None,
+                "format_valid": False,
+            },
+            {
+                "sample_id": "two-1",
+                "status": "success",
+                "argmax_choice": "D",
+                "option_scores": {"D": -0.1},
+                "generated_text": " D",
+                "generated_token_ids": [303],
+                "generated_choice": "D",
+                "format_valid": True,
+            },
+        ]
+
+        report = audit_g1_capability_records(
+            manifest=manifest,
+            records=records,
+        )
+
+        self.assertTrue(report["valid"])
+        self.assertEqual(report["scoring_error_count"], 1)
+        self.assertEqual(report["format_invalid_count"], 1)
+        self.assertEqual(
+            report["scoring_error_and_format_invalid_count"],
+            1,
+        )
+        single = report["levels"]["single_field"]
+        self.assertEqual(single["confusion_matrix"], {"D": {"B": 1}})
+        self.assertEqual(
+            single["scoring_errors"][0]["target_minus_predicted"],
+            -1.0,
+        )
+        self.assertEqual(
+            single["generated_output_variants"][0]["generated_text"],
+            " answer",
+        )
+
     def test_capability_manifest_balances_codes_at_each_level(self) -> None:
         manifest = generate_capability_manifest(
             answer_codes=("A", "B", "C", "D"),
