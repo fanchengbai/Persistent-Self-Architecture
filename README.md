@@ -178,6 +178,7 @@ Phase 0 → Phase 1 — Research Design / State Infrastructure
 
 - [项目简介](PROJECT_OVERVIEW.md)
 - [项目计划](PROJECT_PLAN.md)
+- [项目进度表](PROJECT_PROGRESS.md)
 - [研究地图](docs/research_map.md)
 - [操作性定义](docs/definitions.md)
 - [首轮研究主张](docs/research_claims.md)
