@@ -392,6 +392,39 @@ D 为 0.5。
 解释为模型不会照抄：copy 的候选评分实际为 32/32。进入 Impl-3e 原始输出
 审计，在审计前不重跑、不改阈值、不升级 2.9B。
 
+Impl-3e-a 审计结果：
+
+- copy 32/32 都以 ` <think>\n` 开始；
+- two-field 32/32 都以 ` <think>We` 开始；
+- 4 个 two-field 评分错误全部为 D→B；
+- D→B 的分差约为 0.95–1.33，不是数值舍入误差。
+
+### 5.8 运行 Impl-3e-b 官方 fake-think 复验
+
+本轮只修改 Assistant 前缀，使用官方推荐的：
+
+```text
+Assistant: <think></think
+```
+
+随后固定补入共同的 `>`，再评分 A–D。原模型、96 条样本、seed、标签、
+答案代码、阈值和生成长度均与 Impl-3d 相同。
+
+运行：
+
+```bash
+bash scripts/run_impl3e_g1h_fake_think_gate.sh
+```
+
+查看：
+
+```bash
+cat results/development/impl3e_g1h_1.5b_fake_think/summary.json
+```
+
+除原有字段外，还要看 `forced_prefix_greedy_exact_rate`。只有该值为 1.0，
+才说明固定补入的 `>` 与模型自身的下一 token 一致。
+
 ## 6. 运行纯逻辑测试
 
 ```bash

@@ -160,3 +160,33 @@ G1h 的 state 工程门复验。
 - 检查 4 个 two-field 错误的标签、映射和分数间隔；
 - 冻结候选评分与自由生成各自的研究角色；
 - 再决定修订评价接口还是升级 2.9B。
+
+审计已经完成。copy 的 32 条都生成 ` <think>\n`，two-field 的 32 条都生成
+` <think>We`；4 个评分错误全部是 D→B，正确答案相对 B 的分差约为
+`-0.95` 至 `-1.33`。
+
+## 9. Impl-3e-b：官方 fake-think 单变量复验
+
+官方 G1 模型卡推荐 hard prompt 使用 fake-think 前缀：
+
+```text
+User: USER_PROMPT
+
+Assistant: <think></think
+```
+
+本项目精确保留这个未闭合前缀，固定补入所有候选共同的 `>`，然后才比较
+` A`、` B`、` C`、` D`。同时记录模型在被强制前是否本来就会贪心生成
+`>`；若 96 条中有任何一条不一致，`forced_prefix_greedy_exact_rate` 就会
+低于 1.0，门不会通过。
+
+与 Impl-3d 相比，以下内容保持完全相同：
+
+- checkpoint 与 tokenizer；
+- 96 条样本及其正确答案；
+- label pools、answer codes、base seed；
+- bootstrap 参数与全部阈值；
+- 最大生成 token 数。
+
+因此本轮只检验一个问题：跳过 G1 默认的自由思考开头后，格式失败和 D→B
+偏差是否消失。

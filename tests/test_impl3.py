@@ -74,6 +74,54 @@ class Impl3DevelopmentTests(unittest.TestCase):
         prompt = render_g1_chat_prompt(" first\r\n\r\nsecond \n")
         self.assertEqual(prompt, "User: first\nsecond\n\nAssistant:")
 
+    def test_g1_fake_think_prompt_matches_official_incomplete_prefix(self) -> None:
+        prompt = render_g1_chat_prompt(
+            "choose one code",
+            assistant_prefix="<think></think",
+        )
+        self.assertEqual(
+            prompt,
+            "User: choose one code\n\nAssistant: <think></think",
+        )
+        self.assertFalse(prompt.endswith(" "))
+
+    def test_impl3e_changes_only_the_g1_answer_prefill(self) -> None:
+        project_root = Path(__file__).resolve().parents[1]
+        impl3d = json.loads(
+            (
+                project_root
+                / "configs"
+                / "gates"
+                / "impl3d_g1h_1.5b_capability_ladder.dev.json"
+            ).read_text(encoding="utf-8")
+        )
+        impl3e = json.loads(
+            (
+                project_root
+                / "configs"
+                / "gates"
+                / "impl3e_g1h_1.5b_fake_think.dev.json"
+            ).read_text(encoding="utf-8")
+        )
+        controlled_fields = (
+            "interface_summary",
+            "answer_codes",
+            "answer_continuation_prefix",
+            "single_field_symbols",
+            "identity_label_pairs",
+            "goal_label_pairs",
+            "repetitions",
+            "base_seed",
+            "max_generation_tokens",
+            "bootstrap_replicates",
+            "bootstrap_seed",
+            "thresholds",
+        )
+        for field in controlled_fields:
+            self.assertEqual(impl3e[field], impl3d[field])
+        self.assertEqual(impl3e["assistant_prefix"], "<think></think")
+        self.assertEqual(impl3e["forced_answer_prefix"], ">")
+
     def test_capability_level_evaluation_passes_ideal_records(self) -> None:
         manifest = generate_capability_manifest(
             answer_codes=("A", "B", "C", "D"),

@@ -361,6 +361,18 @@ def _capability_ladder_gate(args: argparse.Namespace) -> int:
 def _g1_capability_ladder_gate(args: argparse.Namespace) -> int:
     failure_path = Path(args.output_dir) / "failure_report.json"
     failure_path.unlink(missing_ok=True)
+    gate_name = "impl3d_g1_capability_ladder"
+    try:
+        gate_payload = json.loads(
+            Path(args.gate_config).read_text(encoding="utf-8")
+        )
+        if isinstance(gate_payload, dict) and isinstance(
+            gate_payload.get("gate"),
+            str,
+        ):
+            gate_name = gate_payload["gate"]
+    except (OSError, ValueError):
+        pass
     try:
         result = run_g1_capability_ladder_gate(
             config_path=args.config,
@@ -373,7 +385,7 @@ def _g1_capability_ladder_gate(args: argparse.Namespace) -> int:
             "failure_version": "0.1",
             "created_at_utc": datetime.now(timezone.utc).isoformat(),
             "development_only": True,
-            "gate": "impl3d_g1_capability_ladder",
+            "gate": gate_name,
             "exception_type": type(exc).__name__,
             "message": str(exc),
             "config": str(Path(args.config).resolve()),

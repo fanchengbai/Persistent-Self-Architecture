@@ -17,6 +17,7 @@ from psa.development.impl3 import (
     render_prompt_visible,
     run_impl3_development_gate,
     score_continuations,
+    score_continuations_after_prefix,
     write_jsonl,
 )
 
@@ -37,5 +38,6 @@ __all__ = [
     "run_capability_ladder_gate",
     "run_g1_capability_ladder_gate",
     "score_continuations",
+    "score_continuations_after_prefix",
     "write_jsonl",
 ]

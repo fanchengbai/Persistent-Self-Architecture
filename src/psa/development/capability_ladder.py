@@ -17,6 +17,7 @@ from psa.development.impl3 import (
     normalized_probabilities,
     render_prompt_visible,
     score_continuations,
+    score_continuations_after_prefix,
     write_jsonl,
 )
 from psa.evaluation import bca_mean_interval
@@ -100,7 +101,11 @@ def _single_field_prompt(
     )
 
 
-def render_g1_chat_prompt(user_content: str) -> str:
+def render_g1_chat_prompt(
+    user_content: str,
+    *,
+    assistant_prefix: str = "",
+) -> str:
     cleaned = re.sub(
         r"\n{2,}",
         "\n",
@@ -108,7 +113,10 @@ def render_g1_chat_prompt(user_content: str) -> str:
     ).strip()
     if not cleaned:
         raise ValueError("G1 user content must be non-empty")
-    return f"User: {cleaned}\n\nAssistant:"
+    if assistant_prefix not in {"", "<think></think"}:
+        raise ValueError("unsupported G1 assistant prefix")
+    suffix = f" {assistant_prefix}" if assistant_prefix else ""
+    return f"User: {cleaned}\n\nAssistant:{suffix}"
 
 
 def _without_answer_marker(prompt: str) -> str:
@@ -231,7 +239,13 @@ def generate_g1_capability_manifest(
     goal_label_pairs: Sequence[Sequence[str]],
     repetitions: int,
     base_seed: int,
+    assistant_prefix: str = "",
 ) -> dict[str, Any]:
+    prompt_format = (
+        "rwkv7-g1-fake-think-v0.2"
+        if assistant_prefix
+        else "rwkv7-g1-chat-v0.1"
+    )
     base = generate_capability_manifest(
         answer_codes=answer_codes,
         symbols=symbols,
@@ -241,14 +255,15 @@ def generate_g1_capability_manifest(
     trials = []
     for trial in base["trials"]:
         prompt = render_g1_chat_prompt(
-            _without_answer_marker(str(trial["prompt"]))
+            _without_answer_marker(str(trial["prompt"])),
+            assistant_prefix=assistant_prefix,
         )
         trials.append(
             {
                 **trial,
                 "sample_id": "g1diag-" + sha256_json(
                     {
-                        "prompt_format": "rwkv7-g1-chat-v0.1",
+                        "prompt_format": prompt_format,
                         "task_level": trial["task_level"],
                         "block_id": trial["block_id"],
                         "target_code": trial["target_code"],
@@ -287,12 +302,15 @@ def generate_g1_capability_manifest(
                 sample,
                 template_version="explicit-match-v0.2",
             )
-            prompt = render_g1_chat_prompt(_without_answer_marker(task_prompt))
+            prompt = render_g1_chat_prompt(
+                _without_answer_marker(task_prompt),
+                assistant_prefix=assistant_prefix,
+            )
             trials.append(
                 {
                     "sample_id": "g1diag-" + sha256_json(
                         {
-                            "prompt_format": "rwkv7-g1-chat-v0.1",
+                            "prompt_format": prompt_format,
                             "task_level": "two_field",
                             "block_id": block_id,
                             "group_id": group.group_id,
@@ -325,7 +343,8 @@ def generate_g1_capability_manifest(
     return {
         "manifest_version": "0.2",
         "development_only": True,
-        "prompt_format": "rwkv7-g1-chat-v0.1",
+        "prompt_format": prompt_format,
+        "assistant_prefix": assistant_prefix,
         "prompt_source": (
             "https://github.com/BlinkDL/RWKV-LM/blob/main/"
             "RWKV-v7/RWKV7-G1x-templates.txt"
@@ -798,8 +817,12 @@ def run_g1_capability_ladder_gate(
     destination.mkdir(parents=True, exist_ok=True)
     gate_path = Path(gate_config_path).resolve()
     gate_config = _load_object(gate_path, "G1 capability ladder config")
-    if gate_config.get("gate") != "impl3d_g1_capability_ladder":
-        raise ValueError("gate config is not for impl3d_g1_capability_ladder")
+    gate_name = gate_config.get("gate")
+    if gate_name not in {
+        "impl3d_g1_capability_ladder",
+        "impl3e_g1_fake_think_capability_ladder",
+    }:
+        raise ValueError("unsupported G1 capability ladder gate")
     started_at = _utc_now()
 
     model_config = load_model_config(config_path, root, verify_files=True)
@@ -833,6 +856,18 @@ def run_g1_capability_ladder_gate(
         "goal_label_pairs",
     )
     continuation_prefix = str(gate_config.get("answer_continuation_prefix", ""))
+    assistant_prefix = str(gate_config.get("assistant_prefix", ""))
+    forced_answer_prefix = str(gate_config.get("forced_answer_prefix", ""))
+    if assistant_prefix not in {"", "<think></think"}:
+        raise ValueError("assistant_prefix is unsupported")
+    if (assistant_prefix, forced_answer_prefix) not in {
+        ("", ""),
+        ("<think></think", ">"),
+    }:
+        raise ValueError(
+            "fake-think mode requires assistant_prefix '<think></think' "
+            "and forced_answer_prefix '>'"
+        )
     repetitions = gate_config.get("repetitions")
     base_seed = gate_config.get("base_seed")
     bootstrap_replicates = gate_config.get("bootstrap_replicates")
@@ -856,6 +891,7 @@ def run_g1_capability_ladder_gate(
         goal_label_pairs=goal_pairs,
         repetitions=repetitions,
         base_seed=base_seed,
+        assistant_prefix=assistant_prefix,
     )
     _write_json(destination / "capability_manifest.json", manifest)
 
@@ -888,7 +924,7 @@ def run_g1_capability_ladder_gate(
         base_record = {
             "record_version": "0.2",
             "experiment_id": "EXP-001",
-            "batch_id": "impl3d_g1_capability_ladder",
+            "batch_id": gate_name,
             "run_id": "run-" + trial["sample_id"].removeprefix("g1diag-"),
             "sample_id": trial["sample_id"],
             "task_level": trial["task_level"],
@@ -897,10 +933,17 @@ def run_g1_capability_ladder_gate(
             "prompt_format": manifest["prompt_format"],
         }
         try:
-            scores, logits, state, prompt_token_count = score_continuations(
+            (
+                scores,
+                logits,
+                state,
+                prompt_token_count,
+                forced_prefix_report,
+            ) = score_continuations_after_prefix(
                 adapter,
                 trial["prompt"],
                 rendered_answers,
+                forced_prefix=forced_answer_prefix,
             )
             format_probe = greedy_format_probe(
                 adapter,
@@ -916,6 +959,7 @@ def run_g1_capability_ladder_gate(
                     "option_scores": scores,
                     "option_probabilities": normalized_probabilities(scores),
                     "argmax_choice": max(scores, key=scores.__getitem__),
+                    "forced_prefix": forced_prefix_report,
                     **format_probe,
                     "timing_seconds": time.perf_counter() - trial_started,
                     "status": "success",
@@ -930,6 +974,7 @@ def run_g1_capability_ladder_gate(
                     "option_scores": {},
                     "option_probabilities": {},
                     "argmax_choice": None,
+                    "forced_prefix": None,
                     "generated_token_ids": [],
                     "generated_text": "",
                     "generated_choice": None,
@@ -958,17 +1003,35 @@ def run_g1_capability_ladder_gate(
             bootstrap_seed=bootstrap_seed + index,
             thresholds=thresholds,
         )
-    route = classify_capability_route(
-        copy_valid=reports["copy_code"]["valid"],
-        single_field_valid=reports["single_field"]["valid"],
-        two_field_valid=reports["two_field"]["valid"],
+    successful_records = [
+        record for record in records if record["status"] == "success"
+    ]
+    forced_prefix_greedy_exact_rate = (
+        sum(
+            bool(record["forced_prefix"]["greedy_exact"])
+            for record in successful_records
+        )
+        / len(successful_records)
+        if successful_records and forced_answer_prefix
+        else 1.0
     )
+    if forced_prefix_greedy_exact_rate < 1.0:
+        route = "revise_answer_prefill"
+    else:
+        route = classify_capability_route(
+            copy_valid=reports["copy_code"]["valid"],
+            single_field_valid=reports["single_field"]["valid"],
+            two_field_valid=reports["two_field"]["valid"],
+        )
     ladder_report = {
         "report_version": "0.2",
         "created_at_utc": _utc_now(),
         "development_only": True,
         "model_id": model_config.model_id,
         "prompt_format": manifest["prompt_format"],
+        "assistant_prefix": assistant_prefix,
+        "forced_answer_prefix": forced_answer_prefix,
+        "forced_prefix_greedy_exact_rate": forced_prefix_greedy_exact_rate,
         **reports,
         "route_decision": route,
         "capability_gate_passed": route == "go_batch2",
@@ -990,12 +1053,15 @@ def run_g1_capability_ladder_gate(
         }
 
     summary = {
-        "gate": "impl3d_g1_capability_ladder",
+        "gate": gate_name,
         "started_at_utc": started_at,
         "finished_at_utc": _utc_now(),
         "development_only": True,
         "model_id": model_config.model_id,
         "prompt_format": manifest["prompt_format"],
+        "assistant_prefix": assistant_prefix,
+        "forced_answer_prefix": forced_answer_prefix,
+        "forced_prefix_greedy_exact_rate": forced_prefix_greedy_exact_rate,
         "gate_config_sha256": sha256_file(gate_path),
         "interface_evidence_valid": evidence["valid"],
         "answer_interface_valid": answer_report["valid"],

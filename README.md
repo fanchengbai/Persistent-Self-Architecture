@@ -177,7 +177,9 @@ Phase 0 → Phase 1 — Research Design / State Infrastructure
     1.5B 为首个迁移候选；固定资源校验与云端接口兼容门已经通过。
 15. G1h 1.5B 的 Impl-3d 已完整运行：候选评分的 copy 与 single-field 均为
     100%，two-field 为 87.5%；但 copy/two-field 自由生成格式失败，且
-    two-field 的 D 位置只有 50%，当前进入原始输出审计，尚未放宽门槛。
+    two-field 的 D 位置只有 50%。
+16. 原始输出审计确认模型先进入 `<think>`，4 个真实错误均为 D→B；已实现
+    仅采用官方 fake-think 前缀的单变量复验，其他数据与阈值全部保持不变。
 
 ## 项目文档
 

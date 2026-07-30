@@ -252,22 +252,61 @@ def score_continuations(
     prompt: str,
     rendered_answers: dict[str, str],
 ) -> tuple[dict[str, float], Any, Any, int]:
+    scores, logits, state, prompt_token_count, _ = (
+        score_continuations_after_prefix(
+            adapter,
+            prompt,
+            rendered_answers,
+            forced_prefix="",
+        )
+    )
+    return scores, logits, state, prompt_token_count
+
+
+def score_continuations_after_prefix(
+    adapter: Any,
+    prompt: str,
+    rendered_answers: dict[str, str],
+    *,
+    forced_prefix: str,
+) -> tuple[dict[str, float], Any, Any, int, dict[str, Any]]:
     prompt_tokens = adapter.encode(prompt)
     prompt_logits, prompt_state = adapter.forward(prompt_tokens, None)
+    logits = prompt_logits
+    state = prompt_state
+    prefix_tokens = adapter.encode(forced_prefix) if forced_prefix else []
+    greedy_tokens = []
+    for token in prefix_tokens:
+        greedy_tokens.append(int(adapter.torch.argmax(logits).item()))
+        logits, state = adapter.forward([token], state)
+    prefix_report = {
+        "text": forced_prefix,
+        "token_ids": prefix_tokens,
+        "greedy_token_ids": greedy_tokens,
+        "greedy_exact": greedy_tokens == prefix_tokens,
+        "roundtrip_exact": (
+            adapter.decode(prefix_tokens) == forced_prefix
+            if prefix_tokens
+            else True
+        ),
+    }
     scores: dict[str, float] = {}
     torch = adapter.torch
     for code, rendered in rendered_answers.items():
         answer_tokens = adapter.encode(rendered)
-        logits = prompt_logits
-        state = clone_state(prompt_state)
+        answer_logits = logits
+        answer_state = clone_state(state)
         score = 0.0
         for index, token in enumerate(answer_tokens):
-            log_probabilities = torch.log_softmax(logits.float(), dim=-1)
+            log_probabilities = torch.log_softmax(answer_logits.float(), dim=-1)
             score += float(log_probabilities[token].item())
             if index + 1 < len(answer_tokens):
-                logits, state = adapter.forward([token], state)
+                answer_logits, answer_state = adapter.forward(
+                    [token],
+                    answer_state,
+                )
         scores[code] = score
-    return scores, prompt_logits, prompt_state, len(prompt_tokens)
+    return scores, logits, state, len(prompt_tokens), prefix_report
 
 
 def normalized_probabilities(scores: dict[str, float]) -> dict[str, float]:
