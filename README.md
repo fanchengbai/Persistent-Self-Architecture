@@ -209,6 +209,9 @@ Phase 0 → Phase 1 — Research Design / State Infrastructure
 26. Impl-3m 达到 L3：2.9B 状态跨进程恢复的 100/100 次续算均在冻结容差
     内，top-1 选择全部一致；逐位一致 0/100 作为 CUDA/FP16 数值诊断保留，
     不误判成持久化失败。下一步是 Impl-3n 状态操作复验。
+27. Impl-3n 中 96/96 组件 diff、完整 swap、tokenizer 和来源不变性均通过，
+    但官方 `state=None` reset 的重复续算未通过，因此总门有效失败。当前
+    保留原阈值和失败报告，暂停 Impl-3o，先审计 reset 的逐次误差与 top-1。
 
 ## 项目文档
 

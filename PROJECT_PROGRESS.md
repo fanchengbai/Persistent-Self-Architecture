@@ -1,7 +1,7 @@
 # Persistent Self Architecture 项目进度表
 
-> 最后更新：2026-07-30
-> 当前节点：Impl-3m 的 2.9B 磁盘恢复达到 L3；等待 Impl-3n 状态操作复验
+> 最后更新：2026-07-31
+> 当前节点：Impl-3n 仅 reset 重复性失败；暂停 Impl-3o，等待 reset 详细报告
 > 研究状态：尚未进入正式确认性实验，尚未实现显式 Self Model
 
 ## 1. 这张表怎么使用
@@ -19,6 +19,7 @@
 - ✅ **完成**：代码或设计已经完成，并取得所要求的验证证据；
 - ⚠️ **Revise**：运行本身有效，但结果表明方案需要修改；
 - 🟡 **进行中/等待验证**：实现已完成，正在等待云端结果或共同审阅；
+- ⏸️ **暂停**：后续步骤已经准备好，但前置门未通过，暂时不得运行；
 - ⏳ **未开始**：前置条件尚未满足；
 - 🛑 **Stop**：证据表明当前路线不应继续。当前没有 Stop 项。
 
@@ -57,8 +58,8 @@
 | 29. Impl-3k：答案代码轮换诊断 | ⚠️ Revise | 让 32 个相同语义案例各自轮换使用 A/B/C/D，共 128 条配对题 | 判断错误究竟跟随字母 D，还是跟随特定语义组合 | 总准确率 0.90625；B/C 均 1.0、A=0.9375、D=0.6875；22/32 案例四轮全对，10 个案例在 D 下错，其中 2 个在 A 下也错；原自动路线“纯语义失败”过粗，应解释为强代码偏差加少量交互 | 项目负责人运行；Codex 诊断 |
 | 30. Impl-3l：标签边际化只读复核 | ✅ 通过 | 将同一语义选项在 A/B/C/D 四轮下的对数分数取平均，再做一次语义选择 | 四轮平均能抵消每个字母的整体先验，判断去掉答案代码干扰后是否仍有语义错误 | 32/32 个语义案例全部正确，准确率 1.0、剩余语义错误 0；路线修订为 `answer_code_bias_controlled_by_rotation`。2.9B 的开发能力前置条件满足，后续固定采用四代码轮换平均读出 | 项目负责人运行；Codex 诊断 |
 | 31. Impl-3m：2.9B 磁盘恢复复验 | ✅ 通过 | 把 2.9B 的 recurrent state 保存到磁盘，在独立进程恢复并重复续算 100 次 | 新模型的 state 更大，必须证明程序退出后仍能可靠恢复，不能借用 0.4B 的通过记录 | 达到 L3；100/100 容差通过且 100/100 top-1 一致。状态载荷 21,299,200 字节，保存约 0.169 秒，跨进程复验约 25.81 秒。逐位一致 0/100 属于已预期的 CUDA/FP16 跨进程微差，不影响通过 | 项目负责人运行；Codex 诊断 |
-| 32. Impl-3n：2.9B reset/diff/swap 复验 | 🟡 等待云端 | 对 96 个 state 组件执行比较、官方 reset 和完整交换 | 正式因果实验会依赖这些操作，必须先证明工具在 2.9B 上仍可靠且不修改来源状态 | Impl-3m 前置条件已通过；实现和配置已完成，现在运行本门 | Codex 已完成；项目负责人运行 |
-| 33. Impl-3o：2.9B matched random 复验 | 🟡 已准备 | 生成与 2.9B 真实 state 分组件尺度匹配的随机状态，并验证种子复现和稳定续算 | random 对照必须和真状态同形同尺度，才能排除“随便塞噪声”的解释 | 实现和配置已完成；种子、尺度阈值和续算阈值与 Impl-2c 相同，等待 Impl-3n 通过 | Codex 已完成；项目负责人待运行 |
+| 32. Impl-3n：2.9B reset/diff/swap 复验 | ⚠️ Revise | 对 96 个 state 组件执行比较、官方 reset 和完整交换 | 正式因果实验会依赖这些操作，必须先证明工具在 2.9B 上仍可靠且不修改来源状态 | 运行有效但总门失败：96/96 组件可区分，tokenizer、diff、swap 和来源不变性均通过；只有 `reset_valid=false`。不改阈值，等待 `reset_validation.json` 确定是数值误差还是行为不一致 | 项目负责人运行；Codex 诊断 |
+| 33. Impl-3o：2.9B matched random 复验 | ⏸️ 暂停 | 生成与 2.9B 真实 state 分组件尺度匹配的随机状态，并验证种子复现和稳定续算 | random 对照必须和真状态同形同尺度，才能排除“随便塞噪声”的解释 | 实现和配置已完成，但因 Impl-3n 尚未通过而暂停；不得提前运行 | Codex 已完成；项目负责人待运行 |
 | 34. Batch 2：冻结任务参数 | ⏳ 未开始 | 冻结 checkpoint、标签池、模板、delay、答案格式、轮换读出和阈值 | 一旦冻结，后面不能因为结果不好随意改题或换模型 | 必须等待 Impl-3m/3n/3o 都通过 | 共同审阅 |
 | 35. Impl-4：预注册 | ⏳ 未开始 | 固定代码、配置、样本量、随机种子和判断标准 | 防止看到正式结果后改变成功标准 | 尚未开始 | Codex 整理；项目负责人确认 |
 | 36. Phase 2：正式原生 state 实验 | ⏳ 未开始 | 比较 original/reset/random/swap 等条件 | 这一步才真正测试 recurrent state 是否是跨时间因果载体 | 尚无研究结论 | 项目负责人运行；Codex 分析 |
@@ -105,7 +106,8 @@
    ✅ Impl-3l 四轮平均后 32/32 正确，答案代码偏差已被配对轮换控制
 2.9B state 工程复验
    ✅ Impl-3m 达到 L3，100/100 容差与行为一致
-   🟡 Impl-3n reset/diff/swap 等待运行；Impl-3o 已准备
+   ⚠️ Impl-3n 的 diff/swap 通过，但 reset 重复性失败，等待详细报告
+   ⏸️ Impl-3o 暂停
 正式 state 因果实验
    ⏳
 显式 Self Model
@@ -239,18 +241,17 @@ Impl-3m 已证明 2.9B 状态可以跨进程落盘恢复：
 - 跨进程逐位一致为 0/100，但这是开发阶段已经识别并用冻结容差控制的
   CUDA/FP16 数值微差；行为选择全部一致，因此不构成失败
 
-下一步只运行 Impl-3n，验证 diff、官方 reset、完整 swap 和来源状态不变性：
+Impl-3n 已经运行。96 个状态组件全部可区分，tokenizer、diff、swap 和来源
+状态不变性均通过；只有官方 `state=None` 重置后的重复续算未通过，因此
+总 `valid=false`。这是一份有效失败报告，不能删除或用放宽阈值覆盖。
 
 ```bash
-git pull --ff-only
-source .venv/bin/activate
-bash scripts/run_impl3n_g1h_2.9b_state_operations_gate.sh
-cat results/development/impl3n_g1h_2.9b_state_operations/summary.json
+python -c "import json; p='results/development/impl3n_g1h_2.9b_state_operations/reset_validation.json'; r=json.load(open(p)); print(json.dumps({k:v for k,v in r.items() if k!='trials'}, indent=2)); print(json.dumps(r['trials'], indent=2))"
 ```
 
-先不要运行 Impl-3o。只有 Impl-3n 的 `state_diff_valid`、`reset_valid`、
-`swap_valid`、`source_states_immutable` 和总 `valid` 全部为 `true`，
-才进入随机状态门。
+这条命令只读取已有结果，不运行模型、不使用 GPU。需要检查
+`tolerance_pass_count`、`top1_match_count`、两个 worst error，以及每次失败
+是 logits 超限还是 state 超限。拿到证据前不修改配置，也不运行 Impl-3o。
 
 完整选择依据和后续复验顺序见
 [checkpoint 迁移方案](docs/checkpoint_migration.md)。
@@ -297,3 +298,4 @@ cat results/development/impl3n_g1h_2.9b_state_operations/summary.json
 | 2026-07-30 | Impl-3k 显示 D=0.6875、A=0.9375、B/C=1.0，且仅 2/10 失败案例跨多个代码；将原“纯语义失败”解释纠正为强代码偏差加少量交互，新增不重跑模型的 Impl-3l 标签边际化复核 | `results/development/impl3k_g1h_2.9b_code_rotation/summary.json`、`scripts/review_impl3k_g1h_2.9b_code_rotation.sh` |
 | 2026-07-30 | Impl-3l 标签边际化后 32/32 语义案例正确，确认 2.9B 的开发能力前置条件通过；冻结四代码轮换平均读出，并准备不放宽旧标准的 Impl-3m/3n/3o 状态工程复验 | `results/development/impl3k_g1h_2.9b_code_rotation/code_rotation_review.json`、`configs/readouts/exp001_g1h_2.9b_code_marginalized.dev.json`、`configs/gates/impl3m_g1h_2.9b_checkpoint_roundtrip.dev.json` |
 | 2026-07-30 | Impl-3m 达到 L3，2.9B 状态跨进程恢复 100/100 容差通过且 top-1 全部一致；保留 0/100 逐位一致的 CUDA/FP16 诊断记录，进入 Impl-3n 状态操作复验 | `results/development/impl3m_g1h_2.9b_checkpoint_roundtrip/summary.json` |
+| 2026-07-31 | Impl-3n 有效运行但仅 reset 重复性失败；96/96 组件 diff、完整 swap、tokenizer 和来源状态不变性均通过。保留 `valid=false`，暂停 Impl-3o，先读取 reset 的逐次误差和行为证据 | `results/development/impl3n_g1h_2.9b_state_operations/summary.json` |

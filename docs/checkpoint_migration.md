@@ -437,3 +437,14 @@ Impl-3m 实际结果已经通过：
   微小数值差异一致，不影响容差和行为判定。
 
 因此按预定顺序进入 Impl-3n，不修改阈值或 checkpoint 格式。
+
+Impl-3n 首次运行得到一份局部失败结果：96/96 组件 diff 有效，完整 swap、
+tokenizer roundtrip 和来源状态不变性均通过，但 `reset_valid=false`，所以
+总门 `valid=false`。按预定路线保留失败，不运行 Impl-3o，也不直接放宽
+误差阈值。下一步只读 `reset_validation.json`，区分：
+
+1. logits 或 state 只是略微超过冻结阈值；
+2. top-1 行为发生变化；
+3. `state=None` 初始化路径存在独立的不稳定性。
+
+只有完成这项审计后，才能决定修复实现、增加受控校准门，或停止该路线。
