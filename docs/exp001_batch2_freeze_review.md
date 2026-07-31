@@ -418,3 +418,8 @@ v3精确指标显示goal点估计96.09%、BCa下界0.8984375，较v2改善但仍
 与案例难度混杂。因此终止prompt调优。Impl-3t把v3逐字冻结，用新命名空间
 seed `3061017642`做一次未观察的同规模留出验证；通过只进入checksum审阅，
 失败停止2.9B路线，且禁止再次抽样、增样或修改模板。
+
+Impl-3t 已一次性通过：模板资格、控制基线和功效门均为true，
+`freeze_candidate_ready=true`，安全边界正常。不可变候选digest为
+`a354b208be0640da7ea70fe070f75bdec69186e496ba1cc14c3157dcd984e6cd`。
+当前只进入人工checksum审阅；明确确认前不得生成Core Set或运行正式实验。

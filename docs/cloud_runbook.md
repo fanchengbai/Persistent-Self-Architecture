@@ -781,6 +781,16 @@ cat results/development/impl3t_exp001_formal_v3_holdout/summary.json
 - 若任一资格门失败：停止G1h 2.9B正式资格路线；
 - 两种结果都不得触发新prompt、再次抽样、追加样本或生成Core Set。
 
+若 Impl-3t 全部门通过，停止GPU计算并核对：
+
+```bash
+python -c "import json; b='results/development/impl3t_exp001_formal_v3_holdout'; c=json.load(open(b+'/preregistration_candidate.json')); v=json.load(open(b+'/preregistration_verification.manual.json')); keys=('status','gate','model_id','confirmed_decision_ids','history_mode','formal_template_count','formal_query_template_count','filler_variant_count','control_trial_count','factorial_group_count','seeds','statistics','conditions','qualification','source_config','payload_root_digest_sha256','core_set_generated','core_set_unsealed','formal_state_only_results_observed','human_checksum_confirmation_required','eligible_for_human_freeze','candidate_digest_sha256'); print(json.dumps({'candidate':{k:c[k] for k in keys},'verification':{'candidate_digest_sha256':v['candidate_digest_sha256'],'self_digest_valid':v['self_digest_valid'],'payload_root_valid':v['payload_root_valid'],'all_source_files_valid':all(v['source_file_checks'].values()),'source_file_count':len(v['source_file_checks']),'all_evidence_files_valid':all(v['evidence_file_checks'].values()),'evidence_file_count':len(v['evidence_file_checks']),'safety_boundary_valid':v['safety_boundary_valid'],'eligible_for_human_freeze':v['eligible_for_human_freeze'],'valid':v['valid']}},indent=2))"
+```
+
+把输出交给项目负责人核对。只有项目负责人明确复述并确认完整64位
+`candidate_digest_sha256`，才允许把候选升级为最终预注册包；脚本通过本身
+不构成确认。
+
 ## 6. 运行纯逻辑测试
 
 ```bash

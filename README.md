@@ -272,6 +272,9 @@ Phase 0 → Phase 1 — Research Design / State Infrastructure
     固定案例分配混杂，因此终止措辞调优。Impl-3t将v3逐字冻结，用全新公开
     seed做一次未观察留出验证：通过只审checksum，失败停止2.9B路线；禁止
     再改prompt、重抽样或增样。
+44. Impl-3t 一次性留出门全部通过：模板、控制和功效均有效，候选digest为
+    `a354b208…e6cd`，确认结果未读取且Core Set未生成。当前停止计算，等待
+    人工核对candidate、全部digest与安全边界后明确确认checksum。
 
 ## 项目文档
 

@@ -1,7 +1,7 @@
 # Persistent Self Architecture 项目进度表
 
 > 最后更新：2026-07-31
-> 当前节点：v3模板永久冻结；Impl-3t 一次性留出资格门等待云端验证
+> 当前节点：Impl-3t 全部门通过；等待人工核对并明确确认 candidate checksum
 > 研究状态：尚未进入正式确认性实验，尚未实现显式 Self Model
 
 ## 1. 这张表怎么使用
@@ -63,7 +63,7 @@
 | 33. Impl-3n-a：reset 首次形状执行诊断 | ✅ 完成 | 复现原门前奏后连续 reset 11 次，分别用第 1 次和第 2 次作参考比较后续调用 | 十次完全相同的超限更像第一次遇到该 token 长度时的 CUDA 首次执行差异；必须直接验证，不能直接丢掉第一次后宣布通过 | 路线为 `first_shape_call_outlier`：第1次参考对后续 0/10 通过，第2次稳定参考对第3–11次 9/9 通过，相邻调用 9/10 通过；异常仅发生在第1→2次 | 项目负责人运行；Codex 诊断 |
 | 34. Impl-3n-b：单次预热后完整状态操作复验 | ✅ 通过 | 在评分前执行一次相同 suffix 的 `state=None` 调用，然后原样重跑 diff/reset/swap | 用独立新门检验预先声明的单次预热能否消除已确认的首次形状效应，同时不覆盖原失败 | `reset_shape_warmup_count=1`；96/96 组件可区分，tokenizer、diff、reset、swap、来源状态不变性和总门全部通过。原 Impl-3n 的失败记录保留 | 项目负责人运行；Codex 诊断 |
 | 35. Impl-3o：2.9B matched random 复验 | ✅ 通过 | 生成与 2.9B 真实 state 分组件尺度匹配的随机状态，并验证种子复现和稳定续算 | random 对照必须和真状态同形同尺度，才能排除“随便塞噪声”的解释 | 96 个组件；同 seed 逐位复现、异 seed 可区分、尺度和续算均有效；最大相对 L2 误差仅 `2.8688e-05`，远低于 `0.01`；来源不变且总门 `valid=true` | 项目负责人运行；Codex 诊断 |
-| 36. Batch 2：冻结任务参数 | 🟡 候选修订中 | 冻结 checkpoint、标签池、模板、delay、答案格式、轮换读出和阈值 | 一旦冻结，后面不能因为结果不好随意改题或换模型 | D1–D8 的模型、协议、delay、seeds、SESOI、N=320与功效目标不变；首版模板和双字段控制未取得资格，现等待独立 Impl-3r 第二版资格证据和最终 checksum 人工确认 | Codex 实现；项目负责人运行与确认 |
+| 36. Batch 2：冻结任务参数 | 🟡 候选等待人工确认 | 冻结 checkpoint、标签池、模板、delay、答案格式、轮换读出和阈值 | 一旦冻结，后面不能因为结果不好随意改题或换模型 | Impl-3t一次性留出资格门已通过，当前不可变候选已就绪；仍需核对candidate、source/evidence digest与安全边界，并由项目负责人明确确认checksum后才能升级为预注册包 | Codex 实现与核对；项目负责人确认 |
 | 36a. Impl-3p：历史写入协议比较 | ✅ 已通过 | 在相同案例、delay 和 state-only 查询下比较单次声明、声明后验证、多次一致绑定 | recurrent state 如何形成会直接影响正式实验，必须在确认集前固定，又不能简单挑分数最高的方案 | 384 条比较完成；三种模式标签边际化准确率分别为 96.875%、100%、100%，均超过 80% 门槛且来源 state 不变。按预注册的简洁性优先规则选择首个达标的 `single_statement`；峰值显存约 6.23 GB | Codex 已完成；项目负责人已运行 |
 | 36b. Impl-3q：正式冻结候选门 | 🟠 有效 Hold | 只用 prompt-visible 题资格审查4×4正式模板，验证96条通用控制，运行10,000次功效模拟，并锁定源码、配置、原始记录和报告 digest | 在不偷看正式 state-only 结果的情况下，确认“试卷清楚、控制题可做、样本量够用、文件不能悄悄改” | `valid=true`、功效门通过，但模板资格与控制基线均失败，故 `freeze_candidate_ready=false`；608条读出完整，约18.1分钟，峰值显存约6.23GB；确认集未读取、Core Set未生成 | 项目负责人已运行；Codex 审计 |
 | 36c. Impl-3q-a：失败细分审计 | ✅ 完成 | 只读取模板、控制和轮换错误分布，不重跑模型、不修改阈值 | 必须先区分模板理解、答案代码偏差和格式失败，才能决定是否修订 | 模板四轮平均后仍为107/128（83.59%）；双字段控制四轮平均仅2/8（25%），且几乎总猜 `cinder+trace`，确认是真实双字段语义失败，不是格式或A–D偏差；路线为 `revise_formal_and_control_two_field_prompt_families` | 项目负责人已运行；Codex 已诊断 |
@@ -72,7 +72,8 @@
 | 36f. 正式模板 v3 设计判定 | ✅ 完成 | 核对 joint/identity/goal 三个 BCa 区间与冻结下界，判断失败是某个能力维度仍不稳，还是只由抽样不确定性造成 | 不能看到 history-v2-02 满分就事后只留它，也不能在不知道具体失败门时继续改措辞 | 唯一失败项是 goal/OPERATION 的 BCa 下界0.890625，低于0.90要求0.009375；identity下界0.91127、joint下界0.859375、格式、所有history/query点估计均通过。确定只做历史写入的双字段对称强化 | Codex 已诊断；项目负责人已回传指标 |
 | 36g. Impl-3s：正式冻结候选 v3 | 🟠 有效 Hold | 将四个历史模板作为整体改为平行的 FIELD 1 DOMAIN / FIELD 2 OPERATION 结构，并让确认语句明确两个字段都已保存 | goal错误几乎全部来自最弱历史模板，但不能事后只挑满分模板；整体重写能针对第二字段脆弱性，同时保留模板族泛化检验 | 运行有效但模板资格仍失败，`freeze_candidate_ready=false`；控制和功效继续通过。耗时约20.3分钟、峰值显存约6.23GB；确认结果未读取、Core Set未生成，候选checksum不得确认 | 项目负责人已运行；Codex 诊断 |
 | 36h. Impl-3s-a：v3 终止判定审计 | ✅ 完成 | 读取v3已有分数，比较v2/v3的三个BCa区间、模板交互和错误集中度 | 连续两次受控模板修订仍未取得资格，必须防止无限prompt调参和开发集过拟合 | 8个联合错误中5个在history-03，但该位置v2/v3沿用同一案例流；其余错误跨query-02/03/04、filler-01/02/04、两组标签和全部目标组合。没有可辩护的下一句prompt修订；终止措辞调优 | Codex 已诊断；项目负责人已回传明细 |
-| 36i. Impl-3t：v3 一次性留出资格门 | 🟡 等待云端验证 | v3模板逐字不变，用从新SHA-256命名空间生成的未观察seed创建一次全新prompt-visible资格集 | 把v1–v3视为开发过程，用未参与模板修改的数据做一次最终验证，比继续调词或直接用近失结果更能控制过拟合 | 留出seed=`3061017642`；仍为128语义案例/512读出、96控制和原全部阈值。预先锁定：通过则只进入checksum人工审阅；失败则停止G1h 2.9B资格路线；禁止再改prompt、重抽样、增样或挑模板 | Codex 已实现；项目负责人待运行 |
+| 36i. Impl-3t：v3 一次性留出资格门 | ✅ 通过 | v3模板逐字不变，用从新SHA-256命名空间生成的未观察seed创建一次全新prompt-visible资格集 | 把v1–v3视为开发过程，用未参与模板修改的数据做一次最终验证，比继续调词或直接用近失结果更能控制过拟合 | `valid=true`；模板、控制、功效全部通过，`freeze_candidate_ready=true`，路线为 `review_preregistration_checksum`。耗时约20.25分钟、峰值显存约6.23GB；确认结果未读取、Core Set未生成 | 项目负责人已运行；Codex 核对 |
+| 36j. 人工 checksum 审阅 | 🟡 等待核对与明确确认 | 比较候选自校验、payload root、全部源码与证据digest、安全边界和冻结设计字段 | 自动门通过不等于人已经同意不可变预注册内容；这是生成Core Set前最后一道授权边界 | 候选digest=`a354b208be0640da7ea70fe070f75bdec69186e496ba1cc14c3157dcd984e6cd`；尚未人工确认，当前必须停止计算 | Codex 核对；项目负责人明确确认 |
 | 37. Impl-4：预注册 | ⏳ 未开始 | 固定代码、配置、样本量、随机种子和判断标准 | 防止看到正式结果后改变成功标准 | 尚未开始 | Codex 整理；项目负责人确认 |
 | 38. Phase 2：正式原生 state 实验 | ⏳ 未开始 | 比较 original/reset/random/swap 等条件 | 这一步才真正测试 recurrent state 是否是跨时间因果载体 | 尚无研究结论 | 项目负责人运行；Codex 分析 |
 | 39. Phase 3：显式 Self Model | ⏳ 未开始 | 实现 Self Store、Self Encoder 和 gated injection | 只有原生状态基线可靠后，才能判断显式 Self Model 是否带来额外价值 | 目前只有设计，没有加入模型 | 后续由 Codex 实现 |
@@ -134,8 +135,9 @@ Batch 2 参数冻结
    ✅ 唯一失败项：goal BCa下界0.890625 < 0.90
    🟠 Impl-3s 有效 Hold：模板资格仍失败
    ✅ Impl-3s-a：错误跨多因素，无可辩护的v4措辞修订
-   🟡 Impl-3t：v3原样的一次性未观察留出集
-   ⏳ 后续独立候选全部门通过后才可人工确认新 checksum
+   ✅ Impl-3t：一次性未观察留出集全部门通过
+   🟡 人工核对 candidate 与 verification
+   ⏳ 项目负责人尚未明确确认 checksum
 正式 state 因果实验
    ⏳
 显式 Self Model
@@ -383,14 +385,16 @@ query、三个filler、两组标签和全部目标组合，没有一条可辩护
 - 失败：停止G1h 2.9B正式资格路线；
 - 无论结果如何：不再改prompt、不重抽样、不增样、不挑选有利模板。
 
-云端运行：
+Impl-3t 已按该规则一次性通过：
 
-```bash
-git pull --ff-only
-source .venv/bin/activate
-bash scripts/run_impl3t_exp001_formal_v3_holdout_gate.sh
-cat results/development/impl3t_exp001_formal_v3_holdout/summary.json
-```
+- 模板资格、控制基线和功效门全部为true；
+- `freeze_candidate_ready=true`；
+- 确认结果仍未读取，Core Set仍未生成；
+- 候选digest为
+  `a354b208be0640da7ea70fe070f75bdec69186e496ba1cc14c3157dcd984e6cd`。
+
+现在停止GPU计算。下一步只读核对候选与手工验证报告；项目负责人明确确认
+checksum前，不升级预注册包、不生成Core Set、不运行正式state-only实验。
 
 本次“持续 Self + 世界模型 + 内生驱动”理论评审不改变上述下一步。它补充的是
 显式 Self 和受约束更新均通过后的未来研究层：系统能否根据内部冲突、
@@ -462,3 +466,4 @@ cat results/development/impl3t_exp001_formal_v3_holdout/summary.json
 | 2026-07-31 | Impl-3s 有效运行但模板资格再次失败；控制、功效与安全边界通过，候选未就绪。暂停继续设计v4，先只读比较v2/v3区间与错误分布，防止无限prompt调参 | 云端 `results/development/impl3s_exp001_formal_freeze_candidate_v3/summary.json` |
 | 2026-07-31 | v3精确指标显示goal点估计96.09%、BCa下界0.8984375，比v2改善但仍严格低于0.90；identity、joint、格式及所有单模板点估计通过。保持Hold且不四舍五入，等待只读错误明细后做终止判定 | 云端 `results/development/impl3s_exp001_formal_freeze_candidate_v3/template_qualification_report.json` |
 | 2026-07-31 | v3的8个错误跨query、filler、标签和目标组合；history-03的5个错误与固定案例流混杂，不能继续归因于一句措辞。终止prompt调优，新增一次性未观察Impl-3t留出门：v3逐字不变，新seed 3061017642；通过只审checksum，失败停止2.9B路线，禁止再抽样或改模板 | `configs/preregistration/exp001_track_s.formal_v3_holdout.json`、`scripts/run_impl3t_exp001_formal_v3_holdout_gate.sh` |
+| 2026-07-31 | Impl-3t 一次性留出资格门全部通过：模板、控制、功效有效，候选就绪且安全边界正常；停止计算，进入candidate digest `a354b208…e6cd` 的人工核对，尚未确认、未生成Core Set | 云端 `results/development/impl3t_exp001_formal_v3_holdout/summary.json` |
