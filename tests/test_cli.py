@@ -287,6 +287,42 @@ class CliTests(unittest.TestCase):
             self.assertEqual(report["gate"], "impl3d_g1_capability_ladder")
             self.assertEqual(report["message"], "G1 interface evidence is missing")
 
+    def test_history_binding_failure_writes_diagnostic_report(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            output_dir = Path(directory) / "gate"
+            with patch(
+                "psa.cli.run_history_binding_gate",
+                side_effect=RuntimeError(
+                    "Impl-3p prerequisite evidence is incomplete"
+                ),
+            ):
+                exit_code = main(
+                    [
+                        "history-binding-gate",
+                        "--config",
+                        "configs/models/test.json",
+                        "--gate-config",
+                        "configs/gates/test.json",
+                        "--output-dir",
+                        str(output_dir),
+                    ]
+                )
+
+            self.assertEqual(exit_code, 2)
+            report = json.loads(
+                (output_dir / "failure_report.json").read_text(
+                    encoding="utf-8"
+                )
+            )
+            self.assertEqual(
+                report["gate"],
+                "impl3p_g1h_2_9b_history_binding",
+            )
+            self.assertEqual(
+                report["message"],
+                "Impl-3p prerequisite evidence is incomplete",
+            )
+
 
 if __name__ == "__main__":
     unittest.main()

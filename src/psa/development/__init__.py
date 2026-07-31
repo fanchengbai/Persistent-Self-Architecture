@@ -28,6 +28,14 @@ from psa.development.result_audit import (
     audit_g1_capability_records,
     run_g1_capability_audit,
 )
+from psa.development.history_binding import (
+    SUPPORTED_HISTORY_MODES,
+    evaluate_history_binding,
+    generate_history_binding_manifest,
+    render_history_binding,
+    render_state_only_query,
+    run_history_binding_gate,
+)
 
 __all__ = [
     "calibrate_standard_delay",
@@ -54,4 +62,10 @@ __all__ = [
     "write_jsonl",
     "audit_g1_capability_records",
     "run_g1_capability_audit",
+    "SUPPORTED_HISTORY_MODES",
+    "evaluate_history_binding",
+    "generate_history_binding_manifest",
+    "render_history_binding",
+    "render_state_only_query",
+    "run_history_binding_gate",
 ]

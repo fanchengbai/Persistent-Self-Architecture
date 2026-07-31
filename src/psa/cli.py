@@ -15,6 +15,7 @@ from psa.development import (
     run_g1_capability_ladder_gate,
     run_g1_code_rotation_gate,
     run_g1_code_rotation_review,
+    run_history_binding_gate,
     run_impl3_development_gate,
 )
 from psa.environment import collect_environment
@@ -484,6 +485,34 @@ def _g1_code_rotation_review(args: argparse.Namespace) -> int:
     return 0 if result["valid"] else 2
 
 
+def _history_binding_gate(args: argparse.Namespace) -> int:
+    failure_path = Path(args.output_dir) / "failure_report.json"
+    failure_path.unlink(missing_ok=True)
+    gate_name = "impl3p_g1h_2_9b_history_binding"
+    try:
+        result = run_history_binding_gate(
+            config_path=args.config,
+            gate_config_path=args.gate_config,
+            output_dir=args.output_dir,
+            project_root=args.project_root,
+        )
+    except Exception as exc:
+        failure = {
+            "failure_version": "0.1",
+            "created_at_utc": datetime.now(timezone.utc).isoformat(),
+            "development_only": True,
+            "gate": gate_name,
+            "exception_type": type(exc).__name__,
+            "message": str(exc),
+            "config": str(Path(args.config).resolve()),
+            "gate_config": str(Path(args.gate_config).resolve()),
+        }
+        _write_json(failure_path, failure)
+        raise
+    print(json.dumps(result, ensure_ascii=False, indent=2))
+    return 0 if result["valid"] else 2
+
+
 def _add_asset_common_arguments(parser: argparse.ArgumentParser) -> None:
     parser.add_argument("--manifest", required=True)
     parser.add_argument("--root", default=".psa-assets")
@@ -675,6 +704,17 @@ def build_parser() -> argparse.ArgumentParser:
     g1_code_rotation_review.set_defaults(
         handler=_g1_code_rotation_review
     )
+
+    history_binding_gate = subparsers.add_parser(
+        "history-binding-gate",
+        help="compare predeclared G1h recurrent-state history binding modes",
+    )
+    history_binding_gate.add_argument("--config", required=True)
+    history_binding_gate.add_argument("--gate-config", required=True)
+    history_binding_gate.add_argument("--output-dir", required=True)
+    history_binding_gate.add_argument("--project-root", default=".")
+    history_binding_gate.set_defaults(handler=_history_binding_gate)
+
     return parser
 
 

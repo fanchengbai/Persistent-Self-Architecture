@@ -1,0 +1,81 @@
+{
+  "config_version": "0.1",
+  "gate": "impl3p_g1h_2_9b_history_binding",
+  "development_only": true,
+  "revision_id": "g1h-2.9b-history-binding-v0.1",
+  "prerequisites": [
+    {
+      "path": "results/development/impl3k_g1h_2.9b_code_rotation/code_rotation_review.json",
+      "checks": {
+        "valid": true,
+        "label_marginalized_accuracy": 1.0
+      }
+    },
+    {
+      "path": "results/development/impl3m_g1h_2.9b_checkpoint_roundtrip/summary.json",
+      "checks": {
+        "valid": true,
+        "achieved_level": "L3"
+      }
+    },
+    {
+      "path": "results/development/impl3nb_g1h_2.9b_state_operations_warmed/summary.json",
+      "checks": {
+        "valid": true,
+        "reset_valid": true,
+        "swap_valid": true
+      }
+    },
+    {
+      "path": "results/development/impl3o_g1h_2.9b_random_matched/summary.json",
+      "checks": {
+        "valid": true,
+        "same_seed_bitwise_reproducible": true,
+        "different_seed_distinct": true,
+        "scale_match_valid": true,
+        "continuation_valid": true
+      }
+    }
+  ],
+  "answer_codes": ["A", "B", "C", "D"],
+  "answer_continuation_prefix": "",
+  "assistant_prefix": "<think></think",
+  "forced_answer_prefix": ">\n",
+  "identity_label_pairs": [
+    ["baf", "zom"],
+    ["niv", "teg"]
+  ],
+  "goal_label_pairs": [
+    ["vam", "zep"],
+    ["qir", "bok"]
+  ],
+  "history_modes": [
+    "single_statement",
+    "statement_plus_verification",
+    "repeated_consistent"
+  ],
+  "selection": {
+    "rule": "first_passing_mode_in_predeclared_complexity_order",
+    "ordered_modes": [
+      "single_statement",
+      "statement_plus_verification",
+      "repeated_consistent"
+    ],
+    "minimum_label_marginalized_accuracy": 0.8,
+    "require_complete_four_code_rotation": true,
+    "require_source_state_immutable": true
+  },
+  "general_rule_visible": true,
+  "delay_units": 11,
+  "repetitions": 8,
+  "base_seed": 20260731,
+  "prewarm_each_token_shape": true,
+  "notes": [
+    "This is a development-only protocol selection gate, not a confirmatory state experiment.",
+    "The state-only query keeps the general matching rule visible while withholding the current domain and operation outside the balanced four options.",
+    "Every semantic case is scored under all four A-D mappings and marginalized before protocol selection.",
+    "The first mode in the fixed simplicity order meeting the threshold is selected; a higher-scoring later mode cannot displace it.",
+    "If no mode passes, the route is Revise and the threshold must not be lowered post hoc.",
+    "Every observed history/query token-shape signature receives one excluded warmup before scored trials."
+  ]
+}

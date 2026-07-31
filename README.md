@@ -226,6 +226,9 @@ Phase 0 → Phase 1 — Research Design / State Infrastructure
     异 seed 可区分，尺度与续算均有效；最大相对 L2 误差约 `2.87e-05`，
     远低于 `0.01` 上限。2.9B 状态工程前置门至此闭合，项目进入 Batch 2
     参数冻结审阅，尚未运行确认集。
+32. Batch 2 的三项设计建议已确认：state-only 保留通用规则、首轮先做
+    Track S、首轮只纳入核心恢复与 swap 条件。Impl-3p 已准备好比较三种
+    历史写入协议；它按“最简通过优先”而不是“最高分优先”选择正式候选。
 
 ## 项目文档
 

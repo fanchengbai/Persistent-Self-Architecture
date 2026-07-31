@@ -1,7 +1,7 @@
 # EXP-001 Batch 2 参数冻结审阅单
 
 > 版本：v0.1
-> 状态：Review Candidate；不是预注册文件，不得据此运行确认集
+> 状态：Review Candidate；D1–D3 已确认，Impl-3p 等待云端；不是预注册文件
 > 日期：2026-07-31
 > 进入条件：Impl-3m、Impl-3n-b、Impl-3o 均已通过
 
@@ -125,6 +125,9 @@ Impl-3o 的关键证据：
 
 ## 4. 建议默认值，但需要共同确认
 
+项目负责人已于 2026-07-31 确认按以下建议执行。这些决定进入冻结候选，
+但仍需与 Impl-3p 结果和最终预注册包一起计算 digest。
+
 ### D1 state-only 测试 Prompt 是否保留通用组合规则
 
 建议：**保留规则，只隐藏当前 identity/goal 的具体值。**
@@ -152,17 +155,35 @@ Impl-3o 的关键证据：
 
 `interpolated`、layer/channel `ablated`、Probe 和 Track N 放入后续批次，不参与首轮 Go/Revise/Stop。
 
+确认结果：
+
+- D1：接受；
+- D2：接受；
+- D3：接受。
+
 ## 5. 仍缺证据，当前不能冻结
 
 ### B1 历史写入协议
 
-尚未在 G1h 2.9B 上比较：
+Impl-3p 已实现，等待在 G1h 2.9B 上比较：
 
 - 单次绑定声明；
 - 声明后立即验证一次；
 - 多次一致绑定事件。
 
-这是当前最重要的未决项。它直接决定 recurrent state 是如何形成的，不能由 Codex 靠偏好选择，也不能等正式结果出来后再改。
+三种模式使用相同语义案例、标签、131-token delay、state-only 查询和四代码
+轮换，只改变历史写入方式。选择规则已在运行前固定：
+
+1. 按 `single_statement → statement_plus_verification → repeated_consistent`
+   的复杂度顺序检查；
+2. 每个模式使用 32 个语义案例，每个案例完整轮换 A–D，共 128 条读出；
+3. 标签边际化准确率至少为 `0.80`；
+4. 四轮必须完整，来源 recurrent state 必须保持不变；
+5. 选择第一个通过的模式，不选择分数最高的模式；
+6. 三种都失败则 Revise，不降低阈值。
+
+配置：
+[`impl3p_g1h_2.9b_history_binding.dev.json`](../configs/gates/impl3p_g1h_2.9b_history_binding.dev.json)。
 
 ### B2 正式历史模板、测试模板与 filler 清单
 
@@ -207,8 +228,8 @@ Impl-3o 的关键证据：
 
 ```text
 记录 Impl-3o 通过
-  → 共同确认 D1–D3
-  → 只在开发集比较历史写入协议 B1
+  → D1–D3 已确认
+  → 运行 Impl-3p，只在开发集比较历史写入协议 B1
   → 冻结历史/测试模板和 filler
   → 固定正式 seeds 与通用能力控制
   → 运行 320-group 模拟功效复核
@@ -219,7 +240,7 @@ Impl-3o 的关键证据：
 
 ## 7. 当前 Go / Hold 判断
 
-- **Go：进入 Batch 2 冻结审阅。**
+- **Go：运行 Impl-3p 历史写入开发门。**
 - **Hold：不得进入确认性 Batch 4。**
 - **原因：状态工程门已经闭合，但历史写入协议、正式模板、控制任务、统计模拟和不可变预注册包仍未冻结。**
 

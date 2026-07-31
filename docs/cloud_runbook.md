@@ -616,6 +616,36 @@ tokenizer 和来源状态不变性均有效。至此停止继续运行开发模�
 [`EXP-001 Batch 2 参数冻结审阅`](exp001_batch2_freeze_review.md)；在预注册
 包完成前不运行确认集。
 
+### 5.19 运行 Impl-3p 历史写入协议比较门
+
+项目负责人确认 Batch 2 的 D1–D3 建议后，只运行以下开发门：
+
+```bash
+git pull --ff-only
+source .venv/bin/activate
+bash scripts/run_impl3p_g1h_2.9b_history_binding_gate.sh
+cat results/development/impl3p_g1h_2.9b_history_binding/summary.json
+```
+
+该门比较：
+
+- `single_statement`；
+- `statement_plus_verification`；
+- `repeated_consistent`。
+
+每种模式使用相同的 32 个语义案例和 131-token delay，每个案例完整轮换
+A–D，因此共运行 384 条受控读出。它按固定复杂度顺序选择第一个达到
+`0.80` 标签边际化准确率的模式；不是选择分数最高的模式。重点返回：
+
+- `mode_metrics`；
+- `selected_mode`；
+- `history_binding_gate_passed`；
+- `route_decision`；
+- `valid`。
+
+若 `valid=true` 但 `history_binding_gate_passed=false`，表示诊断完整但三种
+写入方式都没有达到预设门槛，应进入 Revise，不得降低阈值或直接生成确认集。
+
 ## 6. 运行纯逻辑测试
 
 ```bash
