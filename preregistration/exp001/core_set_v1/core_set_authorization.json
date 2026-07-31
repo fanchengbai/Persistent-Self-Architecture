@@ -1,0 +1,14 @@
+{
+  "authorization_version": "1.0",
+  "experiment_id": "EXP-001",
+  "final_preregistration_digest_sha256": "0daf056dc6b38aa20fa69dd9e8df9b8065876529947cbc01353ffe604933d0c9",
+  "candidate_digest_sha256": "a354b208be0640da7ea70fe070f75bdec69186e496ba1cc14c3157dcd984e6cd",
+  "authorized_by_role": "project_owner",
+  "authorized_at_utc": "2026-07-31T08:05:29.1038290Z",
+  "authorization_text": "我授权根据最终预注册包生成并冻结 EXP-001 Core Set；暂不运行正式实验。",
+  "factorial_group_count": 320,
+  "authorization": {
+    "generate_and_freeze_core_set": true,
+    "run_confirmatory_experiment": false
+  }
+}
