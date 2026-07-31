@@ -1,7 +1,7 @@
 # Persistent Self Architecture 项目进度表
 
 > 最后更新：2026-07-31
-> 当前节点：Impl-3r 有效 Hold；控制与功效通过，仅正式模板资格失败
+> 当前节点：Impl-3r-a 审计完成；等待确认模板资格的具体统计阈值阻塞项
 > 研究状态：尚未进入正式确认性实验，尚未实现显式 Self Model
 
 ## 1. 这张表怎么使用
@@ -68,7 +68,8 @@
 | 36b. Impl-3q：正式冻结候选门 | 🟠 有效 Hold | 只用 prompt-visible 题资格审查4×4正式模板，验证96条通用控制，运行10,000次功效模拟，并锁定源码、配置、原始记录和报告 digest | 在不偷看正式 state-only 结果的情况下，确认“试卷清楚、控制题可做、样本量够用、文件不能悄悄改” | `valid=true`、功效门通过，但模板资格与控制基线均失败，故 `freeze_candidate_ready=false`；608条读出完整，约18.1分钟，峰值显存约6.23GB；确认集未读取、Core Set未生成 | 项目负责人已运行；Codex 审计 |
 | 36c. Impl-3q-a：失败细分审计 | ✅ 完成 | 只读取模板、控制和轮换错误分布，不重跑模型、不修改阈值 | 必须先区分模板理解、答案代码偏差和格式失败，才能决定是否修订 | 模板四轮平均后仍为107/128（83.59%）；双字段控制四轮平均仅2/8（25%），且几乎总猜 `cinder+trace`，确认是真实双字段语义失败，不是格式或A–D偏差；路线为 `revise_formal_and_control_two_field_prompt_families` | 项目负责人已运行；Codex 已诊断 |
 | 36d. Impl-3r：正式冻结候选 v2 | 🟠 有效 Hold | 保留首版失败记录，统一正式模板的 `CURRENT DOMAIN/OPERATION` 字段，用常见 `COLOR/SHAPE` 重写双字段控制，并预先采用四轮平均语义读出 | 只修订审计证据明确指向的措辞和读出层，避免换模型、降门槛或扩大实验自由度 | 运行有效；控制基线与功效门均通过，但正式模板资格仍失败，故 `freeze_candidate_ready=false`。耗时约19.7分钟、峰值显存约6.23GB；确认结果未读取、Core Set未生成，checksum不得确认 | 项目负责人已运行；Codex 诊断 |
-| 36e. Impl-3r-a：第二版模板细分审计 | 🟡 等待云端只读脚本 | 读取已有512条模板分数，按历史模板、查询模板、二者交互、filler、标签对和目标组合定位剩余错误 | 控制题已通过，下一次修订只能针对正式模板，必须先知道失败是否集中在少数措辞或贯穿整个任务 | 通用只读审计已支持“控制通过、仅模板失败”的路线，新增独立脚本；不加载模型、不修改报告、不读取确认结果 | Codex 已实现；项目负责人待运行 |
+| 36e. Impl-3r-a：第二版模板细分审计 | ✅ 完成 | 读取已有512条模板分数，按历史模板、查询模板、二者交互、filler、标签对和目标组合定位剩余错误 | 控制题已通过，下一次修订只能针对正式模板，必须先知道失败是否集中在少数措辞或贯穿整个任务 | 路线为 `revise_formal_template_family_only`；四轮平均119/128（92.97%），仅9个语义错误。6个错误集中在 history-v2-03（26/32），history-v2-02为32/32；四个query均为90.63%–93.75%，没有单一查询模板崩溃；确认结果未读取、Core Set未生成 | 项目负责人已运行；Codex 已诊断 |
+| 36f. 正式模板 v3 设计判定 | ⏸️ 等待精确门槛证据 | 核对 joint/identity/goal 三个 BCa 区间与冻结下界，判断失败是某个能力维度仍不稳，还是只由抽样不确定性造成 | 不能看到 history-v2-02 满分就事后只留它，也不能在不知道具体失败门时继续改措辞 | 已知点估计约为 joint 92.97%、identity 96.88%、goal 95.31%，且所有单模板点估计门均通过；尚需读取 `template_qualification_report.json` 的三个区间后再决定 v3，不降低阈值 | Codex 诊断；项目负责人回传指标 |
 | 37. Impl-4：预注册 | ⏳ 未开始 | 固定代码、配置、样本量、随机种子和判断标准 | 防止看到正式结果后改变成功标准 | 尚未开始 | Codex 整理；项目负责人确认 |
 | 38. Phase 2：正式原生 state 实验 | ⏳ 未开始 | 比较 original/reset/random/swap 等条件 | 这一步才真正测试 recurrent state 是否是跨时间因果载体 | 尚无研究结论 | 项目负责人运行；Codex 分析 |
 | 39. Phase 3：显式 Self Model | ⏳ 未开始 | 实现 Self Store、Self Encoder 和 gated injection | 只有原生状态基线可靠后，才能判断显式 Self Model 是否带来额外价值 | 目前只有设计，没有加入模型 | 后续由 Codex 实现 |
@@ -126,7 +127,8 @@ Batch 2 参数冻结
    🟠 Impl-3q 有效 Hold：模板资格与控制基线未通过
    ✅ Impl-3q-a 确认模板和双字段控制均有真实语义失败
    🟠 Impl-3r 有效 Hold：控制和功效通过，仅模板资格失败
-   🟡 Impl-3r-a 等待只读模板细分审计
+   ✅ Impl-3r-a：119/128；9错中6个集中于 history-v2-03
+   ⏸️ 先核对 BCa 区间的精确失败项，再设计独立 v3
    ⏳ 后续独立候选全部门通过后才可人工确认新 checksum
 正式 state 因果实验
    ⏳
@@ -338,18 +340,20 @@ source .venv/bin/activate
 bash scripts/run_impl3r_exp001_formal_freeze_candidate_v2_gate.sh
 ```
 
-Impl-3r 已有效运行：控制基线和功效门通过，但正式模板资格仍失败，因此
-`freeze_candidate_ready=false`，候选 checksum 不能确认。下一步只运行
-不加载模型的 Impl-3r-a：
+Impl-3r-a 已完成，结果不是“所有正式模板都不行”：
+
+- 总体四轮平均为119/128（92.97%），比v1的107/128明显改善；
+- 9个错误中6个集中在 `formal-history-v2-03`；
+- `formal-history-v2-02` 为32/32，但不能事后只挑这个满分模板；
+- 四个query都在90.63%–93.75%，没有证据支持只删除某个query；
+- 控制任务四轮平均全部通过，因此修订范围只剩正式历史模板族。
+
+下一步先读取模板资格报告中的三个 BCa 区间和冻结阈值，确定究竟是哪一项
+导致总门失败。确认前不设计v3、不降低阈值、不重跑模型：
 
 ```bash
-git pull --ff-only
-source .venv/bin/activate
-bash scripts/review_impl3r_exp001_formal_freeze_candidate_v2.sh
+python -c "import json; r=json.load(open('results/development/impl3r_exp001_formal_freeze_candidate_v2/template_qualification_report.json')); print(json.dumps({'metrics':r['metrics'],'thresholds':r['thresholds'],'format_valid_rate':r['format_valid_rate'],'history_template_metrics':r['history_template_metrics'],'query_template_metrics':r['query_template_metrics']},indent=2))"
 ```
-
-它只定位剩余模板错误。运行本身不会生成 Core Set，也不会读取正式
-state-only 结果。
 
 本次“持续 Self + 世界模型 + 内生驱动”理论评审不改变上述下一步。它补充的是
 显式 Self 和受约束更新均通过后的未来研究层：系统能否根据内部冲突、
@@ -416,3 +420,4 @@ state-only 结果。
 | 2026-07-31 | Impl-3q细分显示格式始终有效，正式模板在四代码边际化后仍有21/128语义错误；复制和单字段控制100%，双字段控制代码级50%。新增不加载模型的模板交互与控制标签边际化审计，先区分答案代码偏差和真实组合失败 | `src/psa/preregistration/formal_review.py`、`scripts/review_impl3q_exp001_formal_freeze_candidate.sh`、90项本地测试 |
 | 2026-07-31 | Impl-3q-a 只读审计确认双字段控制四轮平均仅2/8，是真实语义失败而非字母偏差；新增独立 Impl-3r v2，仅统一正式字段措辞、改用常见 COLOR/SHAPE 控制并预先采用四轮平均语义读出，保留模型、delay、seeds、N、阈值及所有安全边界 | 云端 `formal_freeze_review.json`、`configs/preregistration/exp001_track_s.formal_v2.json`、`scripts/run_impl3r_exp001_formal_freeze_candidate_v2_gate.sh` |
 | 2026-07-31 | Impl-3r 有效运行但继续Hold：控制基线和功效门已通过，只有正式模板资格失败；候选未就绪、确认结果未读取、Core Set未生成。新增 Impl-3r-a 只读模板细分脚本，修订范围缩小为正式模板族 | 云端 `results/development/impl3r_exp001_formal_freeze_candidate_v2/summary.json`、`scripts/review_impl3r_exp001_formal_freeze_candidate_v2.sh` |
+| 2026-07-31 | Impl-3r-a 路线确认只修正式模板：总体119/128，9错中6个集中在history-v2-03，history-v2-02满分，四个query均超过90%；不事后挑选满分模板，先读取joint/identity/goal的BCa区间确定精确失败门 | 云端 `results/development/impl3r_exp001_formal_freeze_candidate_v2/formal_freeze_review.json` |
