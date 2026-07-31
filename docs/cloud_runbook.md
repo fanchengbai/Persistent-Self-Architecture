@@ -736,6 +736,19 @@ digest/路线符合预期，只修订正式字段措辞、COLOR/SHAPE 双字段�
 `candidate_digest_sha256` 等待人工确认。脚本不会生成 Core Set，也不会读取
 正式 state-only 结果；未通过时继续 Hold，不得确认 checksum。
 
+若 Impl-3r 只有 `template_qualification_passed=false`，而控制与功效均通过，
+运行只读模板审计：
+
+```bash
+git pull --ff-only
+source .venv/bin/activate
+bash scripts/review_impl3r_exp001_formal_freeze_candidate_v2.sh
+```
+
+该脚本复用已有512条模板分数并生成 `formal_freeze_review.json`，不会加载
+模型。预期路线为 `revise_formal_template_family_only`。把 review 文件回传
+分析前，不修改模板、不重跑 Impl-3r、不确认 checksum。
+
 ## 6. 运行纯逻辑测试
 
 ```bash

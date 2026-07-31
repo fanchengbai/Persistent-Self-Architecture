@@ -17,6 +17,7 @@ from psa.preregistration import (
     verify_preregistration_candidate,
 )
 from psa.preregistration.formal_freeze import _load_formal_config
+from psa.preregistration.formal_review import _select_review_route
 
 
 class FormalFreezeTests(unittest.TestCase):
@@ -424,6 +425,18 @@ class FormalFreezeTests(unittest.TestCase):
             self.assertEqual(task["evaluation_accuracy"], 0.0)
             self.assertFalse(task["evaluation_readout_complete"])
             self.assertFalse(task["pass_threshold"])
+
+    def test_v2_hold_review_revises_only_formal_templates(self) -> None:
+        self.assertEqual(
+            _select_review_route(
+                template_passed=False,
+                control_passed=True,
+                control_rotation_route=(
+                    "control_code_bias_controlled_by_rotation"
+                ),
+            ),
+            "revise_formal_template_family_only",
+        )
 
     def test_power_simulation_retains_320_groups(self) -> None:
         report = simulate_power(

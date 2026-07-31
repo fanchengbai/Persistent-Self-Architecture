@@ -920,6 +920,10 @@ SESOI、功效与安全边界，只允许：
 Impl-3r 必须验证 Impl-3q Hold 和 Impl-3q-a 路线，仍不得生成 Core Set、
 读取正式 state-only 结果或自动确认 checksum。
 
+云端结果显示 Impl-3r 的控制基线与功效门通过，但正式模板资格仍失败。
+因此 v2 同样保留为 Hold；Impl-3r-a 只读复用已有模板分数，将后续允许的
+修订范围进一步限制为正式历史/查询模板族。
+
 ### Impl-4：工程参数冻结与预注册
 
 - freeze；

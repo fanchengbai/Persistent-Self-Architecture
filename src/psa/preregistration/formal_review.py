@@ -358,6 +358,31 @@ def review_control_rotation(
     }
 
 
+def _select_review_route(
+    *,
+    template_passed: bool,
+    control_passed: bool,
+    control_rotation_route: str,
+) -> str:
+    rotation_controls_bias = control_rotation_route == (
+        "control_code_bias_controlled_by_rotation"
+    )
+    if not template_passed and control_passed:
+        return "revise_formal_template_family_only"
+    if not template_passed and rotation_controls_bias:
+        return (
+            "revise_formal_template_family_and_use_"
+            "rotation_marginalized_control_readout"
+        )
+    if not template_passed:
+        return "revise_formal_and_control_two_field_prompt_families"
+    if not control_passed and rotation_controls_bias:
+        return "keep_formal_templates_and_use_rotation_control_readout"
+    if not control_passed:
+        return "keep_formal_templates_and_revise_two_field_controls"
+    return "review_unexpected_ready_candidate"
+
+
 def run_formal_freeze_review(
     output_dir: str | Path,
 ) -> dict[str, Any]:
@@ -388,7 +413,10 @@ def run_formal_freeze_review(
         control_report_path,
         "control baseline report",
     )
-    source_summary = _load_object(source_summary_path, "Impl-3q summary")
+    source_summary = _load_object(
+        source_summary_path,
+        "formal freeze summary",
+    )
     control_records = _load_jsonl(control_raw_path)
     template_review = review_template_interactions(
         manifest=template_manifest,
@@ -401,15 +429,15 @@ def run_formal_freeze_review(
             control_report["minimum_accuracy_per_task"]
         ),
     )
-    if control_review["route_decision"] == (
-        "control_code_bias_controlled_by_rotation"
-    ):
-        route = (
-            "revise_formal_template_family_and_use_"
-            "rotation_marginalized_control_readout"
-        )
-    else:
-        route = "revise_formal_and_control_two_field_prompt_families"
+    route = _select_review_route(
+        template_passed=bool(
+            template_report["template_qualification_passed"]
+        ),
+        control_passed=bool(
+            control_report["control_baseline_passed"]
+        ),
+        control_rotation_route=control_review["route_decision"],
+    )
     review = {
         "review_version": "1.0",
         "created_at_utc": _utc_now(),

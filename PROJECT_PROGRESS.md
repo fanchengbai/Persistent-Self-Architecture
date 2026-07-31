@@ -1,7 +1,7 @@
 # Persistent Self Architecture 项目进度表
 
 > 最后更新：2026-07-31
-> 当前节点：Impl-3q-a 已确认双字段语义失败；Impl-3r 受控修订等待云端验证
+> 当前节点：Impl-3r 有效 Hold；控制与功效通过，仅正式模板资格失败
 > 研究状态：尚未进入正式确认性实验，尚未实现显式 Self Model
 
 ## 1. 这张表怎么使用
@@ -33,7 +33,7 @@
 | 4. 设计总体架构 | ✅ 初版完成 | 设计 World Model、Memory、原生 state、Self Store、Encoder、注入和更新模块 | 先画清楚未来系统由什么组成，再决定先验证哪一块 | 显式 Self Model 已完成理论设计，但尚未写入模型 | Codex |
 | 4a. 评审内生驱动扩展 | ✅ 设计完成 | 评审“持续 Self + 世界模型 + 内生驱动”的闭环，并设计零新外部观察下的自主审议层 | 当前架构说明了 Self 如何影响一次决策，但还没有解释系统为什么会因内部冲突主动继续计算 | 已新增 Drive Signal、Deliberation Controller、预算与记忆回放的未来设计；明确 timer/random/外部反思基线和三道 ED 实验门。它属于显式 Self 与受约束更新通过后的阶段，不改变当前 Impl-3o | Codex |
 | 5. 设计 EXP-001 | ✅ 完成 | 设计“身份约束 × 当前目标”的四状态任务 | 用一个很小、可量化的任务测试状态是否真的影响选择 | 已形成四组合任务、swap/reset/random 对照和评价指标 | Codex |
-| 6. 建立代码与实验骨架 | ✅ 完成 | 实现任务生成、泄漏检查、统计方法、配置和报告格式 | 相当于先把实验室的记录表、评分器和质检流程搭好 | 本地纯逻辑测试目前达到 94 项全部通过 | Codex |
+| 6. 建立代码与实验骨架 | ✅ 完成 | 实现任务生成、泄漏检查、统计方法、配置和报告格式 | 相当于先把实验室的记录表、评分器和质检流程搭好 | 本地纯逻辑测试目前达到 95 项全部通过 | Codex |
 | 7. 准备模型和数据下载 | ✅ 完成 | 提供脚本下载固定版本的 RWKV 模型和 tokenizer | 云服务器只需运行脚本，不用手动寻找文件 | 模型约 861 MB、tokenizer 约 1.1 MB，哈希验证通过 | Codex 编写；项目负责人云端执行 |
 | 8. 检查云端环境 | ✅ 通过 | 核对 GPU、CUDA、PyTorch、Python、RWKV 和磁盘 | 先确认实验机器不会因为版本问题产生假结果 | RTX 5090 32 GB、CUDA 13.2、PyTorch 2.12、RWKV 0.8.32，环境有效 | 项目负责人运行；Codex 分析 |
 | 9. Impl-1：模型接口 | ✅ 通过 | 加载模型、测试 tokenizer、读取 recurrent state | 确认我们真的能够观察和操作模型内部状态 | RWKV-7 0.4B 加载成功；24 层、每层 3 个组件，共 72 个 state tensors | 共同完成 |
@@ -67,7 +67,8 @@
 | 36a. Impl-3p：历史写入协议比较 | ✅ 已通过 | 在相同案例、delay 和 state-only 查询下比较单次声明、声明后验证、多次一致绑定 | recurrent state 如何形成会直接影响正式实验，必须在确认集前固定，又不能简单挑分数最高的方案 | 384 条比较完成；三种模式标签边际化准确率分别为 96.875%、100%、100%，均超过 80% 门槛且来源 state 不变。按预注册的简洁性优先规则选择首个达标的 `single_statement`；峰值显存约 6.23 GB | Codex 已完成；项目负责人已运行 |
 | 36b. Impl-3q：正式冻结候选门 | 🟠 有效 Hold | 只用 prompt-visible 题资格审查4×4正式模板，验证96条通用控制，运行10,000次功效模拟，并锁定源码、配置、原始记录和报告 digest | 在不偷看正式 state-only 结果的情况下，确认“试卷清楚、控制题可做、样本量够用、文件不能悄悄改” | `valid=true`、功效门通过，但模板资格与控制基线均失败，故 `freeze_candidate_ready=false`；608条读出完整，约18.1分钟，峰值显存约6.23GB；确认集未读取、Core Set未生成 | 项目负责人已运行；Codex 审计 |
 | 36c. Impl-3q-a：失败细分审计 | ✅ 完成 | 只读取模板、控制和轮换错误分布，不重跑模型、不修改阈值 | 必须先区分模板理解、答案代码偏差和格式失败，才能决定是否修订 | 模板四轮平均后仍为107/128（83.59%）；双字段控制四轮平均仅2/8（25%），且几乎总猜 `cinder+trace`，确认是真实双字段语义失败，不是格式或A–D偏差；路线为 `revise_formal_and_control_two_field_prompt_families` | 项目负责人已运行；Codex 已诊断 |
-| 36d. Impl-3r：正式冻结候选 v2 | 🟡 等待云端验证 | 保留首版失败记录，统一正式模板的 `CURRENT DOMAIN/OPERATION` 字段，用常见 `COLOR/SHAPE` 重写双字段控制，并预先采用四轮平均语义读出 | 只修订审计证据明确指向的措辞和读出层，避免换模型、降门槛或扩大实验自由度 | 独立配置、输出目录、前置证据锁和运行脚本已完成；模型、标签、single_statement、131-token delay、四轮轮换、五个seed、N=320、SESOI、功效及安全边界全部不变；尚未运行云端模型门 | Codex 已实现；项目负责人待运行 |
+| 36d. Impl-3r：正式冻结候选 v2 | 🟠 有效 Hold | 保留首版失败记录，统一正式模板的 `CURRENT DOMAIN/OPERATION` 字段，用常见 `COLOR/SHAPE` 重写双字段控制，并预先采用四轮平均语义读出 | 只修订审计证据明确指向的措辞和读出层，避免换模型、降门槛或扩大实验自由度 | 运行有效；控制基线与功效门均通过，但正式模板资格仍失败，故 `freeze_candidate_ready=false`。耗时约19.7分钟、峰值显存约6.23GB；确认结果未读取、Core Set未生成，checksum不得确认 | 项目负责人已运行；Codex 诊断 |
+| 36e. Impl-3r-a：第二版模板细分审计 | 🟡 等待云端只读脚本 | 读取已有512条模板分数，按历史模板、查询模板、二者交互、filler、标签对和目标组合定位剩余错误 | 控制题已通过，下一次修订只能针对正式模板，必须先知道失败是否集中在少数措辞或贯穿整个任务 | 通用只读审计已支持“控制通过、仅模板失败”的路线，新增独立脚本；不加载模型、不修改报告、不读取确认结果 | Codex 已实现；项目负责人待运行 |
 | 37. Impl-4：预注册 | ⏳ 未开始 | 固定代码、配置、样本量、随机种子和判断标准 | 防止看到正式结果后改变成功标准 | 尚未开始 | Codex 整理；项目负责人确认 |
 | 38. Phase 2：正式原生 state 实验 | ⏳ 未开始 | 比较 original/reset/random/swap 等条件 | 这一步才真正测试 recurrent state 是否是跨时间因果载体 | 尚无研究结论 | 项目负责人运行；Codex 分析 |
 | 39. Phase 3：显式 Self Model | ⏳ 未开始 | 实现 Self Store、Self Encoder 和 gated injection | 只有原生状态基线可靠后，才能判断显式 Self Model 是否带来额外价值 | 目前只有设计，没有加入模型 | 后续由 Codex 实现 |
@@ -124,8 +125,9 @@ Batch 2 参数冻结
    ✅ D4–D8 正式模板、控制、seeds、SESOI 与统计协议已确认
    🟠 Impl-3q 有效 Hold：模板资格与控制基线未通过
    ✅ Impl-3q-a 确认模板和双字段控制均有真实语义失败
-   🟡 Impl-3r 受控第二版等待云端资格验证
-   ⏳ Impl-3r 全部门通过后才可人工确认新 checksum
+   🟠 Impl-3r 有效 Hold：控制和功效通过，仅模板资格失败
+   🟡 Impl-3r-a 等待只读模板细分审计
+   ⏳ 后续独立候选全部门通过后才可人工确认新 checksum
 正式 state 因果实验
    ⏳
 显式 Self Model
@@ -336,9 +338,18 @@ source .venv/bin/activate
 bash scripts/run_impl3r_exp001_formal_freeze_candidate_v2_gate.sh
 ```
 
-只有 Impl-3r 的模板、控制、功效和完整性门全部通过，才可把新的
-`candidate_digest_sha256` 交给项目负责人人工确认；运行本身仍不会生成
-Core Set，也不会读取正式 state-only 结果。
+Impl-3r 已有效运行：控制基线和功效门通过，但正式模板资格仍失败，因此
+`freeze_candidate_ready=false`，候选 checksum 不能确认。下一步只运行
+不加载模型的 Impl-3r-a：
+
+```bash
+git pull --ff-only
+source .venv/bin/activate
+bash scripts/review_impl3r_exp001_formal_freeze_candidate_v2.sh
+```
+
+它只定位剩余模板错误。运行本身不会生成 Core Set，也不会读取正式
+state-only 结果。
 
 本次“持续 Self + 世界模型 + 内生驱动”理论评审不改变上述下一步。它补充的是
 显式 Self 和受约束更新均通过后的未来研究层：系统能否根据内部冲突、
@@ -404,3 +415,4 @@ Core Set，也不会读取正式 state-only 结果。
 | 2026-07-31 | Impl-3q 诊断完整但冻结候选Hold：功效门通过，模板资格和控制基线失败；候选未就绪，确认集未读取、Core Set未生成。进入只读细分审计，不确认本次checksum | 云端 `results/development/impl3q_exp001_formal_freeze_candidate/summary.json` |
 | 2026-07-31 | Impl-3q细分显示格式始终有效，正式模板在四代码边际化后仍有21/128语义错误；复制和单字段控制100%，双字段控制代码级50%。新增不加载模型的模板交互与控制标签边际化审计，先区分答案代码偏差和真实组合失败 | `src/psa/preregistration/formal_review.py`、`scripts/review_impl3q_exp001_formal_freeze_candidate.sh`、90项本地测试 |
 | 2026-07-31 | Impl-3q-a 只读审计确认双字段控制四轮平均仅2/8，是真实语义失败而非字母偏差；新增独立 Impl-3r v2，仅统一正式字段措辞、改用常见 COLOR/SHAPE 控制并预先采用四轮平均语义读出，保留模型、delay、seeds、N、阈值及所有安全边界 | 云端 `formal_freeze_review.json`、`configs/preregistration/exp001_track_s.formal_v2.json`、`scripts/run_impl3r_exp001_formal_freeze_candidate_v2_gate.sh` |
+| 2026-07-31 | Impl-3r 有效运行但继续Hold：控制基线和功效门已通过，只有正式模板资格失败；候选未就绪、确认结果未读取、Core Set未生成。新增 Impl-3r-a 只读模板细分脚本，修订范围缩小为正式模板族 | 云端 `results/development/impl3r_exp001_formal_freeze_candidate_v2/summary.json`、`scripts/review_impl3r_exp001_formal_freeze_candidate_v2.sh` |

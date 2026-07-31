@@ -252,6 +252,9 @@ Phase 0 → Phase 1 — Research Design / State Infrastructure
     失败原样保留，只统一正式模板的 `CURRENT DOMAIN/OPERATION` 字段、将
     控制题换成常见 `COLOR/SHAPE`，并用预声明的四轮平均判定语义控制；
     模型、131-token delay、seeds、N=320、SESOI和安全边界均不变。
+38. Impl-3r 运行有效但继续Hold：新版控制基线与功效门均已通过，证明第二版
+    控制修订有效；正式模板资格仍失败，所以候选不能冻结。下一步只读审计
+    已有512条模板分数，定位具体历史×查询模板交互，不重跑模型。
 
 ## 项目文档
 

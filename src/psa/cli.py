@@ -799,7 +799,7 @@ def build_parser() -> argparse.ArgumentParser:
     formal_freeze_review = subparsers.add_parser(
         "formal-freeze-review",
         help=(
-            "audit an Impl-3q hold without rerunning the model or reading "
+            "audit a formal freeze hold without rerunning the model or reading "
             "confirmatory results"
         ),
     )
