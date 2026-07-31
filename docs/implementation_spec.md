@@ -924,6 +924,10 @@ Impl-3r 必须验证 Impl-3q Hold 和 Impl-3q-a 路线，仍不得生成 Core Se
 因此 v2 同样保留为 Hold；Impl-3r-a 只读复用已有模板分数，将后续允许的
 修订范围进一步限制为正式历史/查询模板族。
 
+精确门槛进一步把范围缩小到历史写入的goal/OPERATION可靠性：其BCa下界
+0.890625低于0.90，其他资格项均通过。Impl-3s保留v2 query和controls，只将
+四个history整体改为平行FIELD 1/2结构；不得只挑选观测满分模板。
+
 ### Impl-4：工程参数冻结与预注册
 
 - freeze；

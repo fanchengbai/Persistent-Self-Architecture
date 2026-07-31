@@ -33,7 +33,12 @@ from psa.tasks import generate_factorial_group
 
 FORMAL_GATE = "impl3q_exp001_formal_freeze_candidate"
 FORMAL_GATE_V2 = "impl3r_exp001_formal_freeze_candidate_v2"
-SUPPORTED_FORMAL_GATES = (FORMAL_GATE, FORMAL_GATE_V2)
+FORMAL_GATE_V3 = "impl3s_exp001_formal_freeze_candidate_v3"
+SUPPORTED_FORMAL_GATES = (
+    FORMAL_GATE,
+    FORMAL_GATE_V2,
+    FORMAL_GATE_V3,
+)
 SEED_PURPOSES = {
     "core_generator": "core-generator",
     "control_generator": "control-generator",

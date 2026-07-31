@@ -438,6 +438,73 @@ class FormalFreezeTests(unittest.TestCase):
             "revise_formal_template_family_only",
         )
 
+    def test_v3_changes_only_the_history_template_family(self) -> None:
+        v2_path = (
+            self.root
+            / "configs"
+            / "preregistration"
+            / "exp001_track_s.formal_v2.json"
+        )
+        v3_path = (
+            self.root
+            / "configs"
+            / "preregistration"
+            / "exp001_track_s.formal_v3.json"
+        )
+        v2 = _load_formal_config(v2_path, self.root)
+        v3 = _load_formal_config(v3_path, self.root)
+        self.assertEqual(
+            v3["gate"],
+            "impl3s_exp001_formal_freeze_candidate_v3",
+        )
+        for field in (
+            "model_config",
+            "labels",
+            "answer_interface",
+            "filler_protocol",
+            "seeds",
+            "core_design",
+            "statistics",
+            "power_simulation",
+            "safety_boundary",
+            "template_qualification",
+            "query_protocol",
+            "controls",
+        ):
+            self.assertEqual(v3[field], v2[field])
+        self.assertEqual(
+            v3["history_protocol"]["mode"],
+            v2["history_protocol"]["mode"],
+        )
+        self.assertNotEqual(
+            v3["history_protocol"]["templates"],
+            v2["history_protocol"]["templates"],
+        )
+        self.assertEqual(
+            len(v3["history_protocol"]["templates"]),
+            4,
+        )
+        for template in v3["history_protocol"]["templates"]:
+            self.assertIn(
+                "FIELD 1 - CURRENT DOMAIN:",
+                template["user_text"],
+            )
+            self.assertIn(
+                "FIELD 2 - CURRENT OPERATION:",
+                template["user_text"],
+            )
+            self.assertIn(
+                "Both CURRENT DOMAIN and CURRENT OPERATION",
+                template["assistant_ack"],
+            )
+        self.assertFalse(
+            v3["core_design"]["generate_or_unseal_core_set"]
+        )
+        self.assertIn(
+            "configs/preregistration/exp001_track_s.formal_v3.json",
+            v3["source_files"],
+        )
+
     def test_power_simulation_retains_320_groups(self) -> None:
         report = simulate_power(
             self.config,

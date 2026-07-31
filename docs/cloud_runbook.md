@@ -749,6 +749,22 @@ bash scripts/review_impl3r_exp001_formal_freeze_candidate_v2.sh
 模型。预期路线为 `revise_formal_template_family_only`。把 review 文件回传
 分析前，不修改模板、不重跑 Impl-3r、不确认 checksum。
 
+### 5.22 运行 Impl-3s 正式冻结候选 v3
+
+仅当 Impl-3r-a 路线为 `revise_formal_template_family_only`，且精确报告
+确认唯一失败项为goal BCa下界0.890625时运行：
+
+```bash
+git pull --ff-only
+source .venv/bin/activate
+bash scripts/run_impl3s_exp001_formal_freeze_candidate_v3_gate.sh
+cat results/development/impl3s_exp001_formal_freeze_candidate_v3/summary.json
+```
+
+该门只替换四个history模板，保留v2查询与控制、全部seed、样本量、统计
+阈值和安全边界。即使全部通过，也只回传summary和新的candidate checksum；
+人工复核与明确确认前，不生成Core Set、不运行正式state-only实验。
+
 ## 6. 运行纯逻辑测试
 
 ```bash

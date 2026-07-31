@@ -397,3 +397,9 @@ history-v2-03，history-v2-02满分；四个query均超过90%。这支持只修�
 历史模板族，但不允许事后只保留满分模板。下一步先核对冻结BCa区间的精确
 失败项；只有后续独立候选的所有资格门通过，且不可变候选checksum再次得到
 人工确认，Core Set才可生成或解封。
+
+精确门槛复核显示唯一失败项是goal/OPERATION的BCa下界0.890625，距离冻结
+要求0.90差0.009375；identity下界0.91127、joint下界0.859375、格式和所有
+单模板点估计均通过。Impl-3s因此不选择观测满分的history-v2-02，而将四个
+history作为整体改为平行的FIELD 1 DOMAIN/FIELD 2 OPERATION结构。v2查询、
+控制、模型、delay、seed、N和阈值不变。

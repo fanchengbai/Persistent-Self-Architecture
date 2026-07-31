@@ -44,7 +44,8 @@
     "gate": {
       "enum": [
         "impl3q_exp001_formal_freeze_candidate",
-        "impl3r_exp001_formal_freeze_candidate_v2"
+        "impl3r_exp001_formal_freeze_candidate_v2",
+        "impl3s_exp001_formal_freeze_candidate_v3"
       ]
     },
     "model_id": {"type": "string", "minLength": 1},

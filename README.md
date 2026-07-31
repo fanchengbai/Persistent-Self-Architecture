@@ -258,6 +258,10 @@ Phase 0 → Phase 1 — Research Design / State Infrastructure
 39. Impl-3r-a 得到119/128，9个语义错误中6个集中在history-v2-03，
     history-v2-02为32/32；四个query都超过90%。这说明问题明显缩小，但不能
     事后只选满分模板。下一步先核对冻结BCa区间的精确失败项，再决定v3。
+40. 精确门槛显示只有goal/OPERATION的BCa下界0.890625略低于0.90；
+    identity、joint、格式及所有单模板点估计均通过。Impl-3s因此只把四个
+    history整体改为对称的FIELD 1 DOMAIN/FIELD 2 OPERATION写入结构，
+    v2查询、控制、模型、样本量、seed和阈值全部不变。
 
 ## 项目文档
 
