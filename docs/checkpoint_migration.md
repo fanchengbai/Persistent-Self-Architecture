@@ -467,3 +467,14 @@ tokenizer roundtrip 和来源状态不变性均通过，但 `reset_valid=false`�
 若只有第一组失败、第二组和后续相邻调用全部通过，路线为
 `first_shape_call_outlier`；若第 2 次之后仍不稳定，路线为
 `persistent_reset_instability`。该诊断不更改原 Impl-3n 的失败状态。
+
+Impl-3n-a 实际路线为 `first_shape_call_outlier`：第1次参考对后续 0/10
+通过，第2次稳定参考对第3–11次 9/9 通过，相邻调用 9/10 通过。由此确认
+异常仅位于第一次相同 suffix 形状执行与第二次之间，而不是持续 reset
+不稳定。
+
+新增 Impl-3n-b 作为独立复验，不覆盖原 Impl-3n。它在计分 baseline 前
+执行一次相同 suffix、相同 `state=None` 的调用，并在报告中固定记录
+`reset_shape_warmup_count=1` 与 `shape_warmup_excluded_from_scoring=true`。
+除这一次预热外，repeat=10、logits/state 阈值、确定性策略、diff、官方
+reset 语义、完整 swap 和来源不变性判断全部与 Impl-3n 相同。

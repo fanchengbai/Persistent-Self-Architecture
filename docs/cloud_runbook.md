@@ -586,7 +586,19 @@ cat results/development/impl3na_g1h_2.9b_reset_stability/summary.json
 `stabilized_reference_tolerance_pass_count` 和
 `adjacent_tolerance_pass_count`。该诊断不会覆盖 Impl-3n 的失败报告。
 
-### 5.18 Impl-3n 通过后运行 Impl-3o 随机状态复验
+实际路线为 `first_shape_call_outlier`。按已确认的单次效应运行新输出门：
+
+### 5.17b 运行 Impl-3n-b 单次预热状态操作复验
+
+```bash
+bash scripts/run_impl3nb_g1h_2.9b_state_operations_warmed_gate.sh
+cat results/development/impl3nb_g1h_2.9b_state_operations_warmed/summary.json
+```
+
+重点确认 `reset_shape_warmup_count=1`，并检查 `state_diff_valid`、
+`reset_valid`、`swap_valid`、`source_states_immutable` 和总 `valid`。
+
+### 5.18 Impl-3n-b 通过后运行 Impl-3o 随机状态复验
 
 ```bash
 bash scripts/run_impl3o_g1h_2.9b_random_state_gate.sh

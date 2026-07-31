@@ -1,0 +1,42 @@
+{
+  "gate_version": "0.1",
+  "gate": "impl3nb_g1h_2_9b_state_operations_warmed",
+  "development_only": true,
+  "repeat_count": 10,
+  "reset_shape_warmup_count": 1,
+  "base_prefix_text": "Development-only G1h 2.9B state operation branch ",
+  "branch_a_marker": "A",
+  "branch_b_marker": "B",
+  "suffix_text": ". Continue with a neutral probe.\n",
+  "determinism": {
+    "enabled": true,
+    "seed": 20260729,
+    "cublas_workspace_config": ":4096:8",
+    "deterministic_algorithms": true,
+    "cudnn_benchmark": false,
+    "cudnn_deterministic": true,
+    "float32_matmul_precision": "highest",
+    "allow_tf32": false
+  },
+  "acceptance": {
+    "require_shape_dtype_compatibility": true,
+    "require_top1_match": true,
+    "logits_max_abs_error": 0.0625,
+    "state_max_abs_error": 0.125
+  },
+  "source_diagnostic": {
+    "gate": "impl3na_g1h_2_9b_reset_stability",
+    "summary": "results/development/impl3na_g1h_2.9b_reset_stability/summary.json",
+    "route_decision": "first_shape_call_outlier",
+    "first_reference_tolerance_pass_count": 0,
+    "stabilized_reference_tolerance_pass_count": 9,
+    "adjacent_tolerance_pass_count": 9,
+    "total_reset_call_count": 11
+  },
+  "notes": [
+    "This is a new output gate and does not overwrite the failed Impl-3n report.",
+    "One same-suffix state=None call is executed before the scored reset baseline and excluded from all acceptance counts.",
+    "The warmup count was fixed from the paired Impl-3n-a first-shape-call diagnostic.",
+    "Repeat count, acceptance thresholds, determinism policy, diff logic, reset semantics, and swap logic are unchanged from Impl-3n."
+  ]
+}

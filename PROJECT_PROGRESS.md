@@ -1,7 +1,7 @@
 # Persistent Self Architecture 项目进度表
 
 > 最后更新：2026-07-31
-> 当前节点：Impl-3n 的 reset state 误差稳定超限；Impl-3n-a 等待首次形状执行诊断
+> 当前节点：Impl-3n-a 确认首次形状调用异常；Impl-3n-b 等待单次预热后完整复验
 > 研究状态：尚未进入正式确认性实验，尚未实现显式 Self Model
 
 ## 1. 这张表怎么使用
@@ -59,14 +59,15 @@
 | 30. Impl-3l：标签边际化只读复核 | ✅ 通过 | 将同一语义选项在 A/B/C/D 四轮下的对数分数取平均，再做一次语义选择 | 四轮平均能抵消每个字母的整体先验，判断去掉答案代码干扰后是否仍有语义错误 | 32/32 个语义案例全部正确，准确率 1.0、剩余语义错误 0；路线修订为 `answer_code_bias_controlled_by_rotation`。2.9B 的开发能力前置条件满足，后续固定采用四代码轮换平均读出 | 项目负责人运行；Codex 诊断 |
 | 31. Impl-3m：2.9B 磁盘恢复复验 | ✅ 通过 | 把 2.9B 的 recurrent state 保存到磁盘，在独立进程恢复并重复续算 100 次 | 新模型的 state 更大，必须证明程序退出后仍能可靠恢复，不能借用 0.4B 的通过记录 | 达到 L3；100/100 容差通过且 100/100 top-1 一致。状态载荷 21,299,200 字节，保存约 0.169 秒，跨进程复验约 25.81 秒。逐位一致 0/100 属于已预期的 CUDA/FP16 跨进程微差，不影响通过 | 项目负责人运行；Codex 诊断 |
 | 32. Impl-3n：2.9B reset/diff/swap 复验 | ⚠️ Revise | 对 96 个 state 组件执行比较、官方 reset 和完整交换 | 正式因果实验会依赖这些操作，必须先证明工具在 2.9B 上仍可靠且不修改来源状态 | 运行有效但总门失败：diff/swap 等均通过；reset 的 10/10 top-1 一致，logits 误差 0.03125 低于 0.0625，但 state 误差每次均为 0.155052，高于 0.125，因此容差通过 0/10 | 项目负责人运行；Codex 诊断 |
-| 33. Impl-3n-a：reset 首次形状执行诊断 | 🟡 等待云端 | 复现原门前奏后连续 reset 11 次，分别用第 1 次和第 2 次作参考比较后续调用 | 十次完全相同的超限更像第一次遇到该 token 长度时的 CUDA 首次执行差异；必须直接验证，不能直接丢掉第一次后宣布通过 | 独立诊断、配置和脚本已完成；保留原失败，阈值仍为 logits 0.0625/state 0.125。本地 74 项测试通过 | Codex 已完成；项目负责人运行 |
-| 34. Impl-3o：2.9B matched random 复验 | ⏸️ 暂停 | 生成与 2.9B 真实 state 分组件尺度匹配的随机状态，并验证种子复现和稳定续算 | random 对照必须和真状态同形同尺度，才能排除“随便塞噪声”的解释 | 实现和配置已完成，但因 Impl-3n 尚未解决而暂停；不得提前运行 | Codex 已完成；项目负责人待运行 |
-| 35. Batch 2：冻结任务参数 | ⏳ 未开始 | 冻结 checkpoint、标签池、模板、delay、答案格式、轮换读出和阈值 | 一旦冻结，后面不能因为结果不好随意改题或换模型 | 必须等待 Impl-3m/3n/3o 都通过 | 共同审阅 |
-| 36. Impl-4：预注册 | ⏳ 未开始 | 固定代码、配置、样本量、随机种子和判断标准 | 防止看到正式结果后改变成功标准 | 尚未开始 | Codex 整理；项目负责人确认 |
-| 37. Phase 2：正式原生 state 实验 | ⏳ 未开始 | 比较 original/reset/random/swap 等条件 | 这一步才真正测试 recurrent state 是否是跨时间因果载体 | 尚无研究结论 | 项目负责人运行；Codex 分析 |
-| 38. Phase 3：显式 Self Model | ⏳ 未开始 | 实现 Self Store、Self Encoder 和 gated injection | 只有原生状态基线可靠后，才能判断显式 Self Model 是否带来额外价值 | 目前只有设计，没有加入模型 | 后续由 Codex 实现 |
-| 39. Self 更新与演化 | ⏳ 未开始 | 让 Self State 根据经历受控更新、回滚和分化 | 这是“持续自我”真正更深入的部分 | 尚未开始 | 后续阶段 |
-| 40. 最终研究结论 | ⏳ 未开始 | 汇总统计结果、失败案例和替代解释 | 最终回答项目假设是否得到支持，而不是只展示几个有趣案例 | 尚未开始 | 共同完成 |
+| 33. Impl-3n-a：reset 首次形状执行诊断 | ✅ 完成 | 复现原门前奏后连续 reset 11 次，分别用第 1 次和第 2 次作参考比较后续调用 | 十次完全相同的超限更像第一次遇到该 token 长度时的 CUDA 首次执行差异；必须直接验证，不能直接丢掉第一次后宣布通过 | 路线为 `first_shape_call_outlier`：第1次参考对后续 0/10 通过，第2次稳定参考对第3–11次 9/9 通过，相邻调用 9/10 通过；异常仅发生在第1→2次 | 项目负责人运行；Codex 诊断 |
+| 34. Impl-3n-b：单次预热后完整状态操作复验 | 🟡 等待云端 | 在评分前执行一次相同 suffix 的 `state=None` 调用，然后原样重跑 diff/reset/swap | 用独立新门检验预先声明的单次预热能否消除已确认的首次形状效应，同时不覆盖原失败 | 新输出目录；预热不计分。repeat=10、误差阈值、确定性、reset 语义、diff 和 swap 全部不变 | Codex 已完成；项目负责人运行 |
+| 35. Impl-3o：2.9B matched random 复验 | ⏸️ 暂停 | 生成与 2.9B 真实 state 分组件尺度匹配的随机状态，并验证种子复现和稳定续算 | random 对照必须和真状态同形同尺度，才能排除“随便塞噪声”的解释 | 实现和配置已完成，等待 Impl-3n-b 通过；不得提前运行 | Codex 已完成；项目负责人待运行 |
+| 36. Batch 2：冻结任务参数 | ⏳ 未开始 | 冻结 checkpoint、标签池、模板、delay、答案格式、轮换读出和阈值 | 一旦冻结，后面不能因为结果不好随意改题或换模型 | 必须等待 Impl-3m/3n-b/3o 都通过 | 共同审阅 |
+| 37. Impl-4：预注册 | ⏳ 未开始 | 固定代码、配置、样本量、随机种子和判断标准 | 防止看到正式结果后改变成功标准 | 尚未开始 | Codex 整理；项目负责人确认 |
+| 38. Phase 2：正式原生 state 实验 | ⏳ 未开始 | 比较 original/reset/random/swap 等条件 | 这一步才真正测试 recurrent state 是否是跨时间因果载体 | 尚无研究结论 | 项目负责人运行；Codex 分析 |
+| 39. Phase 3：显式 Self Model | ⏳ 未开始 | 实现 Self Store、Self Encoder 和 gated injection | 只有原生状态基线可靠后，才能判断显式 Self Model 是否带来额外价值 | 目前只有设计，没有加入模型 | 后续由 Codex 实现 |
+| 40. Self 更新与演化 | ⏳ 未开始 | 让 Self State 根据经历受控更新、回滚和分化 | 这是“持续自我”真正更深入的部分 | 尚未开始 | 后续阶段 |
+| 41. 最终研究结论 | ⏳ 未开始 | 汇总统计结果、失败案例和替代解释 | 最终回答项目假设是否得到支持，而不是只展示几个有趣案例 | 尚未开始 | 共同完成 |
 
 ## 3. 当前所在位置
 
@@ -108,7 +109,8 @@
 2.9B state 工程复验
    ✅ Impl-3m 达到 L3，100/100 容差与行为一致
    ⚠️ Impl-3n 的 diff/swap 通过；reset 行为一致但 state 稳定超限
-   🟡 Impl-3n-a 比较第1次与第2次之后的稳定性
+   ✅ Impl-3n-a 确认只有第1→2次异常，之后 9/9 稳定
+   🟡 Impl-3n-b 单次预热后完整复验等待运行
    ⏸️ Impl-3o 暂停
 正式 state 因果实验
    ⏳
@@ -251,18 +253,26 @@ Impl-3n 的详细报告证明，96 个状态组件全部可区分，tokenizer、
 锁定的 `rwkv==0.8.32` 官方源码显示，`state=None` 每次都通过
 `generate_zero_state()` 建立全零状态，并非随机初始化。当前可检验推断是：
 第一次遇到该 suffix 形状时产生一次 CUDA 首次执行差异，之后调用稳定。
-Impl-3n-a 不覆盖原报告、不放宽阈值，直接比较第 1 次、第 2 次和后续调用：
+Impl-3n-a 不覆盖原报告、不放宽阈值，结果确认：
+
+- 第1次参考对后续为 0/10 通过；
+- 第2次作为稳定参考后，第3–11次为 9/9 通过；
+- 相邻调用为 9/10 通过，唯一失败是第1→2次；
+- 路线明确为 `first_shape_call_outlier`。
+
+因此新建 Impl-3n-b，不覆盖原 Impl-3n。在评分 baseline 之前只执行一次
+同 suffix、同 `state=None` 的预热调用，并把它明确排除在计分外；其余
+repeat、阈值、确定性、diff/reset/swap 逻辑完全不变：
 
 ```bash
 git pull --ff-only
 source .venv/bin/activate
-bash scripts/run_impl3na_g1h_2.9b_reset_stability_diagnostic.sh
-cat results/development/impl3na_g1h_2.9b_reset_stability/summary.json
+bash scripts/run_impl3nb_g1h_2.9b_state_operations_warmed_gate.sh
+cat results/development/impl3nb_g1h_2.9b_state_operations_warmed/summary.json
 ```
 
-若 `route_decision=first_shape_call_outlier`，才有证据设计预先声明的形状预热
-并重跑 Impl-3n；若为 `persistent_reset_instability`，则继续暂停后续路线。
-无论哪种结果，现在都不运行 Impl-3o。
+只有 `reset_shape_warmup_count=1`，且 diff/reset/swap、来源不变性和总
+`valid` 全部为 `true`，才解除 Impl-3o 的暂停状态。
 
 完整选择依据和后续复验顺序见
 [checkpoint 迁移方案](docs/checkpoint_migration.md)。
@@ -311,3 +321,4 @@ cat results/development/impl3na_g1h_2.9b_reset_stability/summary.json
 | 2026-07-30 | Impl-3m 达到 L3，2.9B 状态跨进程恢复 100/100 容差通过且 top-1 全部一致；保留 0/100 逐位一致的 CUDA/FP16 诊断记录，进入 Impl-3n 状态操作复验 | `results/development/impl3m_g1h_2.9b_checkpoint_roundtrip/summary.json` |
 | 2026-07-31 | Impl-3n 有效运行但仅 reset 重复性失败；96/96 组件 diff、完整 swap、tokenizer 和来源状态不变性均通过。保留 `valid=false`，暂停 Impl-3o，先读取 reset 的逐次误差和行为证据 | `results/development/impl3n_g1h_2.9b_state_operations/summary.json` |
 | 2026-07-31 | reset 详细报告显示 10/10 top-1 一致、logits 误差通过，但 state 误差固定为 0.155052 并超过 0.125；官方 0.8.32 实现确认 `state=None` 创建全零状态。新增不覆盖失败、不放宽阈值的 Impl-3n-a 首次形状执行诊断 | `results/development/impl3n_g1h_2.9b_state_operations/reset_validation.json`、`configs/gates/impl3na_g1h_2.9b_reset_stability.dev.json` |
+| 2026-07-31 | Impl-3n-a 确认 `first_shape_call_outlier`：第1次对后续 0/10，第2次参考后 9/9 稳定，相邻调用仅第1→2次失败。新增独立 Impl-3n-b，在计分前固定一次同形状 reset 预热，其余门槛和操作不变 | `results/development/impl3na_g1h_2.9b_reset_stability/summary.json`、`configs/gates/impl3nb_g1h_2.9b_state_operations_warmed.dev.json` |

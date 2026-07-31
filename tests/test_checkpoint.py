@@ -209,6 +209,25 @@ class CheckpointTests(unittest.TestCase):
         )
         for key in ("base_seed", "alternate_seed", "max_relative_l2_error"):
             self.assertEqual(random_replay[key], random_baseline[key])
+        state_baseline = json.loads(
+            (
+                PROJECT_ROOT
+                / "configs"
+                / "gates"
+                / "impl3n_g1h_2.9b_state_operations.dev.json"
+            ).read_text(encoding="utf-8")
+        )
+        warmed_replay = json.loads(
+            (
+                PROJECT_ROOT
+                / "configs"
+                / "gates"
+                / "impl3nb_g1h_2.9b_state_operations_warmed.dev.json"
+            ).read_text(encoding="utf-8")
+        )
+        self.assertEqual(warmed_replay["reset_shape_warmup_count"], 1)
+        for key in ("repeat_count", "determinism", "acceptance"):
+            self.assertEqual(warmed_replay[key], state_baseline[key])
 
     def test_code_marginalized_readout_is_frozen_without_fitted_offsets(
         self,

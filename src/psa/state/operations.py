@@ -406,6 +406,7 @@ def run_state_operations_gate(
         not in {
             "impl2b_state_operations",
             "impl3n_g1h_2_9b_state_operations",
+            "impl3nb_g1h_2_9b_state_operations_warmed",
         }
         or gate_config.get("development_only") is not True
     ):
@@ -413,6 +414,21 @@ def run_state_operations_gate(
     repeat_count = gate_config.get("repeat_count")
     if not isinstance(repeat_count, int) or repeat_count < 10:
         raise ValueError("repeat_count must be at least 10")
+    reset_shape_warmup_count = gate_config.get(
+        "reset_shape_warmup_count", 0
+    )
+    expected_warmup_count = (
+        1
+        if gate_name == "impl3nb_g1h_2_9b_state_operations_warmed"
+        else 0
+    )
+    if (
+        not isinstance(reset_shape_warmup_count, int)
+        or reset_shape_warmup_count != expected_warmup_count
+    ):
+        raise ValueError(
+            "reset shape warmup count does not match the selected gate"
+        )
     _apply_determinism_policy(gate_config.get("determinism"))
     acceptance = _validate_acceptance_policy(
         gate_config.get("acceptance")
@@ -467,6 +483,8 @@ def run_state_operations_gate(
         }
     )
 
+    for _ in range(reset_shape_warmup_count):
+        adapter.forward(suffix_tokens, official_reset_state())
     reset_probe = _repeat_from_state(
         adapter,
         suffix_tokens,
@@ -481,6 +499,10 @@ def run_state_operations_gate(
             "development_only": True,
             "reset_representation": "None",
             "semantics": "official rwkv.model.RWKV.forward state=None",
+            "shape_warmup_count": reset_shape_warmup_count,
+            "shape_warmup_excluded_from_scoring": bool(
+                reset_shape_warmup_count
+            ),
         }
     )
 
@@ -554,6 +576,7 @@ def run_state_operations_gate(
         "development_only": True,
         "model_id": model_config.model_id,
         "gate_config_sha256": sha256_file(gate_config_path),
+        "reset_shape_warmup_count": reset_shape_warmup_count,
         "tokenizer_roundtrip_valid": tokenizer_valid,
         "state_diff_valid": diff_valid,
         "reset_valid": reset_probe["valid"],

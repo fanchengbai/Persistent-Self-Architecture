@@ -215,6 +215,9 @@ Phase 0 → Phase 1 — Research Design / State Infrastructure
 28. reset 审计显示 10/10 top-1 一致、logits 误差 0.03125 合格，只有 state
     误差固定为 0.155052、超过 0.125。Impl-3n-a 将比较首次相同形状调用与
     第 2–11 次调用，验证是否为一次性的 CUDA 首次形状执行效应。
+29. Impl-3n-a 确认只有第1→2次调用异常，第二次之后 9/9 稳定。新的
+    Impl-3n-b 会在计分前固定执行一次同形状 reset 预热，再按完全相同的
+    diff/reset/swap 规则和原阈值复验；原 Impl-3n 失败记录保持不变。
 
 ## 项目文档
 
