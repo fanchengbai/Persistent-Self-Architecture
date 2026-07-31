@@ -385,7 +385,7 @@ def finalize_preregistration_package(
         (staging / "manifest.json").write_bytes(
             canonical_json_bytes(manifest)
         )
-        staging.replace(destination)
+        shutil.copytree(staging, destination)
     report = verify_final_preregistration_package(destination)
     if not report["valid"]:
         raise RuntimeError("final preregistration package failed self-check")
