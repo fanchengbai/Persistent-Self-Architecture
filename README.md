@@ -291,7 +291,10 @@ Phase 0 → Phase 1 — Research Design / State Infrastructure
     `9659e286…1642`。状态仍是`core_set_frozen_unrun`；正式实验未授权、
     未运行、没有结果。下一步只安全保存冻结文件。
 49. 冻结目录实际只有11MB，确定直接使用普通Git保存，不需要LFS、压缩或
-    重新生成。当前只等待云端同步最新文档提交后提交`core_set_v1`目录。
+    重新生成。
+50. `core_set_v1`已通过提交`ffd79ae`推送GitHub并快进同步回本机；三个锁定
+    文件的SHA-256均与冻结manifest一致。Core Set持久化完成，状态继续是
+    `core_set_frozen_unrun`；下一步必须等待单独的正式实验授权。
 
 ## 项目文档
 

@@ -840,12 +840,13 @@ cat preregistration/exp001/core_set_v1/manifest.json
 - package payload root：
   `1f4bd57f6f24cc5af676ff3b9c0e0e550c3f342a3643676b6731f473c6b3c02a`。
 
-正式实验仍未授权。下一步先用`ls -lh`或`du -h`查看`core_set.json`大小，
-再决定普通Git或大文件存储；不要重新生成第二份Core Set。
-
 实际复核显示`core_set.json`和整个`core_set_v1`目录均约11MB，因此固定使用
-普通Git，不使用LFS、不压缩。提交前必须先让桌面端推送最新进度文档，然后在
-云端执行`git pull --ff-only`，避免两个环境从同一父提交各自提交而形成分叉。
+普通Git，不使用LFS、不压缩。冻结目录已通过提交`ffd79ae`推送GitHub并同步
+回本机；三个锁定文件的SHA-256均与`manifest.json`一致。
+
+正式实验仍未授权。Core Set生成、冻结与持久化步骤至此闭合；不要重新生成
+第二份Core Set，也不要加载模型“顺便测试”。下一步必须等待项目负责人另行
+明确授权确认性运行。
 
 ## 6. 运行纯逻辑测试
 

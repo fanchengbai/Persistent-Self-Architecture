@@ -881,7 +881,7 @@ units 中选择与 128 tokens 绝对误差最小者，误差必须不超过 16 t
 - [x] 项目负责人单独授权生成并冻结Core Set，继续禁止正式实验；
 - [x] 实现320组Core Set平衡生成与冻结工具；
 - [x] 在云端用冻结tokenizer生成并核对Core Set v1 digest；
-- [ ] 将云端冻结Core Set文件安全纳入版本控制。
+- [x] 将云端冻结Core Set文件安全纳入版本控制，并复核锁定文件SHA-256。
 
 ## 22. 下一步
 
@@ -914,3 +914,6 @@ factorial groups、1,280个语义案例和5,120条试题。Core Set digest为
 包digest为
 `9659e286de4128b43226f2d6df27075eba60bd953c2330ee70c0ec3e677f1642`。
 正式实验未授权、未运行，确认性结果未观察。
+冻结目录现已通过Git提交`ffd79ae`推送并同步回本机；三个锁定文件的
+SHA-256均与`core_set_v1/manifest.json`一致。Core Set生成与持久化阶段
+已经闭合，后续不得在没有单独书面授权的情况下加载模型运行这些试题。

@@ -1,7 +1,7 @@
 # Persistent Self Architecture 项目进度表
 
 > 最后更新：2026-07-31
-> 当前节点：EXP-001 Core Set v1已冻结且仅11MB；确定使用普通Git，等待云端提交冻结目录
+> 当前节点：EXP-001 Core Set v1已冻结、校验并通过提交`ffd79ae`纳入GitHub；等待单独的正式实验授权
 > 研究状态：尚未进入正式确认性实验，尚未实现显式 Self Model
 
 ## 1. 这张表怎么使用
@@ -79,7 +79,7 @@
 | 37a. Core Set 生成授权 | ✅ 已授权 | 单独授权只生成并冻结Core Set，不运行模型或正式实验 | 把“允许出卷”和“允许考试”分开，避免一句继续同时打开两个不可逆阶段 | 授权绑定最终预注册digest `0daf056d…d0c9`和N=320；`generate_and_freeze_core_set=true`、`run_confirmatory_experiment=false` | 项目负责人确认 |
 | 37b. Core Set生成与冻结工具 | ✅ 已完成 | 验证最终预注册包和单独授权，用冻结seed、模板、标签、filler与tokenizer生成平衡试题并计算两层digest | 正式试题必须可重建、不可暗改，而且生成过程不能顺便加载模型或查看答案表现 | 固定320组×4状态×4代码轮换=1,280个语义案例、5,120条试题；验证16种模板对各20组，四类模板/filler/标签组合各80组；篡改、越权和重复生成测试通过 | Codex |
 | 37c. 云端生成 Core Set v1 | ✅ 已冻结 | 在云端只加载固定tokenizer，拟合4个131-token filler并生成最终Core Set包 | 本机没有冻结tokenizer，不能用假计数器制造正式digest；云端已有经校验的1.1MB tokenizer | `status=core_set_frozen_unrun`；320组、1,280语义案例、5,120试题；Core Set digest=`6ea2b6be…eb9d`，包digest=`9659e286…1642`，安全边界保持关闭 | 项目负责人云端运行；Codex核对 |
-| 37d. 持久化冻结 Core Set | 🟡 等待云端提交 | 将云端`core_set_v1`目录原样纳入普通Git | 只留在临时云盘上可能因实例释放而丢失；必须保留生成时的原始冻结文件 | `core_set.json`和整个目录均约11MB，低于GitHub 100MB单文件限制；确定无需LFS、无需压缩、无需重新生成。等待云端在同步最新文档提交后add/commit/push | 项目负责人云端提交 |
+| 37d. 持久化冻结 Core Set | ✅ 已完成 | 将云端`core_set_v1`目录原样纳入普通Git | 只留在临时云盘上可能因实例释放而丢失；必须保留生成时的原始冻结文件 | `core_set.json`和整个目录均约11MB，已通过提交`ffd79ae`推送GitHub并快进同步到本机；3个锁定文件的SHA-256均与`manifest.json`一致。无需LFS、压缩或重新生成 | 项目负责人云端提交；Codex同步复核 |
 | 38. Phase 2：正式原生 state 实验 | ⏳ 未开始 | 比较 original/reset/random/swap 等条件 | 这一步才真正测试 recurrent state 是否是跨时间因果载体 | 尚无研究结论 | 项目负责人运行；Codex 分析 |
 | 39. Phase 3：显式 Self Model | ⏳ 未开始 | 实现 Self Store、Self Encoder 和 gated injection | 只有原生状态基线可靠后，才能判断显式 Self Model 是否带来额外价值 | 目前只有设计，没有加入模型 | 后续由 Codex 实现 |
 | 40. Self 更新与演化 | ⏳ 未开始 | 让 Self State 根据经历受控更新、回滚和分化 | 这是“持续自我”真正更深入的部分 | 尚未开始 | 后续阶段 |
@@ -147,7 +147,7 @@ Batch 2 参数冻结
     ✅ Core Set生成已单独授权
     ✅ 生成与冻结工具已通过逻辑测试
     ✅ 云端Core Set v1已生成并冻结
-    🟡 已确定普通Git，等待云端提交冻结目录
+    ✅ 冻结目录已通过普通Git持久化并复核
     ⏸️ 正式实验仍未授权
 正式 state 因果实验
    ⏳
@@ -417,10 +417,12 @@ Core Set已在云端一次性生成：320组、1,280个语义案例和5,120条�
 `6ea2b6be15a7728c96d84dcc8e48da64e740438980f818e78c8ee8570a47eb9d`，
 包digest为
 `9659e286de4128b43226f2d6df27075eba60bd953c2330ee70c0ec3e677f1642`。
-正式实验仍未授权、未运行、未产生结果。下一步只查看冻结文件大小并决定
-安全持久化方式，不加载模型。文件检查现已完成：`core_set.json`和整个目录
-均约11MB，适合直接纳入普通Git，不需要LFS或压缩。为避免分叉，必须先推送
-桌面端最新文档提交，再在云端`git pull --ff-only`后提交冻结目录。
+正式实验仍未授权、未运行、未产生结果。`core_set.json`和整个目录均约11MB，
+现已通过普通Git提交`ffd79ae`安全保存到GitHub，并快进同步回本机。同步后对
+`core_set.json`、`core_set_authorization.json`和
+`final_preregistration_manifest.json`重新计算SHA-256，三者均与冻结
+`manifest.json`一致。当前没有待补的Core Set工程步骤；下一步必须等待项目
+负责人另行、明确授权正式确认性实验。
 
 本次“持续 Self + 世界模型 + 内生驱动”理论评审不改变上述下一步。它补充的是
 显式 Self 和受约束更新均通过后的未来研究层：系统能否根据内部冲突、
@@ -498,3 +500,4 @@ Core Set已在云端一次性生成：320组、1,280个语义案例和5,120条�
 | 2026-07-31 | 项目负责人单独授权生成并冻结Core Set、继续禁止正式实验；新增授权锁、Core Set生成/验证入口和云端脚本。设计固定为320组×4状态×4代码轮换=1,280语义案例/5,120试题，16个历史×查询组合各20组，四类模板/filler/标签组合各80组；本地用测试tokenizer验证平衡、幂等、篡改检测和越权拒绝，真实digest等待云端冻结tokenizer生成 | `preregistration/exp001/core_set_authorization.json`、`scripts/generate_exp001_core_set.sh`、`src/psa/preregistration/core_set.py` |
 | 2026-07-31 | Core Set v1已在云端用冻结tokenizer一次性生成并自校验：320组、1,280语义案例、5,120试题；状态`core_set_frozen_unrun`，Core Set digest `6ea2b6be…eb9d`、包digest `9659e286…1642`、payload root `1f4bd57f…c02a`。正式实验未授权、未运行、未观察结果；下一步只持久化冻结文件 | 云端`preregistration/exp001/core_set_v1/manifest.json` |
 | 2026-07-31 | 冻结Core Set文件大小复核完成：`core_set.json`与整个`core_set_v1`目录均约11MB，适合普通Git且远低于GitHub 100MB单文件限制；不采用LFS、不压缩、不重新生成。为避免桌面文档提交与云端数据提交分叉，固定顺序为桌面先push、云端再pull/add/commit/push | 云端`ls -lh`、`du -sh`、`git status --short` |
+| 2026-07-31 | Core Set v1已通过提交`ffd79ae`推送GitHub并快进同步到本机；3个锁定文件的SHA-256全部与冻结manifest一致，持久化步骤闭合。状态继续为`core_set_frozen_unrun`，正式实验仍未授权、未运行、未观察结果 | `preregistration/exp001/core_set_v1/manifest.json`、Git提交`ffd79ae` |
