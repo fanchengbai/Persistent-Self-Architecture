@@ -290,6 +290,8 @@ Phase 0 → Phase 1 — Research Design / State Infrastructure
     试题全部吻合，Core Set digest为`6ea2b6be…eb9d`，包digest为
     `9659e286…1642`。状态仍是`core_set_frozen_unrun`；正式实验未授权、
     未运行、没有结果。下一步只安全保存冻结文件。
+49. 冻结目录实际只有11MB，确定直接使用普通Git保存，不需要LFS、压缩或
+    重新生成。当前只等待云端同步最新文档提交后提交`core_set_v1`目录。
 
 ## 项目文档
 
