@@ -12,6 +12,7 @@ from psa.preregistration import (
     evaluate_template_qualification,
     generate_control_manifest,
     generate_template_qualification_manifest,
+    review_control_rotation,
     simulate_power,
     verify_preregistration_candidate,
 )
@@ -199,6 +200,54 @@ class FormalFreezeTests(unittest.TestCase):
         )
         self.assertTrue(report["valid"])
         self.assertTrue(report["control_baseline_passed"])
+
+    def test_control_review_marginalizes_known_answer_code_bias(self) -> None:
+        manifest = generate_control_manifest(self.config)
+        records = []
+        for trial in manifest["trials"]:
+            scores = {
+                option["code"]: (
+                    2.0
+                    if option["code"] == trial["target_code"]
+                    else 0.0
+                )
+                for option in trial["option_mapping"]
+            }
+            predicted = trial["target_code"]
+            if (
+                trial["task_type"]
+                == "unrelated_two_field_symbol_match"
+                and trial["target_code"] == "D"
+            ):
+                predicted = next(
+                    code for code in scores if code != trial["target_code"]
+                )
+                scores[trial["target_code"]] = 0.0
+                scores[predicted] = 3.0
+            records.append(
+                {
+                    "sample_id": trial["sample_id"],
+                    "option_scores": scores,
+                    "argmax_choice": predicted,
+                    "format_valid": True,
+                    "status": "success",
+                }
+            )
+        review = review_control_rotation(
+            manifest=manifest,
+            records=records,
+            minimum_accuracy=0.9,
+        )
+        two_field = review["task_reports"][
+            "unrelated_two_field_symbol_match"
+        ]
+        self.assertEqual(two_field["code_level_accuracy"], 0.75)
+        self.assertEqual(two_field["label_marginalized_accuracy"], 1.0)
+        self.assertTrue(two_field["label_marginalized_pass_threshold"])
+        self.assertEqual(
+            review["route_decision"],
+            "control_code_bias_controlled_by_rotation",
+        )
 
     def test_power_simulation_retains_320_groups(self) -> None:
         report = simulate_power(

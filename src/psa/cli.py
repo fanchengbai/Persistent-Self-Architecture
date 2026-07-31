@@ -23,6 +23,7 @@ from psa.evaluation import group_contrasts
 from psa.model import run_interface_gate
 from psa.preregistration import (
     run_formal_freeze_candidate_gate,
+    run_formal_freeze_review,
     verify_preregistration_candidate,
 )
 from psa.state import (
@@ -555,6 +556,12 @@ def _preregistration_verify(args: argparse.Namespace) -> int:
     return 0 if result["valid"] else 2
 
 
+def _formal_freeze_review(args: argparse.Namespace) -> int:
+    result = run_formal_freeze_review(args.output_dir)
+    print(json.dumps(result, ensure_ascii=False, indent=2))
+    return 0 if result["valid"] else 2
+
+
 def _add_asset_common_arguments(parser: argparse.ArgumentParser) -> None:
     parser.add_argument("--manifest", required=True)
     parser.add_argument("--root", default=".psa-assets")
@@ -784,6 +791,16 @@ def build_parser() -> argparse.ArgumentParser:
     preregistration_verify.set_defaults(
         handler=_preregistration_verify
     )
+
+    formal_freeze_review = subparsers.add_parser(
+        "formal-freeze-review",
+        help=(
+            "audit an Impl-3q hold without rerunning the model or reading "
+            "confirmatory results"
+        ),
+    )
+    formal_freeze_review.add_argument("--output-dir", required=True)
+    formal_freeze_review.set_defaults(handler=_formal_freeze_review)
 
     return parser
 

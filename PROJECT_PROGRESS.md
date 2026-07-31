@@ -66,7 +66,7 @@
 | 36. Batch 2：冻结任务参数 | 🟡 候选已冻结 | 冻结 checkpoint、标签池、模板、delay、答案格式、轮换读出和阈值 | 一旦冻结，后面不能因为结果不好随意改题或换模型 | D1–D8 已由项目负责人确认：`single_statement`、4×4正式模板、4个131-token filler、96条控制、SHA-256 seeds、原SESOI、N=320与≥90%功效目标；等待 Impl-3q 资格证据和最终 checksum 人工确认 | Codex 实现；项目负责人运行与确认 |
 | 36a. Impl-3p：历史写入协议比较 | ✅ 已通过 | 在相同案例、delay 和 state-only 查询下比较单次声明、声明后验证、多次一致绑定 | recurrent state 如何形成会直接影响正式实验，必须在确认集前固定，又不能简单挑分数最高的方案 | 384 条比较完成；三种模式标签边际化准确率分别为 96.875%、100%、100%，均超过 80% 门槛且来源 state 不变。按预注册的简洁性优先规则选择首个达标的 `single_statement`；峰值显存约 6.23 GB | Codex 已完成；项目负责人已运行 |
 | 36b. Impl-3q：正式冻结候选门 | 🟠 有效 Hold | 只用 prompt-visible 题资格审查4×4正式模板，验证96条通用控制，运行10,000次功效模拟，并锁定源码、配置、原始记录和报告 digest | 在不偷看正式 state-only 结果的情况下，确认“试卷清楚、控制题可做、样本量够用、文件不能悄悄改” | `valid=true`、功效门通过，但模板资格与控制基线均失败，故 `freeze_candidate_ready=false`；608条读出完整，约18.1分钟，峰值显存约6.23GB；确认集未读取、Core Set未生成 | 项目负责人已运行；Codex 审计 |
-| 36c. Impl-3q-a：失败细分审计 | 🟡 等待报告 | 只读取模板、控制和轮换错误分布，不重跑模型、不修改阈值 | 必须先区分模板理解、答案代码偏差和格式失败，才能决定是否修订 | 等待 `template_qualification_report.json` 与 `control_baseline_report.json` 的细分指标 | 项目负责人提供；Codex 诊断 |
+| 36c. Impl-3q-a：失败细分审计 | 🟡 等待云端只读脚本 | 只读取模板、控制和轮换错误分布，不重跑模型、不修改阈值 | 必须先区分模板理解、答案代码偏差和格式失败，才能决定是否修订 | 报告已确认格式100%、模板标签边际化83.59%、21/128语义错误，query-03=75%、history-01=78.125%；复制/单字段控制100%，双字段控制代码级50%。已新增控制四轮边际化与4×4模板交互审计，本地90项测试通过 | 项目负责人运行；Codex 诊断 |
 | 37. Impl-4：预注册 | ⏳ 未开始 | 固定代码、配置、样本量、随机种子和判断标准 | 防止看到正式结果后改变成功标准 | 尚未开始 | Codex 整理；项目负责人确认 |
 | 38. Phase 2：正式原生 state 实验 | ⏳ 未开始 | 比较 original/reset/random/swap 等条件 | 这一步才真正测试 recurrent state 是否是跨时间因果载体 | 尚无研究结论 | 项目负责人运行；Codex 分析 |
 | 39. Phase 3：显式 Self Model | ⏳ 未开始 | 实现 Self Store、Self Encoder 和 gated injection | 只有原生状态基线可靠后，才能判断显式 Self Model 是否带来额外价值 | 目前只有设计，没有加入模型 | 后续由 Codex 实现 |
@@ -318,8 +318,17 @@ Impl-3q 已有效完成：功效门通过，但模板资格与控制基线均未
 当前 checksum 只用于标识这次失败候选，不能人工确认为最终预注册版本。
 
 下一步只读审计 `template_qualification_report.json` 和
-`control_baseline_report.json` 的细分指标及轮换错误分布。收到这些证据前，
-不改模板、不放宽阈值、不重跑 Impl-3q。
+`control_baseline_report.json` 的轮换错误分布：
+
+```bash
+git pull --ff-only
+source .venv/bin/activate
+bash scripts/review_impl3q_exp001_formal_freeze_candidate.sh
+```
+
+该脚本不加载模型。它会生成 `formal_freeze_review.json`，计算4×4模板交互、
+filler/标签/目标组合误差，并把单字段与双字段控制按四代码轮换平均。收到
+review前，不改模板、不放宽阈值、不重跑 Impl-3q。
 
 本次“持续 Self + 世界模型 + 内生驱动”理论评审不改变上述下一步。它补充的是
 显式 Self 和受约束更新均通过后的未来研究层：系统能否根据内部冲突、
@@ -383,3 +392,4 @@ Impl-3q 已有效完成：功效门通过，但模板资格与控制基线均未
 | 2026-07-31 | Impl-3p 完整通过：三种模式标签边际化准确率分别为 96.875%、100%、100%，来源 state 均保持不变；按运行前固定的简洁性优先顺序选择首个达标的 `single_statement`，未因另外两种满分而改选 | 云端 `results/development/impl3p_g1h_2.9b_history_binding/summary.json`、`docs/exp001_batch2_freeze_review.md` |
 | 2026-07-31 | 项目负责人确认按 D4–D8 推荐冻结；新增 Impl-3q 正式冻结候选门，固定4×4模板、4个131-token filler、96条控制、5个SHA-256种子、原SESOI和N=320双重功效模拟，并硬性禁止生成 Core Set或读取正式state-only结果 | `configs/preregistration/exp001_track_s.formal_v1.json`、`scripts/run_impl3q_exp001_formal_freeze_candidate_gate.sh`、`schemas/exp001_preregistration_candidate.schema.json`、89项本地测试 |
 | 2026-07-31 | Impl-3q 诊断完整但冻结候选Hold：功效门通过，模板资格和控制基线失败；候选未就绪，确认集未读取、Core Set未生成。进入只读细分审计，不确认本次checksum | 云端 `results/development/impl3q_exp001_formal_freeze_candidate/summary.json` |
+| 2026-07-31 | Impl-3q细分显示格式始终有效，正式模板在四代码边际化后仍有21/128语义错误；复制和单字段控制100%，双字段控制代码级50%。新增不加载模型的模板交互与控制标签边际化审计，先区分答案代码偏差和真实组合失败 | `src/psa/preregistration/formal_review.py`、`scripts/review_impl3q_exp001_formal_freeze_candidate.sh`、90项本地测试 |

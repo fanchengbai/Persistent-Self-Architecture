@@ -10,6 +10,11 @@ from psa.preregistration.formal_freeze import (
     simulate_power,
     verify_preregistration_candidate,
 )
+from psa.preregistration.formal_review import (
+    review_control_rotation,
+    review_template_interactions,
+    run_formal_freeze_review,
+)
 
 __all__ = [
     "derive_formal_seed",
@@ -18,6 +23,9 @@ __all__ = [
     "generate_control_manifest",
     "generate_template_qualification_manifest",
     "run_formal_freeze_candidate_gate",
+    "run_formal_freeze_review",
+    "review_control_rotation",
+    "review_template_interactions",
     "simulate_power",
     "verify_preregistration_candidate",
 ]

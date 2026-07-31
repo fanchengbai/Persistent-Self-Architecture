@@ -243,6 +243,10 @@ Phase 0 → Phase 1 — Research Design / State Infrastructure
     通用控制基线未通过，因此 `freeze_candidate_ready=false`。本次没有读取
     正式state-only结果，也没有生成Core Set；当前先做只读错误细分，不确认
     失败候选的checksum。
+36. 细分报告证明格式不是问题：正式模板四代码边际化后为83.59%，仍有
+    21/128个语义错误；复制和单字段控制均为100%，无关双字段控制代码级为
+    50%。Impl-3q-a只读审计会补算控制题的四轮边际化，并按模板交互、filler、
+    标签对和目标组合定位错误，不重新加载模型。
 
 ## 项目文档
 

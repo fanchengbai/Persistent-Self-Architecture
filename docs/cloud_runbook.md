@@ -702,6 +702,19 @@ python -m psa preregistration-verify \
 即使全部满足，也不能继续运行确认集。下一步是人工核对并明确确认
 `candidate_digest_sha256`；没有这一步，不得生成或解封 Core Set。
 
+若 Impl-3q 为有效Hold，先运行只读审计：
+
+```bash
+git pull --ff-only
+source .venv/bin/activate
+bash scripts/review_impl3q_exp001_formal_freeze_candidate.sh
+```
+
+它只读取现有manifest、原始分数和报告，生成
+`formal_freeze_review.json`。它不会加载模型、重跑题目、读取确认结果或
+生成Core Set。重点检查 `control_review.route_decision` 和总
+`route_decision`，再决定是否只修正控制读出，或同时修订双字段模板族。
+
 ## 6. 运行纯逻辑测试
 
 ```bash
