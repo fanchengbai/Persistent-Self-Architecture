@@ -212,6 +212,9 @@ Phase 0 → Phase 1 — Research Design / State Infrastructure
 27. Impl-3n 中 96/96 组件 diff、完整 swap、tokenizer 和来源不变性均通过，
     但官方 `state=None` reset 的重复续算未通过，因此总门有效失败。当前
     保留原阈值和失败报告，暂停 Impl-3o，先审计 reset 的逐次误差与 top-1。
+28. reset 审计显示 10/10 top-1 一致、logits 误差 0.03125 合格，只有 state
+    误差固定为 0.155052、超过 0.125。Impl-3n-a 将比较首次相同形状调用与
+    第 2–11 次调用，验证是否为一次性的 CUDA 首次形状执行效应。
 
 ## 项目文档
 

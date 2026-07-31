@@ -17,6 +17,7 @@ from psa.state.checkpoint import (
     verify_native_checkpoint,
 )
 from psa.state.operations import (
+    _classify_reset_stability,
     official_reset_state,
     randomize_state_matched,
     swap_full_state,
@@ -139,6 +140,22 @@ class CheckpointTests(unittest.TestCase):
     def test_random_state_rejects_negative_seed_before_tensor_work(self) -> None:
         with self.assertRaises(ValueError):
             randomize_state_matched([], object(), seed=-1)
+
+    def test_reset_stability_routes_distinguish_first_call_outlier(self) -> None:
+        passed = {"within_tolerance": True}
+        failed = {"within_tolerance": False}
+        self.assertEqual(
+            _classify_reset_stability([failed] * 10, [passed] * 9),
+            "first_shape_call_outlier",
+        )
+        self.assertEqual(
+            _classify_reset_stability([passed] * 10, [passed] * 9),
+            "no_reset_instability_detected",
+        )
+        self.assertEqual(
+            _classify_reset_stability([failed] * 10, [failed] + [passed] * 8),
+            "persistent_reset_instability",
+        )
 
     def test_g1h_state_replay_configs_preserve_frozen_controls(self) -> None:
         pairs = (

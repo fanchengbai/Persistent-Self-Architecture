@@ -23,6 +23,7 @@ from psa.model import run_interface_gate
 from psa.state import (
     run_checkpoint_roundtrip_gate,
     run_random_state_gate,
+    run_reset_stability_diagnostic,
     run_state_operations_gate,
 )
 from psa.state.checkpoint import run_restore_probe
@@ -322,6 +323,35 @@ def _random_state_gate(args: argparse.Namespace) -> int:
     return 0 if result["valid"] else 2
 
 
+def _reset_stability_diagnostic(args: argparse.Namespace) -> int:
+    failure_path = Path(args.output_dir) / "failure_report.json"
+    failure_path.unlink(missing_ok=True)
+    try:
+        result = run_reset_stability_diagnostic(
+            config_path=args.config,
+            gate_config_path=args.gate_config,
+            output_dir=args.output_dir,
+            project_root=args.project_root,
+        )
+    except Exception as exc:
+        failure = {
+            "failure_version": "0.1",
+            "created_at_utc": datetime.now(timezone.utc).isoformat(),
+            "development_only": True,
+            "gate": _configured_gate_name(
+                args.gate_config, "impl3na_g1h_2_9b_reset_stability"
+            ),
+            "exception_type": type(exc).__name__,
+            "message": str(exc),
+            "config": str(Path(args.config).resolve()),
+            "gate_config": str(Path(args.gate_config).resolve()),
+        }
+        _write_json(failure_path, failure)
+        raise
+    print(json.dumps(result, ensure_ascii=False, indent=2))
+    return 0 if result["valid"] else 2
+
+
 def _impl3_development_gate(args: argparse.Namespace) -> int:
     failure_path = Path(args.output_dir) / "failure_report.json"
     failure_path.unlink(missing_ok=True)
@@ -567,6 +597,18 @@ def build_parser() -> argparse.ArgumentParser:
     state_operations_gate.add_argument("--output-dir", required=True)
     state_operations_gate.add_argument("--project-root", default=".")
     state_operations_gate.set_defaults(handler=_state_operations_gate)
+
+    reset_stability_diagnostic = subparsers.add_parser(
+        "reset-stability-diagnostic",
+        help="compare the first official reset call with stabilized later calls",
+    )
+    reset_stability_diagnostic.add_argument("--config", required=True)
+    reset_stability_diagnostic.add_argument("--gate-config", required=True)
+    reset_stability_diagnostic.add_argument("--output-dir", required=True)
+    reset_stability_diagnostic.add_argument("--project-root", default=".")
+    reset_stability_diagnostic.set_defaults(
+        handler=_reset_stability_diagnostic
+    )
 
     random_state_gate = subparsers.add_parser(
         "random-state-gate",

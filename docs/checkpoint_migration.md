@@ -448,3 +448,22 @@ tokenizer roundtrip 和来源状态不变性均通过，但 `reset_valid=false`�
 3. `state=None` 初始化路径存在独立的不稳定性。
 
 只有完成这项审计后，才能决定修复实现、增加受控校准门，或停止该路线。
+
+详细报告显示，10/10 次 reset 的 top-1 全部一致，logits 最大误差 0.03125
+低于 0.0625；只有 state 最大误差 0.155052 高于 0.125，而且十次取值完全
+相同。锁定的
+[`rwkv==0.8.32`](https://pypi.org/project/rwkv/0.8.32/) 源码包
+（SHA-256 `a7941f38d40a55cfb4d38cee72c572ba65eb2f6314988d5c2568411aaced8031`）
+显示 v7 的 `state=None` 会调用 `generate_zero_state()`，逐层创建全零张量。
+因此随机初始状态不是解释。
+
+新增 Impl-3n-a 独立诊断。它复现原门的两种 prefix 形状，再对相同 suffix
+连续执行 11 次 reset，并同时输出：
+
+- 第 1 次参考对第 2–11 次；
+- 第 2 次稳定参考对第 3–11 次；
+- 所有相邻调用。
+
+若只有第一组失败、第二组和后续相邻调用全部通过，路线为
+`first_shape_call_outlier`；若第 2 次之后仍不稳定，路线为
+`persistent_reset_instability`。该诊断不更改原 Impl-3n 的失败状态。

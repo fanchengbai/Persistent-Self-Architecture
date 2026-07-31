@@ -14,6 +14,7 @@ from psa.state.operations import (
     official_reset_state,
     randomize_state_matched,
     run_random_state_gate,
+    run_reset_stability_diagnostic,
     run_state_operations_gate,
     swap_full_state,
 )
@@ -28,6 +29,7 @@ __all__ = [
     "randomize_state_matched",
     "run_checkpoint_roundtrip_gate",
     "run_random_state_gate",
+    "run_reset_stability_diagnostic",
     "run_state_operations_gate",
     "save_native_checkpoint",
     "swap_full_state",

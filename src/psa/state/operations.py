@@ -265,6 +265,55 @@ def _top1_id(logits: Any) -> int:
     return int(logits.detach().float().argmax().item())
 
 
+def _compare_forward_results(
+    logits: Any,
+    state: Any,
+    reference_logits: Any,
+    reference_state: Any,
+    torch: Any,
+    acceptance: dict[str, Any],
+) -> dict[str, Any]:
+    logits_comparison = compare_tensors(logits, reference_logits, torch)
+    state_comparison = compare_states(state, reference_state, torch)
+    top1_match = _top1_id(logits) == _top1_id(reference_logits)
+    exact = bool(logits_comparison["exact"] and state_comparison["exact"])
+    within_tolerance = _comparison_passes(
+        logits_comparison,
+        state_comparison,
+        top1_match=top1_match,
+        acceptance=acceptance,
+    )
+    return {
+        "exact": exact,
+        "within_tolerance": within_tolerance,
+        "top1_match": top1_match,
+        "logits_max_abs_error": logits_comparison["max_abs_error"],
+        "state_max_abs_error": state_comparison["max_abs_error"],
+    }
+
+
+def _classify_reset_stability(
+    first_reference_comparisons: list[dict[str, Any]],
+    stabilized_reference_comparisons: list[dict[str, Any]],
+) -> str:
+    if not first_reference_comparisons:
+        raise ValueError("first-reference comparisons must be non-empty")
+    if not stabilized_reference_comparisons:
+        raise ValueError("stabilized-reference comparisons must be non-empty")
+    first_all_pass = all(
+        item["within_tolerance"] for item in first_reference_comparisons
+    )
+    stabilized_all_pass = all(
+        item["within_tolerance"]
+        for item in stabilized_reference_comparisons
+    )
+    if first_all_pass:
+        return "no_reset_instability_detected"
+    if stabilized_all_pass:
+        return "first_shape_call_outlier"
+    return "persistent_reset_instability"
+
+
 def _repeat_from_state(
     adapter: RWKV7Adapter,
     tokens: list[int],
@@ -529,6 +578,168 @@ def run_state_operations_gate(
     _write_json(destination / "state_diff_report.json", branch_diff)
     _write_json(destination / "reset_validation.json", reset_probe)
     _write_json(destination / "swap_validation.json", swap_probe)
+    _write_json(destination / "summary.json", summary)
+    return summary
+
+
+def run_reset_stability_diagnostic(
+    *,
+    config_path: str | Path,
+    gate_config_path: str | Path,
+    output_dir: str | Path,
+    project_root: str | Path,
+) -> dict[str, Any]:
+    started_at = _utc_now()
+    root = Path(project_root).resolve()
+    destination = Path(output_dir).resolve()
+    gate_config_path = Path(gate_config_path).resolve()
+    gate_config = _read_config(gate_config_path)
+    if (
+        gate_config.get("gate_version") != "0.1"
+        or gate_config.get("gate")
+        != "impl3na_g1h_2_9b_reset_stability"
+        or gate_config.get("development_only") is not True
+    ):
+        raise ValueError("unsupported reset stability diagnostic config")
+    repeat_count = gate_config.get("repeat_count")
+    if not isinstance(repeat_count, int) or repeat_count < 10:
+        raise ValueError("repeat_count must be at least 10")
+    prelude_texts = gate_config.get("prelude_texts")
+    probe_text = gate_config.get("probe_text")
+    if (
+        not isinstance(prelude_texts, list)
+        or not prelude_texts
+        or not all(isinstance(value, str) and value for value in prelude_texts)
+        or not isinstance(probe_text, str)
+        or not probe_text
+    ):
+        raise ValueError("diagnostic text fields must be non-empty strings")
+    _apply_determinism_policy(gate_config.get("determinism"))
+    acceptance = _validate_acceptance_policy(gate_config.get("acceptance"))
+
+    model_config = load_model_config(config_path, root, verify_files=True)
+    adapter = RWKV7Adapter.load(model_config)
+    prelude_tokens = [adapter.encode(text) for text in prelude_texts]
+    probe_tokens = adapter.encode(probe_text)
+    tokenizer_valid = bool(
+        all(
+            adapter.decode(tokens) == text
+            for tokens, text in zip(prelude_tokens, prelude_texts)
+        )
+        and adapter.decode(probe_tokens) == probe_text
+    )
+    for tokens in prelude_tokens:
+        adapter.forward(tokens, official_reset_state())
+
+    first_reference_logits = None
+    first_reference_state = None
+    stabilized_reference_logits = None
+    stabilized_reference_state = None
+    previous_logits = None
+    previous_state = None
+    first_comparisons: list[dict[str, Any]] = []
+    stabilized_comparisons: list[dict[str, Any]] = []
+    adjacent_comparisons: list[dict[str, Any]] = []
+    total_call_count = repeat_count + 1
+    for call_index in range(1, total_call_count + 1):
+        logits, state = adapter.forward(
+            probe_tokens, official_reset_state()
+        )
+        if call_index == 1:
+            first_reference_logits = logits.detach().clone()
+            first_reference_state = clone_state(state)
+        else:
+            comparison = _compare_forward_results(
+                logits,
+                state,
+                first_reference_logits,
+                first_reference_state,
+                adapter.torch,
+                acceptance,
+            )
+            comparison["call"] = call_index
+            first_comparisons.append(comparison)
+        if call_index == 2:
+            stabilized_reference_logits = logits.detach().clone()
+            stabilized_reference_state = clone_state(state)
+        elif call_index >= 3:
+            comparison = _compare_forward_results(
+                logits,
+                state,
+                stabilized_reference_logits,
+                stabilized_reference_state,
+                adapter.torch,
+                acceptance,
+            )
+            comparison["call"] = call_index
+            stabilized_comparisons.append(comparison)
+        if previous_logits is not None:
+            comparison = _compare_forward_results(
+                logits,
+                state,
+                previous_logits,
+                previous_state,
+                adapter.torch,
+                acceptance,
+            )
+            comparison["from_call"] = call_index - 1
+            comparison["to_call"] = call_index
+            adjacent_comparisons.append(comparison)
+        previous_logits = logits.detach().clone()
+        previous_state = clone_state(state)
+
+    route_decision = _classify_reset_stability(
+        first_comparisons, stabilized_comparisons
+    )
+    report = {
+        "report_version": "0.1",
+        "created_at_utc": _utc_now(),
+        "development_only": True,
+        "mode": "same_process_repeated_official_reset",
+        "model_id": model_config.model_id,
+        "reset_representation": "None",
+        "prelude_call_count": len(prelude_tokens),
+        "total_reset_call_count": total_call_count,
+        "acceptance": acceptance,
+        "tokenizer_roundtrip_valid": tokenizer_valid,
+        "first_reference_comparisons": first_comparisons,
+        "stabilized_reference_comparisons": stabilized_comparisons,
+        "adjacent_comparisons": adjacent_comparisons,
+        "first_reference_tolerance_pass_count": sum(
+            item["within_tolerance"] for item in first_comparisons
+        ),
+        "stabilized_reference_tolerance_pass_count": sum(
+            item["within_tolerance"] for item in stabilized_comparisons
+        ),
+        "adjacent_tolerance_pass_count": sum(
+            item["within_tolerance"] for item in adjacent_comparisons
+        ),
+        "route_decision": route_decision,
+        "diagnostic_complete": True,
+        "valid": True,
+    }
+    summary = {
+        "gate": "impl3na_g1h_2_9b_reset_stability",
+        "started_at_utc": started_at,
+        "finished_at_utc": _utc_now(),
+        "development_only": True,
+        "model_id": model_config.model_id,
+        "gate_config_sha256": sha256_file(gate_config_path),
+        "total_reset_call_count": total_call_count,
+        "first_reference_tolerance_pass_count": report[
+            "first_reference_tolerance_pass_count"
+        ],
+        "stabilized_reference_tolerance_pass_count": report[
+            "stabilized_reference_tolerance_pass_count"
+        ],
+        "adjacent_tolerance_pass_count": report[
+            "adjacent_tolerance_pass_count"
+        ],
+        "route_decision": route_decision,
+        "valid": True,
+        "reports": ["reset_stability_report.json"],
+    }
+    _write_json(destination / "reset_stability_report.json", report)
     _write_json(destination / "summary.json", summary)
     return summary
 

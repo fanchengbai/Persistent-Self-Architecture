@@ -572,6 +572,20 @@ cat results/development/impl3n_g1h_2.9b_state_operations/summary.json
 期望 `state_diff_valid`、`reset_valid`、`swap_valid` 和
 `source_states_immutable` 全部为 `true`，组件数应为 96。
 
+首次结果只有 reset 失败，且详细报告显示 state 误差固定超限。运行独立的
+首次形状执行诊断：
+
+### 5.17a 运行 Impl-3n-a reset 稳定性诊断
+
+```bash
+bash scripts/run_impl3na_g1h_2.9b_reset_stability_diagnostic.sh
+cat results/development/impl3na_g1h_2.9b_reset_stability/summary.json
+```
+
+重点查看 `route_decision`、`first_reference_tolerance_pass_count`、
+`stabilized_reference_tolerance_pass_count` 和
+`adjacent_tolerance_pass_count`。该诊断不会覆盖 Impl-3n 的失败报告。
+
 ### 5.18 Impl-3n 通过后运行 Impl-3o 随机状态复验
 
 ```bash
