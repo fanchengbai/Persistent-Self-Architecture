@@ -883,6 +883,10 @@ identity/goal marginal accuracy 均为 0.5，format-valid rate 由 v0.1 的
 `valid=true` 只表示诊断完整执行，`capability_gate_passed` 才表示可以进入
 Batch 2。`route_decision` 明确区分回答接口、单字段匹配和组合匹配限制。
 
+Impl-3p 随后在 Batch 2 比较三种历史写入协议。固定规则选择首个标签边际化
+准确率达到 0.80 的模式，而不是选择最高分。实际三种模式均通过，最简的
+`single_statement` 为 31/32，因此路线固定为 `freeze_single_statement`。
+
 ### Impl-4：工程参数冻结与预注册
 
 - freeze；

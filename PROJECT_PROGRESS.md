@@ -1,7 +1,7 @@
 # Persistent Self Architecture 项目进度表
 
 > 最后更新：2026-07-31
-> 当前节点：Batch 2 的 D1–D3 已确认；Impl-3p 历史写入比较门等待云端
+> 当前节点：Impl-3p 已选择 `single_statement`；等待正式模板、控制任务、seeds 与统计协议确认
 > 研究状态：尚未进入正式确认性实验，尚未实现显式 Self Model
 
 ## 1. 这张表怎么使用
@@ -63,8 +63,8 @@
 | 33. Impl-3n-a：reset 首次形状执行诊断 | ✅ 完成 | 复现原门前奏后连续 reset 11 次，分别用第 1 次和第 2 次作参考比较后续调用 | 十次完全相同的超限更像第一次遇到该 token 长度时的 CUDA 首次执行差异；必须直接验证，不能直接丢掉第一次后宣布通过 | 路线为 `first_shape_call_outlier`：第1次参考对后续 0/10 通过，第2次稳定参考对第3–11次 9/9 通过，相邻调用 9/10 通过；异常仅发生在第1→2次 | 项目负责人运行；Codex 诊断 |
 | 34. Impl-3n-b：单次预热后完整状态操作复验 | ✅ 通过 | 在评分前执行一次相同 suffix 的 `state=None` 调用，然后原样重跑 diff/reset/swap | 用独立新门检验预先声明的单次预热能否消除已确认的首次形状效应，同时不覆盖原失败 | `reset_shape_warmup_count=1`；96/96 组件可区分，tokenizer、diff、reset、swap、来源状态不变性和总门全部通过。原 Impl-3n 的失败记录保留 | 项目负责人运行；Codex 诊断 |
 | 35. Impl-3o：2.9B matched random 复验 | ✅ 通过 | 生成与 2.9B 真实 state 分组件尺度匹配的随机状态，并验证种子复现和稳定续算 | random 对照必须和真状态同形同尺度，才能排除“随便塞噪声”的解释 | 96 个组件；同 seed 逐位复现、异 seed 可区分、尺度和续算均有效；最大相对 L2 误差仅 `2.8688e-05`，远低于 `0.01`；来源不变且总门 `valid=true` | 项目负责人运行；Codex 诊断 |
-| 36. Batch 2：冻结任务参数 | 🟡 审阅中 | 冻结 checkpoint、标签池、模板、delay、答案格式、轮换读出和阈值 | 一旦冻结，后面不能因为结果不好随意改题或换模型 | D1–D3 已确认：state-only 保留通用规则、首轮先做 Track S、首轮只纳入核心恢复与 swap 条件。历史写入协议交给 Impl-3p 受控比较；正式模板、控制任务、seeds 和统计模拟仍待完成 | Codex 整理；项目负责人确认 |
-| 36a. Impl-3p：历史写入协议比较 | 🟡 等待云端 | 在相同案例、delay 和 state-only 查询下比较单次声明、声明后验证、多次一致绑定 | recurrent state 如何形成会直接影响正式实验，必须在确认集前固定，又不能简单挑分数最高的方案 | 实现与配置完成；每种 32 个语义案例×4 代码轮换，共 384 条。按复杂度选择首个标签边际化准确率≥0.80且来源 state 不变的模式；三种都失败则 Revise。本地 82 项测试通过 | Codex 已完成；项目负责人运行 |
+| 36. Batch 2：冻结任务参数 | 🟡 审阅中 | 冻结 checkpoint、标签池、模板、delay、答案格式、轮换读出和阈值 | 一旦冻结，后面不能因为结果不好随意改题或换模型 | D1–D3 与历史写入协议已确认：state-only 保留通用规则、首轮采用 Track S、核心恢复与 swap 条件、`single_statement`；正式模板、控制任务、seeds、SESOI 与统计模拟仍待确认 | Codex 整理；项目负责人确认 |
+| 36a. Impl-3p：历史写入协议比较 | ✅ 已通过 | 在相同案例、delay 和 state-only 查询下比较单次声明、声明后验证、多次一致绑定 | recurrent state 如何形成会直接影响正式实验，必须在确认集前固定，又不能简单挑分数最高的方案 | 384 条比较完成；三种模式标签边际化准确率分别为 96.875%、100%、100%，均超过 80% 门槛且来源 state 不变。按预注册的简洁性优先规则选择首个达标的 `single_statement`；峰值显存约 6.23 GB | Codex 已完成；项目负责人已运行 |
 | 37. Impl-4：预注册 | ⏳ 未开始 | 固定代码、配置、样本量、随机种子和判断标准 | 防止看到正式结果后改变成功标准 | 尚未开始 | Codex 整理；项目负责人确认 |
 | 38. Phase 2：正式原生 state 实验 | ⏳ 未开始 | 比较 original/reset/random/swap 等条件 | 这一步才真正测试 recurrent state 是否是跨时间因果载体 | 尚无研究结论 | 项目负责人运行；Codex 分析 |
 | 39. Phase 3：显式 Self Model | ⏳ 未开始 | 实现 Self Store、Self Encoder 和 gated injection | 只有原生状态基线可靠后，才能判断显式 Self Model 是否带来额外价值 | 目前只有设计，没有加入模型 | 后续由 Codex 实现 |
@@ -117,8 +117,9 @@
    ✅ Impl-3o matched-random 全部通过
 Batch 2 参数冻结
    ✅ D1–D3 设计建议已确认
-   🟡 Impl-3p 历史写入协议等待运行
-   ⏳ 正式模板、控制任务、seeds、统计模拟和预注册包
+   ✅ Impl-3p 选择 single_statement
+   🟡 正式模板、控制任务、seeds、SESOI 与统计协议等待确认
+   ⏳ 生成并封存不可变预注册包
 正式 state 因果实验
    ⏳
 显式 Self Model
@@ -295,19 +296,22 @@ Impl-3o 已完整通过：
 2. 首轮先做 Track S，把 Track N 延后；
 3. 首轮只纳入核心恢复与 swap 条件。
 
-下一步运行 Impl-3p。它只使用开发案例比较历史状态的形成方式，不运行确认集：
+Impl-3p 已完成 384 条开发比较并通过。三种历史写入模式的标签边际化准确率为：
 
-```bash
-git pull --ff-only
-source .venv/bin/activate
-bash scripts/run_impl3p_g1h_2.9b_history_binding_gate.sh
-cat results/development/impl3p_g1h_2.9b_history_binding/summary.json
-```
+| 模式 | 标签边际化准确率 | 是否达 80% 门槛 | 是否修改来源 state |
+|---|---:|---|---|
+| `single_statement` | 96.875%（31/32） | 是 | 否 |
+| `statement_plus_verification` | 100%（32/32） | 是 | 否 |
+| `repeated_consistent` | 100%（32/32） | 是 | 否 |
 
-选择不是“谁分数最高就选谁”，而是按照
+因此不挑最高分，而是严格执行运行前固定的
 `single_statement → statement_plus_verification → repeated_consistent`
-的顺序，选择第一个达到固定门槛的模式。收到 summary 前不冻结正式模板，
-不生成 Core Set。
+顺序，冻结首个达标的 `single_statement` 作为正式候选协议。
+
+下一步不是直接运行确认集，而是共同确认正式模板族、一般能力控制任务、
+随机种子生成规则、最小有意义效应（SESOI）和统计模拟方案。确认后才生成并
+校验不可变预注册包；在预注册包封存之前，不生成 Core Set，也不查看正式
+state-only 结果。
 
 本次“持续 Self + 世界模型 + 内生驱动”理论评审不改变上述下一步。它补充的是
 显式 Self 和受约束更新均通过后的未来研究层：系统能否根据内部冲突、
@@ -368,3 +372,4 @@ cat results/development/impl3p_g1h_2.9b_history_binding/summary.json
 | 2026-07-31 | 评审“持续 Self + 世界模型 + 内生驱动”架构：吸收计算路由、记忆回放和零新外部观察实验；将内部张力改为派生控制信号，加入 timer/random/外部反思基线与有意义更新标准；纳入 Phase/Stage 5，但不改变当前 Impl-3o | `docs/endogenous_deliberation.md`、`docs/architecture.md` v0.2、`docs/definitions.md` |
 | 2026-07-31 | Impl-3o 完整通过：96 组件 matched-random 同 seed 逐位复现、异 seed 可区分、尺度与续算有效，最大相对 L2 误差 `2.8688e-05`；2.9B 状态工程门全部闭合，进入 Batch 2 冻结审阅而非正式实验 | 云端 `results/development/impl3o_g1h_2.9b_random_matched/summary.json`、`docs/exp001_batch2_freeze_review.md` |
 | 2026-07-31 | 项目负责人确认 Batch 2 的 D1–D3 建议；新增 Impl-3p，在相同 Track S 案例、131-token delay 和四代码轮换下比较三种历史写入协议，按预先固定的最简通过规则选择，三种均失败时保持 Revise | `configs/gates/impl3p_g1h_2.9b_history_binding.dev.json`、`scripts/run_impl3p_g1h_2.9b_history_binding_gate.sh`、82 项本地测试 |
+| 2026-07-31 | Impl-3p 完整通过：三种模式标签边际化准确率分别为 96.875%、100%、100%，来源 state 均保持不变；按运行前固定的简洁性优先顺序选择首个达标的 `single_statement`，未因另外两种满分而改选 | 云端 `results/development/impl3p_g1h_2.9b_history_binding/summary.json`、`docs/exp001_batch2_freeze_review.md` |

@@ -646,6 +646,19 @@ A–D，因此共运行 384 条受控读出。它按固定复杂度顺序选择�
 若 `valid=true` 但 `history_binding_gate_passed=false`，表示诊断完整但三种
 写入方式都没有达到预设门槛，应进入 Revise，不得降低阈值或直接生成确认集。
 
+实际结果为：
+
+- `valid=true`；
+- `history_binding_gate_passed=true`；
+- `selected_mode=single_statement`；
+- `route_decision=freeze_single_statement`；
+- 单次声明标签边际化准确率 31/32；
+- 声明后验证和重复一致绑定均为 32/32。
+
+根据运行前规则冻结候选必须是单次声明，不能改选开发分数更高的复杂方案。
+至此不再运行历史写入开发门，进入正式模板、控制任务、seeds、统计模拟和
+预注册包冻结。
+
 ## 6. 运行纯逻辑测试
 
 ```bash
