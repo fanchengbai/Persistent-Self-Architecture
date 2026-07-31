@@ -22,8 +22,10 @@ from psa.environment import collect_environment
 from psa.evaluation import group_contrasts
 from psa.model import run_interface_gate
 from psa.preregistration import (
+    finalize_preregistration_package,
     run_formal_freeze_candidate_gate,
     run_formal_freeze_review,
+    verify_final_preregistration_package,
     verify_preregistration_candidate,
 )
 from psa.state import (
@@ -566,6 +568,23 @@ def _formal_freeze_review(args: argparse.Namespace) -> int:
     return 0 if result["valid"] else 2
 
 
+def _preregistration_finalize(args: argparse.Namespace) -> int:
+    result = finalize_preregistration_package(
+        candidate_path=args.candidate,
+        verification_path=args.verification,
+        confirmation_path=args.confirmation,
+        output_dir=args.output_dir,
+    )
+    print(json.dumps(result, ensure_ascii=False, indent=2))
+    return 0 if result["valid"] else 2
+
+
+def _preregistration_final_verify(args: argparse.Namespace) -> int:
+    result = verify_final_preregistration_package(args.package_dir)
+    print(json.dumps(result, ensure_ascii=False, indent=2))
+    return 0 if result["valid"] else 2
+
+
 def _add_asset_common_arguments(parser: argparse.ArgumentParser) -> None:
     parser.add_argument("--manifest", required=True)
     parser.add_argument("--root", default=".psa-assets")
@@ -794,6 +813,33 @@ def build_parser() -> argparse.ArgumentParser:
     preregistration_verify.add_argument("--output")
     preregistration_verify.set_defaults(
         handler=_preregistration_verify
+    )
+
+    preregistration_finalize = subparsers.add_parser(
+        "preregistration-finalize",
+        help=(
+            "freeze a verified candidate plus project-owner confirmation "
+            "without generating a Core Set"
+        ),
+    )
+    preregistration_finalize.add_argument("--candidate", required=True)
+    preregistration_finalize.add_argument("--verification", required=True)
+    preregistration_finalize.add_argument("--confirmation", required=True)
+    preregistration_finalize.add_argument("--output-dir", required=True)
+    preregistration_finalize.set_defaults(
+        handler=_preregistration_finalize
+    )
+
+    preregistration_final_verify = subparsers.add_parser(
+        "preregistration-final-verify",
+        help="verify a frozen final preregistration package",
+    )
+    preregistration_final_verify.add_argument(
+        "--package-dir",
+        required=True,
+    )
+    preregistration_final_verify.set_defaults(
+        handler=_preregistration_final_verify
     )
 
     formal_freeze_review = subparsers.add_parser(

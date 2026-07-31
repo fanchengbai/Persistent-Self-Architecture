@@ -791,6 +791,20 @@ python -c "import json; b='results/development/impl3t_exp001_formal_v3_holdout';
 `candidate_digest_sha256`，才允许把候选升级为最终预注册包；脚本通过本身
 不构成确认。
 
+EXP-001 的项目负责人已确认候选
+`a354b208be0640da7ea70fe070f75bdec69186e496ba1cc14c3157dcd984e6cd`，
+并明确排除Core Set与正式实验授权。拉取包含确认记录的提交后，可只读复核
+已冻结的最终包：
+
+```bash
+bash scripts/finalize_exp001_preregistration.sh
+cat preregistration/exp001/final_v1/manifest.json
+```
+
+该脚本可重复安全执行，只会确认同一个已锁定包；不会加载模型、生成Core Set
+或运行正式实验。预期最终digest为
+`0daf056dc6b38aa20fa69dd9e8df9b8065876529947cbc01353ffe604933d0c9`。
+
 ## 6. 运行纯逻辑测试
 
 ```bash

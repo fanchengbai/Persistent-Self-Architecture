@@ -1,0 +1,111 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://persistent-self-architecture.local/exp001_final_preregistration.schema.json",
+  "title": "EXP-001 Final Preregistration Package",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "package_version",
+    "experiment_id",
+    "status",
+    "frozen_at_utc",
+    "source_gate",
+    "model_id",
+    "candidate_digest_sha256",
+    "candidate_payload_root_digest_sha256",
+    "human_confirmation",
+    "qualification",
+    "confirmed_decision_ids",
+    "conditions",
+    "factorial_group_count",
+    "seeds",
+    "statistics",
+    "authorization",
+    "safety_boundary",
+    "source_file_digest_count",
+    "evidence_file_digest_count",
+    "locked_files",
+    "package_payload_root_digest_sha256",
+    "final_preregistration_digest_sha256"
+  ],
+  "properties": {
+    "package_version": {"const": "1.0"},
+    "experiment_id": {"const": "EXP-001"},
+    "status": {"const": "final_preregistration_frozen"},
+    "frozen_at_utc": {"type": "string", "minLength": 20},
+    "source_gate": {"const": "impl3t_exp001_formal_v3_holdout"},
+    "model_id": {"const": "rwkv7-g1h-2.9b-20260710"},
+    "candidate_digest_sha256": {
+      "const": "a354b208be0640da7ea70fe070f75bdec69186e496ba1cc14c3157dcd984e6cd"
+    },
+    "candidate_payload_root_digest_sha256": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{64}$"
+    },
+    "human_confirmation": {"type": "object"},
+    "qualification": {"type": "object"},
+    "confirmed_decision_ids": {
+      "type": "array",
+      "const": ["D4", "D5", "D6", "D7", "D8"]
+    },
+    "conditions": {
+      "type": "array",
+      "const": [
+        "continuous",
+        "restored",
+        "reset",
+        "random_matched",
+        "swapped_I",
+        "swapped_G",
+        "swapped_both",
+        "prompt_visible"
+      ]
+    },
+    "factorial_group_count": {"const": 320},
+    "seeds": {"type": "object"},
+    "statistics": {"type": "object"},
+    "authorization": {
+      "type": "object",
+      "const": {
+        "upgrade_to_final_preregistration_package": true,
+        "generate_core_set": false,
+        "run_confirmatory_experiment": false
+      }
+    },
+    "safety_boundary": {
+      "type": "object",
+      "properties": {
+        "core_set_generated": {"const": false},
+        "core_set_unsealed": {"const": false},
+        "formal_state_only_results_observed": {"const": false},
+        "core_set_generation_authorized": {"const": false},
+        "confirmatory_experiment_authorized": {"const": false}
+      },
+      "required": [
+        "core_set_generated",
+        "core_set_unsealed",
+        "formal_state_only_results_observed",
+        "core_set_generation_authorized",
+        "confirmatory_experiment_authorized"
+      ]
+    },
+    "source_file_digest_count": {"const": 23},
+    "evidence_file_digest_count": {"const": 10},
+    "locked_files": {
+      "type": "object",
+      "required": [
+        "candidate.json",
+        "human_confirmation.json",
+        "verification.json"
+      ]
+    },
+    "package_payload_root_digest_sha256": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{64}$"
+    },
+    "final_preregistration_digest_sha256": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{64}$"
+    }
+  }
+}

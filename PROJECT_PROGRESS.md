@@ -1,7 +1,7 @@
 # Persistent Self Architecture 项目进度表
 
 > 最后更新：2026-07-31
-> 当前节点：Impl-3t 候选的技术与内容审阅通过；等待项目负责人明确确认 candidate checksum
+> 当前节点：EXP-001 最终预注册包已冻结；等待另行授权 Core Set，当前停止计算
 > 研究状态：尚未进入正式确认性实验，尚未实现显式 Self Model
 
 ## 1. 这张表怎么使用
@@ -63,7 +63,7 @@
 | 33. Impl-3n-a：reset 首次形状执行诊断 | ✅ 完成 | 复现原门前奏后连续 reset 11 次，分别用第 1 次和第 2 次作参考比较后续调用 | 十次完全相同的超限更像第一次遇到该 token 长度时的 CUDA 首次执行差异；必须直接验证，不能直接丢掉第一次后宣布通过 | 路线为 `first_shape_call_outlier`：第1次参考对后续 0/10 通过，第2次稳定参考对第3–11次 9/9 通过，相邻调用 9/10 通过；异常仅发生在第1→2次 | 项目负责人运行；Codex 诊断 |
 | 34. Impl-3n-b：单次预热后完整状态操作复验 | ✅ 通过 | 在评分前执行一次相同 suffix 的 `state=None` 调用，然后原样重跑 diff/reset/swap | 用独立新门检验预先声明的单次预热能否消除已确认的首次形状效应，同时不覆盖原失败 | `reset_shape_warmup_count=1`；96/96 组件可区分，tokenizer、diff、reset、swap、来源状态不变性和总门全部通过。原 Impl-3n 的失败记录保留 | 项目负责人运行；Codex 诊断 |
 | 35. Impl-3o：2.9B matched random 复验 | ✅ 通过 | 生成与 2.9B 真实 state 分组件尺度匹配的随机状态，并验证种子复现和稳定续算 | random 对照必须和真状态同形同尺度，才能排除“随便塞噪声”的解释 | 96 个组件；同 seed 逐位复现、异 seed 可区分、尺度和续算均有效；最大相对 L2 误差仅 `2.8688e-05`，远低于 `0.01`；来源不变且总门 `valid=true` | 项目负责人运行；Codex 诊断 |
-| 36. Batch 2：冻结任务参数 | 🟡 候选等待负责人确认 | 冻结 checkpoint、标签池、模板、delay、答案格式、轮换读出和阈值 | 一旦冻结，后面不能因为结果不好随意改题或换模型 | Impl-3t一次性留出资格门已通过；候选的完整性、安全边界和冻结内容也已人工核对无误。现在只差项目负责人明确确认checksum，之后才能升级为预注册包 | Codex 实现与核对；项目负责人确认 |
+| 36. Batch 2：冻结任务参数 | ✅ 完成 | 冻结 checkpoint、标签池、模板、delay、答案格式、轮换读出和阈值 | 一旦冻结，后面不能因为结果不好随意改题或换模型 | Impl-3t一次性留出资格门、技术审阅和负责人checksum确认均已完成；冻结参数已经进入最终预注册包 | 共同完成 |
 | 36a. Impl-3p：历史写入协议比较 | ✅ 已通过 | 在相同案例、delay 和 state-only 查询下比较单次声明、声明后验证、多次一致绑定 | recurrent state 如何形成会直接影响正式实验，必须在确认集前固定，又不能简单挑分数最高的方案 | 384 条比较完成；三种模式标签边际化准确率分别为 96.875%、100%、100%，均超过 80% 门槛且来源 state 不变。按预注册的简洁性优先规则选择首个达标的 `single_statement`；峰值显存约 6.23 GB | Codex 已完成；项目负责人已运行 |
 | 36b. Impl-3q：正式冻结候选门 | 🟠 有效 Hold | 只用 prompt-visible 题资格审查4×4正式模板，验证96条通用控制，运行10,000次功效模拟，并锁定源码、配置、原始记录和报告 digest | 在不偷看正式 state-only 结果的情况下，确认“试卷清楚、控制题可做、样本量够用、文件不能悄悄改” | `valid=true`、功效门通过，但模板资格与控制基线均失败，故 `freeze_candidate_ready=false`；608条读出完整，约18.1分钟，峰值显存约6.23GB；确认集未读取、Core Set未生成 | 项目负责人已运行；Codex 审计 |
 | 36c. Impl-3q-a：失败细分审计 | ✅ 完成 | 只读取模板、控制和轮换错误分布，不重跑模型、不修改阈值 | 必须先区分模板理解、答案代码偏差和格式失败，才能决定是否修订 | 模板四轮平均后仍为107/128（83.59%）；双字段控制四轮平均仅2/8（25%），且几乎总猜 `cinder+trace`，确认是真实双字段语义失败，不是格式或A–D偏差；路线为 `revise_formal_and_control_two_field_prompt_families` | 项目负责人已运行；Codex 已诊断 |
@@ -74,8 +74,9 @@
 | 36h. Impl-3s-a：v3 终止判定审计 | ✅ 完成 | 读取v3已有分数，比较v2/v3的三个BCa区间、模板交互和错误集中度 | 连续两次受控模板修订仍未取得资格，必须防止无限prompt调参和开发集过拟合 | 8个联合错误中5个在history-03，但该位置v2/v3沿用同一案例流；其余错误跨query-02/03/04、filler-01/02/04、两组标签和全部目标组合。没有可辩护的下一句prompt修订；终止措辞调优 | Codex 已诊断；项目负责人已回传明细 |
 | 36i. Impl-3t：v3 一次性留出资格门 | ✅ 通过 | v3模板逐字不变，用从新SHA-256命名空间生成的未观察seed创建一次全新prompt-visible资格集 | 把v1–v3视为开发过程，用未参与模板修改的数据做一次最终验证，比继续调词或直接用近失结果更能控制过拟合 | `valid=true`；模板、控制、功效全部通过，`freeze_candidate_ready=true`，路线为 `review_preregistration_checksum`。耗时约20.25分钟、峰值显存约6.23GB；确认结果未读取、Core Set未生成 | 项目负责人已运行；Codex 核对 |
 | 36j. 人工 checksum 技术与内容审阅 | ✅ 通过 | 比较候选自校验、payload root、全部源码与证据digest、安全边界和冻结设计字段 | 自动门通过后仍要确认文件没有缺失、设计没有写错、冻结范围与此前决定一致 | 自校验、payload root、23项源码检查、10项证据检查和安全边界全部通过；8个正式条件与已接受D3一致，D4–D8、N=320、种子、统计方案和模板数量均一致 | Codex 核对 |
-| 36k. 项目负责人确认 checksum | 🟡 等待明确确认 | 由项目负责人逐字确认完整candidate digest，并授权把候选升级为最终预注册包 | 技术审阅不能代替研究负责人的最终冻结决定；这一步只确认预注册内容，不自动授权生成Core Set或运行正式实验 | 待确认digest=`a354b208be0640da7ea70fe070f75bdec69186e496ba1cc14c3157dcd984e6cd`；当前继续停止计算 | 项目负责人确认 |
-| 37. Impl-4：预注册 | ⏳ 未开始 | 固定代码、配置、样本量、随机种子和判断标准 | 防止看到正式结果后改变成功标准 | 尚未开始 | Codex 整理；项目负责人确认 |
+| 36k. 项目负责人确认 checksum | ✅ 已确认 | 由项目负责人逐字确认完整candidate digest，并授权把候选升级为最终预注册包 | 技术审阅不能代替研究负责人的最终冻结决定；这一步只确认预注册内容，不自动授权生成Core Set或运行正式实验 | 已明确确认`a354b208be0640da7ea70fe070f75bdec69186e496ba1cc14c3157dcd984e6cd`；授权范围明确排除Core Set生成和正式实验 | 项目负责人确认 |
+| 37. Impl-4：最终预注册包 | ✅ 已冻结 | 固定候选、人工验证、负责人确认、样本量、随机种子、统计标准和安全边界，并计算最终包digest | 防止看到正式结果后改变成功标准，同时让任何人都能检查最终包是否被改动 | 状态=`final_preregistration_frozen`；最终digest=`0daf056dc6b38aa20fa69dd9e8df9b8065876529947cbc01353ffe604933d0c9`；包自校验、3个锁定文件、payload root和安全边界全部通过 | Codex 实现与验证 |
+| 37a. Core Set 授权与生成 | ⏸️ 未授权 | 在未来收到单独授权后，按最终预注册包生成/解封320组Core Set | checksum确认只冻结考试规则，不等于允许打开正式试卷 | 当前`core_set_generated=false`、`core_set_generation_authorized=false`，不执行 | 项目负责人另行授权 |
 | 38. Phase 2：正式原生 state 实验 | ⏳ 未开始 | 比较 original/reset/random/swap 等条件 | 这一步才真正测试 recurrent state 是否是跨时间因果载体 | 尚无研究结论 | 项目负责人运行；Codex 分析 |
 | 39. Phase 3：显式 Self Model | ⏳ 未开始 | 实现 Self Store、Self Encoder 和 gated injection | 只有原生状态基线可靠后，才能判断显式 Self Model 是否带来额外价值 | 目前只有设计，没有加入模型 | 后续由 Codex 实现 |
 | 40. Self 更新与演化 | ⏳ 未开始 | 让 Self State 根据经历受控更新、回滚和分化 | 这是“持续自我”真正更深入的部分 | 尚未开始 | 后续阶段 |
@@ -138,7 +139,9 @@ Batch 2 参数冻结
    ✅ Impl-3s-a：错误跨多因素，无可辩护的v4措辞修订
    ✅ Impl-3t：一次性未观察留出集全部门通过
     ✅ candidate、verification、设计范围与安全边界人工核对通过
-    ⏳ 项目负责人尚未明确确认完整 checksum
+    ✅ 项目负责人明确确认完整 checksum
+    ✅ 最终预注册包冻结并自校验通过
+    ⏸️ Core Set未授权、未生成
 正式 state 因果实验
    ⏳
 显式 Self Model
@@ -396,11 +399,12 @@ Impl-3t 已按该规则一次性通过：
 - 候选digest为
   `a354b208be0640da7ea70fe070f75bdec69186e496ba1cc14c3157dcd984e6cd`。
 
-人工只读审阅现已完成：候选自校验、payload root、23项源码检查、10项证据
-检查与安全边界全部通过；8个正式条件与D3一致，D4–D8、N=320、种子、统计
-方案和模板数量也与已接受设计一致。现在继续停止GPU计算，等待项目负责人
-明确确认完整checksum；确认前不升级预注册包、不生成Core Set、不运行正式
-state-only实验。
+人工只读审阅和负责人确认现已完成。候选digest
+`a354b208be0640da7ea70fe070f75bdec69186e496ba1cc14c3157dcd984e6cd`
+已升级为最终预注册包，最终包digest为
+`0daf056dc6b38aa20fa69dd9e8df9b8065876529947cbc01353ffe604933d0c9`。
+包内锁定候选、验证报告和人工确认记录；自校验、payload root和安全边界均
+通过。授权明确排除Core Set生成与正式实验，因此现在继续停止GPU计算。
 
 本次“持续 Self + 世界模型 + 内生驱动”理论评审不改变上述下一步。它补充的是
 显式 Self 和受约束更新均通过后的未来研究层：系统能否根据内部冲突、
@@ -474,3 +478,4 @@ state-only实验。
 | 2026-07-31 | v3的8个错误跨query、filler、标签和目标组合；history-03的5个错误与固定案例流混杂，不能继续归因于一句措辞。终止prompt调优，新增一次性未观察Impl-3t留出门：v3逐字不变，新seed 3061017642；通过只审checksum，失败停止2.9B路线，禁止再抽样或改模板 | `configs/preregistration/exp001_track_s.formal_v3_holdout.json`、`scripts/run_impl3t_exp001_formal_v3_holdout_gate.sh` |
 | 2026-07-31 | Impl-3t 一次性留出资格门全部通过：模板、控制、功效有效，候选就绪且安全边界正常；停止计算，进入candidate digest `a354b208…e6cd` 的人工核对，尚未确认、未生成Core Set | 云端 `results/development/impl3t_exp001_formal_v3_holdout/summary.json` |
 | 2026-07-31 | Impl-3t候选技术与内容审阅通过：self digest、payload root、23项源码、10项证据和安全边界全部有效；8个条件与D3一致，D4–D8、N=320、种子、统计方案和模板数量核对无误。下一步只等待项目负责人明确确认完整checksum；尚未升级预注册包、生成Core Set或运行正式实验 | 云端 `preregistration_verification.manual.json`、`preregistration_candidate.json` |
+| 2026-07-31 | 项目负责人逐字确认完整candidate checksum并授权只升级最终预注册包；新增不可越权的finalize/verify入口，冻结候选、验证报告和人工确认记录。最终包digest为`0daf056d…d0c9`，自校验、3个锁定文件、payload root和安全边界全部通过；Core Set和正式实验仍未授权、未执行 | `preregistration/exp001/final_v1/manifest.json`、`scripts/finalize_exp001_preregistration.sh`、新增7项测试 |

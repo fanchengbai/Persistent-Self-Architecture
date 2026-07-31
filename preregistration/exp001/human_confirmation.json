@@ -1,0 +1,13 @@
+{
+  "confirmation_version": "1.0",
+  "experiment_id": "EXP-001",
+  "candidate_digest_sha256": "a354b208be0640da7ea70fe070f75bdec69186e496ba1cc14c3157dcd984e6cd",
+  "confirmed_by_role": "project_owner",
+  "confirmed_at_utc": "2026-07-31T07:42:05.8729694Z",
+  "confirmation_text": "我确认 EXP-001 预注册候选 checksum：a354b208be0640da7ea70fe070f75bdec69186e496ba1cc14c3157dcd984e6cd，授权将该候选升级为最终预注册包；暂不生成 Core Set，也不运行正式实验。",
+  "authorization": {
+    "upgrade_to_final_preregistration_package": true,
+    "generate_core_set": false,
+    "run_confirmatory_experiment": false
+  }
+}

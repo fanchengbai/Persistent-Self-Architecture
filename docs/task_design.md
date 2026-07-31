@@ -876,8 +876,9 @@ units 中选择与 128 tokens 绝对误差最小者，误差必须不超过 16 t
 - [x] Impl-3s v3完成但goal下界近失，终止模板调优；
 - [x] Impl-3t一次性留出资格门通过；
 - [x] 人工核对candidate、source/evidence digest、安全边界和冻结设计字段；
-- [ ] 项目负责人明确确认完整candidate checksum；
-- [ ] 将状态从 Draft 改为 Frozen for Generation。
+- [x] 项目负责人明确确认完整candidate checksum；
+- [x] 将状态从 Draft 改为 Final Preregistration Frozen；
+- [ ] 等待单独授权后生成/解封 Core Set。
 
 ## 22. 下一步
 
@@ -895,5 +896,7 @@ Impl-3t用新seed做一次同规模prompt-visible留出验证。它是2.9B路线
 不是新一轮模板开发。
 
 Impl-3t 已一次性通过。不可变候选、source/evidence digest、安全边界和冻结
-设计字段也已人工核对通过。现在继续停止任务开发与模型计算，只等待项目
-负责人明确确认完整checksum；确认前不生成Core Set，也不运行正式实验。
+设计字段已人工核对，项目负责人也已确认完整checksum。最终预注册包digest为
+`0daf056dc6b38aa20fa69dd9e8df9b8065876529947cbc01353ffe604933d0c9`。
+现在继续停止任务开发与模型计算；本次授权不包含Core Set或正式实验，必须
+等待后续单独授权。

@@ -279,6 +279,9 @@ Phase 0 → Phase 1 — Research Design / State Infrastructure
     10项证据和安全边界全部有效；8个正式条件与已接受D3一致，D4–D8、
     N=320、随机种子、统计方案和模板数量也全部对得上。现在只等项目负责人
     明确确认完整checksum；这不会自动生成Core Set或启动正式实验。
+46. 项目负责人已逐字确认完整候选checksum。最终预注册包现已冻结，digest为
+    `0daf056d…d0c9`，包自校验、锁定文件、payload root和安全边界全部通过。
+    本次授权明确不包括Core Set和正式实验，所以当前仍停止计算。
 
 ## 项目文档
 
