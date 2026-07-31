@@ -247,6 +247,11 @@ Phase 0 → Phase 1 — Research Design / State Infrastructure
     21/128个语义错误；复制和单字段控制均为100%，无关双字段控制代码级为
     50%。Impl-3q-a只读审计会补算控制题的四轮边际化，并按模板交互、filler、
     标签对和目标组合定位错误，不重新加载模型。
+37. Impl-3q-a 已确认无关双字段控制在四轮平均后仅2/8正确，模型几乎总选
+    `cinder+trace`，因此不是答案字母偏差。现已准备独立 Impl-3r v2：首版
+    失败原样保留，只统一正式模板的 `CURRENT DOMAIN/OPERATION` 字段、将
+    控制题换成常见 `COLOR/SHAPE`，并用预声明的四轮平均判定语义控制；
+    模型、131-token delay、seeds、N=320、SESOI和安全边界均不变。
 
 ## 项目文档
 

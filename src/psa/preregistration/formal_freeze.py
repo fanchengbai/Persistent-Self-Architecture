@@ -27,10 +27,13 @@ from psa.development.impl3 import (
 )
 from psa.evaluation import bca_mean_interval, group_contrasts
 from psa.model import RWKV7Adapter, load_model_config
+from psa.preregistration.formal_review import review_control_rotation
 from psa.tasks import generate_factorial_group
 
 
 FORMAL_GATE = "impl3q_exp001_formal_freeze_candidate"
+FORMAL_GATE_V2 = "impl3r_exp001_formal_freeze_candidate_v2"
+SUPPORTED_FORMAL_GATES = (FORMAL_GATE, FORMAL_GATE_V2)
 SEED_PURPOSES = {
     "core_generator": "core-generator",
     "control_generator": "control-generator",
@@ -54,6 +57,55 @@ def _load_object(path: str | Path, field: str) -> dict[str, Any]:
     if not isinstance(payload, dict):
         raise ValueError(f"{field} must contain a JSON object")
     return payload
+
+
+def _deep_merge(
+    base: Mapping[str, Any],
+    override: Mapping[str, Any],
+) -> dict[str, Any]:
+    merged = dict(base)
+    for key, value in override.items():
+        if (
+            key in merged
+            and isinstance(merged[key], dict)
+            and isinstance(value, dict)
+        ):
+            merged[key] = _deep_merge(merged[key], value)
+        else:
+            merged[key] = value
+    return merged
+
+
+def _load_formal_config(path: Path, root: Path) -> dict[str, Any]:
+    raw = _load_object(path, "formal freeze config")
+    extends = raw.get("extends")
+    if extends is None:
+        return raw
+    if not isinstance(extends, str):
+        raise ValueError("formal config extends must be a relative path")
+    base_path = _resolve_under(root, extends, "formal config extends")
+    base = _load_object(base_path, "base formal freeze config")
+    override = {
+        key: value
+        for key, value in raw.items()
+        if key not in {"extends", "source_files_append"}
+    }
+    merged = _deep_merge(base, override)
+    appended = raw.get("source_files_append", [])
+    if not isinstance(appended, list) or not all(
+        isinstance(item, str) and item for item in appended
+    ):
+        raise ValueError("source_files_append must contain relative paths")
+    merged["source_files"] = list(
+        dict.fromkeys([*base["source_files"], *appended])
+    )
+    merged["config_lineage"] = {
+        "base": extends,
+        "base_sha256": sha256_file(base_path),
+        "overlay": str(path.relative_to(root)).replace("\\", "/"),
+        "overlay_sha256": sha256_file(path),
+    }
+    return merged
 
 
 def _resolve_under(root: Path, relative_path: str, field: str) -> Path:
@@ -502,9 +554,53 @@ def generate_control_manifest(config: Mapping[str, Any]) -> dict[str, Any]:
         raise ValueError("formal controls require 8 cases x 4 rotations")
 
     rng = random.Random(int(config["seeds"]["control_generator"]))
-    symbols = ("luma", "sora", "pavi", "toke")
-    domains = ("cinder", "harbor")
-    operations = ("trace", "fold")
+    vocabulary = control.get("vocabulary", {})
+    if not isinstance(vocabulary, dict):
+        raise ValueError("controls.vocabulary must be an object")
+    symbols = tuple(
+        vocabulary.get(
+            "single_field_symbols",
+            ("luma", "sora", "pavi", "toke"),
+        )
+    )
+    two_field_names = tuple(
+        vocabulary.get("two_field_names", ("MARKER", "PATTERN"))
+    )
+    two_field_values = vocabulary.get(
+        "two_field_values",
+        (("cinder", "harbor"), ("trace", "fold")),
+    )
+    if (
+        len(symbols) != 4
+        or len(set(symbols)) != 4
+        or not all(isinstance(item, str) and item for item in symbols)
+    ):
+        raise ValueError("control single-field symbols must be four values")
+    if (
+        len(two_field_names) != 2
+        or not all(
+            isinstance(item, str) and item for item in two_field_names
+        )
+    ):
+        raise ValueError("control two-field names must contain two values")
+    if (
+        not isinstance(two_field_values, (list, tuple))
+        or len(two_field_values) != 2
+    ):
+        raise ValueError("control two-field values must contain two pairs")
+    domains = tuple(two_field_values[0])
+    operations = tuple(two_field_values[1])
+    if (
+        len(domains) != 2
+        or len(operations) != 2
+        or len(set(domains)) != 2
+        or len(set(operations)) != 2
+        or not all(
+            isinstance(item, str) and item
+            for item in (*domains, *operations)
+        )
+    ):
+        raise ValueError("each control two-field value set needs two labels")
     field_combos = tuple(itertools.product(domains, operations))
     trials: list[dict[str, Any]] = []
     for task_type in task_types:
@@ -574,14 +670,16 @@ def generate_control_manifest(config: Mapping[str, Any]) -> dict[str, Any]:
                         if combo == target_combo
                     )
                     options = "\n".join(
-                        f"{code}. MARKER: {combo[0]} | PATTERN: {combo[1]}"
+                        f"{code}. {two_field_names[0]}: {combo[0]} | "
+                        f"{two_field_names[1]}: {combo[1]}"
                         for code, combo in mapping
                     )
                     user_text = (
-                        "CONTROL TASK: unrelated two-field symbol match.\n"
-                        f"CURRENT MARKER: {target_combo[0]}\n"
-                        f"CURRENT PATTERN: {target_combo[1]}\n"
-                        "Choose the option matching both visible fields.\n"
+                        "CONTROL TASK: exact visible two-field match.\n"
+                        f"TARGET {two_field_names[0]}: {target_combo[0]}\n"
+                        f"TARGET {two_field_names[1]}: {target_combo[1]}\n"
+                        "An option is correct only when both fields equal "
+                        "their TARGET values.\n"
                         f"OPTIONS:\n{options}\n"
                         "Return only the matching option code."
                     )
@@ -880,8 +978,14 @@ def evaluate_control_records(
     records: Sequence[dict[str, Any]],
     minimum_accuracy_per_task: float,
     minimum_format_valid_rate: float,
+    use_rotation_marginalized_semantic_controls: bool = False,
 ) -> dict[str, Any]:
     trials = {trial["sample_id"]: trial for trial in manifest["trials"]}
+    rotation_review = review_control_rotation(
+        manifest=manifest,
+        records=records,
+        minimum_accuracy=minimum_accuracy_per_task,
+    )
     metrics = {}
     complete = len(records) == manifest["trial_count"]
     for task_type in manifest["task_types"]:
@@ -916,14 +1020,48 @@ def evaluate_control_records(
             == manifest["semantic_case_count_per_task"] * 4
             and len(successful) == len(task_records)
         )
+        rotation_task = rotation_review["task_reports"][task_type]
+        marginalized_accuracy = rotation_task[
+            "label_marginalized_accuracy"
+        ]
+        use_marginalized = bool(
+            use_rotation_marginalized_semantic_controls
+            and task_type != "answer_code_copy"
+        )
+        marginalized_complete = bool(
+            marginalized_accuracy is not None
+            and rotation_task["diagnostic_complete"]
+        )
+        if use_marginalized:
+            evaluation_accuracy = (
+                float(marginalized_accuracy)
+                if marginalized_complete
+                else 0.0
+            )
+            task_complete = bool(task_complete and marginalized_complete)
+        else:
+            evaluation_accuracy = accuracy
         metrics[task_type] = {
             "trial_count": len(task_records),
-            "accuracy": accuracy,
+            "code_level_accuracy": accuracy,
+            "label_marginalized_accuracy": marginalized_accuracy,
+            "evaluation_readout": (
+                "mean_candidate_log_score_across_four_code_rotations"
+                if use_marginalized
+                else "code_level_argmax_accuracy"
+            ),
+            "evaluation_accuracy": evaluation_accuracy,
+            "evaluation_readout_complete": (
+                marginalized_complete
+                if use_marginalized
+                else task_complete
+            ),
+            "accuracy": evaluation_accuracy,
             "format_valid_rate": format_rate,
             "diagnostic_complete": task_complete,
             "pass_threshold": bool(
                 task_complete
-                and accuracy >= minimum_accuracy_per_task
+                and evaluation_accuracy >= minimum_accuracy_per_task
                 and format_rate >= minimum_format_valid_rate
             ),
         }
@@ -940,6 +1078,12 @@ def evaluate_control_records(
         "task_metrics": metrics,
         "minimum_accuracy_per_task": minimum_accuracy_per_task,
         "minimum_format_valid_rate": minimum_format_valid_rate,
+        "semantic_control_readout": (
+            "rotation_marginalized"
+            if use_rotation_marginalized_semantic_controls
+            else "code_level"
+        ),
+        "rotation_review": rotation_review,
         "route_decision": (
             "freeze_general_capability_controls"
             if passed
@@ -1191,6 +1335,7 @@ def _build_candidate(
     destination: Path,
     config_path: Path,
     config: Mapping[str, Any],
+    gate_name: str,
     model_id: str,
     prerequisite_report: Mapping[str, Any],
     template_report: Mapping[str, Any],
@@ -1246,7 +1391,7 @@ def _build_candidate(
             if ready
             else "hold_not_eligible_for_human_freeze"
         ),
-        "gate": FORMAL_GATE,
+        "gate": gate_name,
         "model_id": model_id,
         "confirmed_decision_ids": config["confirmation"]["decision_ids"],
         "history_mode": config["history_protocol"]["mode"],
@@ -1399,9 +1544,10 @@ def run_formal_freeze_candidate_gate(
     destination = Path(output_dir).resolve()
     destination.mkdir(parents=True, exist_ok=True)
     formal_config_path = Path(config_path).resolve()
-    config = _load_object(formal_config_path, "formal freeze config")
-    if config.get("gate") != FORMAL_GATE:
-        raise ValueError("config is not for the Impl-3q formal freeze gate")
+    config = _load_formal_config(formal_config_path, root)
+    gate_name = config.get("gate")
+    if gate_name not in SUPPORTED_FORMAL_GATES:
+        raise ValueError("config is not for a supported formal freeze gate")
     _validate_seed_lock(config)
     if config["confirmation"]["confirmed_by_project_owner"] is not True:
         raise ValueError("D4-D8 have not been confirmed by the project owner")
@@ -1527,6 +1673,12 @@ def run_formal_freeze_candidate_gate(
         minimum_format_valid_rate=float(
             config["controls"]["minimum_baseline_format_valid_rate"]
         ),
+        use_rotation_marginalized_semantic_controls=bool(
+            config["controls"].get(
+                "use_rotation_marginalized_semantic_controls",
+                False,
+            )
+        ),
     )
     power_report = simulate_power(
         config,
@@ -1551,6 +1703,7 @@ def run_formal_freeze_candidate_gate(
         destination=destination,
         config_path=formal_config_path,
         config=config,
+        gate_name=gate_name,
         model_id=model_config.model_id,
         prerequisite_report=prerequisite_report,
         template_report=template_report,
@@ -1576,7 +1729,7 @@ def run_formal_freeze_candidate_gate(
     )
     summary = {
         "summary_version": "1.0",
-        "gate": FORMAL_GATE,
+        "gate": gate_name,
         "development_only": True,
         "confirmatory_results_observed": False,
         "core_set_generated": False,

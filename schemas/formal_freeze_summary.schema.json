@@ -35,7 +35,12 @@
   ],
   "properties": {
     "summary_version": {"const": "1.0"},
-    "gate": {"const": "impl3q_exp001_formal_freeze_candidate"},
+    "gate": {
+      "enum": [
+        "impl3q_exp001_formal_freeze_candidate",
+        "impl3r_exp001_formal_freeze_candidate_v2"
+      ]
+    },
     "development_only": {"const": true},
     "confirmatory_results_observed": {"const": false},
     "core_set_generated": {"const": false},

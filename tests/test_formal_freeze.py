@@ -16,6 +16,7 @@ from psa.preregistration import (
     simulate_power,
     verify_preregistration_candidate,
 )
+from psa.preregistration.formal_freeze import _load_formal_config
 
 
 class FormalFreezeTests(unittest.TestCase):
@@ -248,6 +249,181 @@ class FormalFreezeTests(unittest.TestCase):
             review["route_decision"],
             "control_code_bias_controlled_by_rotation",
         )
+
+    def test_v2_overlay_preserves_locked_design_and_revises_prompts(
+        self,
+    ) -> None:
+        v2_path = (
+            self.root
+            / "configs"
+            / "preregistration"
+            / "exp001_track_s.formal_v2.json"
+        )
+        v2 = _load_formal_config(v2_path, self.root)
+        self.assertEqual(
+            v2["gate"],
+            "impl3r_exp001_formal_freeze_candidate_v2",
+        )
+        for field in (
+            "model_config",
+            "labels",
+            "answer_interface",
+            "filler_protocol",
+            "seeds",
+            "core_design",
+            "statistics",
+            "power_simulation",
+            "safety_boundary",
+            "template_qualification",
+        ):
+            self.assertEqual(v2[field], self.config[field])
+        self.assertEqual(
+            v2["history_protocol"]["mode"],
+            self.config["history_protocol"]["mode"],
+        )
+        self.assertTrue(
+            all(
+                "CURRENT DOMAIN:" in template["user_text"]
+                and "CURRENT OPERATION:" in template["user_text"]
+                for template in v2["history_protocol"]["templates"]
+            )
+        )
+        self.assertTrue(
+            all(
+                "DOMAIN" in template["user_text"]
+                and "OPERATION" in template["user_text"]
+                for template in v2["query_protocol"]["templates"]
+            )
+        )
+        self.assertEqual(
+            v2["controls"]["vocabulary"]["two_field_names"],
+            ["COLOR", "SHAPE"],
+        )
+        self.assertTrue(
+            v2["controls"][
+                "use_rotation_marginalized_semantic_controls"
+            ]
+        )
+        self.assertIn(
+            "configs/preregistration/exp001_track_s.formal_v2.json",
+            v2["source_files"],
+        )
+
+    def test_v2_control_gate_uses_predeclared_rotation_readout(
+        self,
+    ) -> None:
+        v2_path = (
+            self.root
+            / "configs"
+            / "preregistration"
+            / "exp001_track_s.formal_v2.json"
+        )
+        v2 = _load_formal_config(v2_path, self.root)
+        manifest = generate_control_manifest(v2)
+        two_field_prompts = [
+            trial["prompt"]
+            for trial in manifest["trials"]
+            if trial["task_type"]
+            == "unrelated_two_field_symbol_match"
+        ]
+        self.assertTrue(two_field_prompts)
+        self.assertTrue(
+            all(
+                "TARGET COLOR:" in prompt
+                and "TARGET SHAPE:" in prompt
+                and "MARKER" not in prompt
+                and "PATTERN" not in prompt
+                for prompt in two_field_prompts
+            )
+        )
+
+        records = []
+        for trial in manifest["trials"]:
+            scores = {
+                option["code"]: (
+                    2.0
+                    if option["code"] == trial["target_code"]
+                    else 0.0
+                )
+                for option in trial["option_mapping"]
+            }
+            predicted = trial["target_code"]
+            if (
+                trial["task_type"]
+                == "unrelated_two_field_symbol_match"
+                and trial["target_code"] == "D"
+            ):
+                predicted = next(
+                    code for code in scores if code != trial["target_code"]
+                )
+                scores[trial["target_code"]] = 0.0
+                scores[predicted] = 3.0
+            records.append(
+                {
+                    "sample_id": trial["sample_id"],
+                    "option_scores": scores,
+                    "argmax_choice": predicted,
+                    "format_valid": True,
+                    "status": "success",
+                }
+            )
+        report = evaluate_control_records(
+            manifest=manifest,
+            records=records,
+            minimum_accuracy_per_task=0.9,
+            minimum_format_valid_rate=0.99,
+            use_rotation_marginalized_semantic_controls=True,
+        )
+        two_field = report["task_metrics"][
+            "unrelated_two_field_symbol_match"
+        ]
+        self.assertEqual(two_field["code_level_accuracy"], 0.75)
+        self.assertEqual(two_field["label_marginalized_accuracy"], 1.0)
+        self.assertEqual(two_field["evaluation_accuracy"], 1.0)
+        self.assertTrue(two_field["pass_threshold"])
+        self.assertTrue(report["control_baseline_passed"])
+        self.assertEqual(
+            report["semantic_control_readout"],
+            "rotation_marginalized",
+        )
+
+    def test_v2_control_gate_never_falls_back_when_scores_are_missing(
+        self,
+    ) -> None:
+        v2_path = (
+            self.root
+            / "configs"
+            / "preregistration"
+            / "exp001_track_s.formal_v2.json"
+        )
+        v2 = _load_formal_config(v2_path, self.root)
+        manifest = generate_control_manifest(v2)
+        records = [
+            {
+                "sample_id": trial["sample_id"],
+                "argmax_choice": trial["target_code"],
+                "format_valid": True,
+                "status": "success",
+            }
+            for trial in manifest["trials"]
+        ]
+        report = evaluate_control_records(
+            manifest=manifest,
+            records=records,
+            minimum_accuracy_per_task=0.9,
+            minimum_format_valid_rate=0.99,
+            use_rotation_marginalized_semantic_controls=True,
+        )
+        self.assertFalse(report["control_baseline_passed"])
+        for task_type in (
+            "single_field_lexical_match",
+            "unrelated_two_field_symbol_match",
+        ):
+            task = report["task_metrics"][task_type]
+            self.assertEqual(task["code_level_accuracy"], 1.0)
+            self.assertEqual(task["evaluation_accuracy"], 0.0)
+            self.assertFalse(task["evaluation_readout_complete"])
+            self.assertFalse(task["pass_threshold"])
 
     def test_power_simulation_retains_320_groups(self) -> None:
         report = simulate_power(

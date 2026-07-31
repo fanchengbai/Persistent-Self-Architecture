@@ -715,6 +715,27 @@ bash scripts/review_impl3q_exp001_formal_freeze_candidate.sh
 生成Core Set。重点检查 `control_review.route_decision` 和总
 `route_decision`，再决定是否只修正控制读出，或同时修订双字段模板族。
 
+### 5.21 运行 Impl-3r 正式冻结候选 v2
+
+只有 Impl-3q-a 的总路线为
+`revise_formal_and_control_two_field_prompt_families` 时运行：
+
+```bash
+git pull --ff-only
+source .venv/bin/activate
+bash scripts/run_impl3r_exp001_formal_freeze_candidate_v2_gate.sh
+cat results/development/impl3r_exp001_formal_freeze_candidate_v2/summary.json
+```
+
+Impl-3r 不覆盖 Impl-3q。它要求旧版 Hold summary 和只读 review 同时存在且
+digest/路线符合预期，只修订正式字段措辞、COLOR/SHAPE 双字段控制和预声明
+的四轮平均语义读出。模型、标签、single_statement、131-token delay、
+四轮映射、五个seed、N=320、SESOI、功效门及安全边界保持不变。
+
+只有 summary 同时显示模板、控制、功效和完整性全部通过，才回传
+`candidate_digest_sha256` 等待人工确认。脚本不会生成 Core Set，也不会读取
+正式 state-only 结果；未通过时继续 Hold，不得确认 checksum。
+
 ## 6. 运行纯逻辑测试
 
 ```bash

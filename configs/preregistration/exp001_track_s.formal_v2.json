@@ -1,0 +1,112 @@
+{
+  "extends": "configs/preregistration/exp001_track_s.formal_v1.json",
+  "config_version": "1.1",
+  "gate": "impl3r_exp001_formal_freeze_candidate_v2",
+  "revision": {
+    "revision_id": "formal-explicit-fields-v2",
+    "source_gate": "impl3q_exp001_formal_freeze_candidate",
+    "source_candidate_digest_sha256": "b67c22148357a4194d3b02a29e471f691bb9d0d2f7b52f728e4c3f0bb9faa637",
+    "allowed_evidence": "prompt_visible_development_only",
+    "changes": [
+      "Keep four history and four query templates but use stable CURRENT DOMAIN and CURRENT OPERATION field names throughout.",
+      "Replace unfamiliar MARKER/PATTERN control vocabulary with common COLOR/SHAPE fields.",
+      "Evaluate semantic controls by mean candidate log-score across the four predeclared answer-code rotations."
+    ],
+    "unchanged": [
+      "model and tokenizer",
+      "history mode single_statement",
+      "identity and goal label pools",
+      "four answer-code rotations",
+      "four 131-token filler variants and fit algorithm",
+      "all five formal seeds",
+      "N=320",
+      "SESOI and statistical thresholds",
+      "power target",
+      "safety boundary"
+    ]
+  },
+  "prerequisites": [
+    {
+      "path": "results/development/impl3q_exp001_formal_freeze_candidate/summary.json",
+      "checks": {
+        "valid": true,
+        "template_qualification_passed": false,
+        "control_baseline_passed": false,
+        "power_gate_passed": true,
+        "freeze_candidate_ready": false,
+        "confirmatory_results_observed": false,
+        "core_set_generated": false,
+        "candidate_digest_sha256": "b67c22148357a4194d3b02a29e471f691bb9d0d2f7b52f728e4c3f0bb9faa637"
+      }
+    },
+    {
+      "path": "results/development/impl3q_exp001_formal_freeze_candidate/formal_freeze_review.json",
+      "checks": {
+        "valid": true,
+        "route_decision": "revise_formal_and_control_two_field_prompt_families",
+        "confirmatory_results_observed": false,
+        "core_set_generated": false
+      }
+    }
+  ],
+  "history_protocol": {
+    "templates": [
+      {
+        "id": "formal-history-v2-01",
+        "user_text": "REGISTER ONE SAVED STATE.\nCURRENT DOMAIN: {domain}\nCURRENT OPERATION: {operation}",
+        "assistant_ack": "The state pair is recorded."
+      },
+      {
+        "id": "formal-history-v2-02",
+        "user_text": "WRITE THE CURRENT STATE AS ONE TWO-FIELD RECORD.\nCURRENT DOMAIN: {domain}\nCURRENT OPERATION: {operation}",
+        "assistant_ack": "The two-field state is saved."
+      },
+      {
+        "id": "formal-history-v2-03",
+        "user_text": "KEEP THIS SINGLE ACTIVE STATE PAIR.\nCURRENT DOMAIN: {domain}\nCURRENT OPERATION: {operation}",
+        "assistant_ack": "The active state pair is stored."
+      },
+      {
+        "id": "formal-history-v2-04",
+        "user_text": "THE SAVED STATE HAS EXACTLY THESE TWO FIELDS.\nCURRENT DOMAIN: {domain}\nCURRENT OPERATION: {operation}",
+        "assistant_ack": "The saved state is recorded."
+      }
+    ]
+  },
+  "query_protocol": {
+    "templates": [
+      {
+        "id": "formal-query-v2-01",
+        "user_text": "TASK: exact two-field state match.\nGENERAL RULE: choose the unique option whose DOMAIN equals the saved CURRENT DOMAIN and whose OPERATION equals the saved CURRENT OPERATION.\nBoth fields must match. The saved values appear only inside the balanced options.\nOPTIONS:\n{options}\nReply with the matching option code only."
+      },
+      {
+        "id": "formal-query-v2-02",
+        "user_text": "TASK: recover the complete saved state pair.\nSTEP 1: match option DOMAIN to the saved CURRENT DOMAIN.\nSTEP 2: match option OPERATION to the saved CURRENT OPERATION.\nChoose the one option passing both steps. Current values are hidden outside the balanced options.\nOPTIONS:\n{options}\nReturn only its option code."
+      },
+      {
+        "id": "formal-query-v2-03",
+        "user_text": "TASK: select the exact saved binding.\nREQUIRED CONDITION A: DOMAIN must equal CURRENT DOMAIN.\nREQUIRED CONDITION B: OPERATION must equal CURRENT OPERATION.\nAn option is correct only when A and B are both true. Saved values occur only in the balanced options.\nOPTIONS:\n{options}\nAnswer with one option code only."
+      },
+      {
+        "id": "formal-query-v2-04",
+        "user_text": "TASK: choose the state-consistent two-field option.\nIgnore the option letter while comparing content. First compare DOMAIN with CURRENT DOMAIN, then compare OPERATION with CURRENT OPERATION. Select the unique option matching both saved fields.\nOPTIONS:\n{options}\nProvide only the matching code."
+      }
+    ]
+  },
+  "controls": {
+    "use_rotation_marginalized_semantic_controls": true,
+    "vocabulary": {
+      "single_field_symbols": ["luma", "sora", "pavi", "toke"],
+      "two_field_names": ["COLOR", "SHAPE"],
+      "two_field_values": [
+        ["red", "blue"],
+        ["circle", "square"]
+      ]
+    }
+  },
+  "source_files_append": [
+    "configs/preregistration/exp001_track_s.formal_v2.json",
+    "scripts/run_impl3r_exp001_formal_freeze_candidate_v2_gate.sh",
+    "src/psa/preregistration/formal_review.py"
+  ]
+}

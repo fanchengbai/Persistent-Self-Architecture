@@ -870,11 +870,13 @@ units 中选择与 128 tokens 绝对误差最小者，误差必须不超过 16 t
 - [x] 冻结标准干扰档位为11 units / 131 tokens；
 - [x] 起草与 `evaluation_protocol.md` 的样本量、统计模型和阈值映射；
 - [x] D4–D8 共同审阅并冻结任务—评价映射候选；
-- [ ] Impl-3q prompt-visible资格门通过并人工确认checksum；
+- [x] Impl-3q prompt-visible首版资格门完成并保留Hold记录；
+- [ ] Impl-3r v2 prompt-visible资格门通过并人工确认checksum；
 - [ ] 将状态从 Draft 改为 Frozen for Generation。
 
 ## 22. 下一步
 
-任务—评价映射已按D4–D8形成冻结候选。下一步运行Impl-3q，只用
-prompt-visible数据验证模板与控制任务、估计开发期nuisance、复核N=320功效
-并生成候选checksum。人工确认checksum前，不生成Core Set。
+Impl-3q 首版已有效运行但模板和双字段控制未取得资格；Impl-3q-a 又确认该
+失败在四轮平均后仍存在。下一步运行独立 Impl-3r v2，只用 prompt-visible
+数据验证统一字段模板和 COLOR/SHAPE 控制、估计开发期 nuisance、复核
+N=320 功效并生成新候选 checksum。人工确认 checksum 前，不生成 Core Set。

@@ -41,7 +41,12 @@
         "hold_not_eligible_for_human_freeze"
       ]
     },
-    "gate": {"const": "impl3q_exp001_formal_freeze_candidate"},
+    "gate": {
+      "enum": [
+        "impl3q_exp001_formal_freeze_candidate",
+        "impl3r_exp001_formal_freeze_candidate_v2"
+      ]
+    },
     "model_id": {"type": "string", "minLength": 1},
     "confirmed_decision_ids": {
       "type": "array",

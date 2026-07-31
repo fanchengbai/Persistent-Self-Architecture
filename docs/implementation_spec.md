@@ -904,6 +904,22 @@ Impl-3q 实现 D4–D8 的正式冻结候选门。它固定：
 配置试图放开任一边界时必须拒绝运行。即使
 `freeze_candidate_ready=true`，仍需项目负责人确认候选checksum。
 
+Impl-3q 首次运行有效但模板资格与控制基线失败。只读 Impl-3q-a 进一步证明：
+正式模板四轮平均仍有21/128语义错误，双字段控制四轮平均仅2/8正确，不能
+解释为格式或答案字母偏差。
+
+因此 Impl-3r 作为独立 v2 候选存在，不改写 Impl-3q 输出。它通过 overlay
+继承 v1 的模型、标签、历史模式、131-token filler、五个seed、N=320、
+SESOI、功效与安全边界，只允许：
+
+- 统一正式历史与查询中的 `CURRENT DOMAIN/OPERATION` 字段；
+- 将陌生的 MARKER/PATTERN 控制换成常见 COLOR/SHAPE；
+- 对单字段和双字段语义控制使用预先完整轮换的四代码平均分数，原代码级
+  准确率继续作为诊断字段保留。
+
+Impl-3r 必须验证 Impl-3q Hold 和 Impl-3q-a 路线，仍不得生成 Core Set、
+读取正式 state-only 结果或自动确认 checksum。
+
 ### Impl-4：工程参数冻结与预注册
 
 - freeze；

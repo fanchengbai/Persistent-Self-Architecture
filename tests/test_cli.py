@@ -355,6 +355,50 @@ class CliTests(unittest.TestCase):
             self.assertFalse(report["confirmatory_results_observed"])
             self.assertFalse(report["core_set_generated"])
 
+    def test_formal_freeze_v2_failure_reports_configured_gate(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            output_dir = root / "gate"
+            config = root / "formal_v2.json"
+            config.write_text(
+                json.dumps(
+                    {
+                        "gate": (
+                            "impl3r_exp001_formal_freeze_candidate_v2"
+                        )
+                    }
+                ),
+                encoding="utf-8",
+            )
+            with patch(
+                "psa.cli.run_formal_freeze_candidate_gate",
+                side_effect=RuntimeError(
+                    "Impl-3r prerequisite evidence is incomplete"
+                ),
+            ):
+                exit_code = main(
+                    [
+                        "formal-freeze-candidate-gate",
+                        "--config",
+                        str(config),
+                        "--output-dir",
+                        str(output_dir),
+                    ]
+                )
+
+            self.assertEqual(exit_code, 2)
+            report = json.loads(
+                (output_dir / "failure_report.json").read_text(
+                    encoding="utf-8"
+                )
+            )
+            self.assertEqual(
+                report["gate"],
+                "impl3r_exp001_formal_freeze_candidate_v2",
+            )
+            self.assertFalse(report["confirmatory_results_observed"])
+            self.assertFalse(report["core_set_generated"])
+
 
 if __name__ == "__main__":
     unittest.main()

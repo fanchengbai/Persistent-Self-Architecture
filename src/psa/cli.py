@@ -528,13 +528,17 @@ def _formal_freeze_candidate_gate(args: argparse.Namespace) -> int:
             project_root=args.project_root,
         )
     except Exception as exc:
+        gate_name = _configured_gate_name(
+            args.config,
+            "impl3q_exp001_formal_freeze_candidate",
+        )
         failure = {
             "failure_version": "1.0",
             "created_at_utc": datetime.now(timezone.utc).isoformat(),
             "development_only": True,
             "confirmatory_results_observed": False,
             "core_set_generated": False,
-            "gate": "impl3q_exp001_formal_freeze_candidate",
+            "gate": gate_name,
             "exception_type": type(exc).__name__,
             "message": str(exc),
             "config": str(Path(args.config).resolve()),
