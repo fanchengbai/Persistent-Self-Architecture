@@ -239,6 +239,10 @@ Phase 0 → Phase 1 — Research Design / State Infrastructure
     N=320功效模拟全部写入配置。该门只看prompt-visible资格证据，并在代码
     层禁止生成Core Set或读取正式state-only结果；通过后仍需人工确认候选
     checksum。
+35. Impl-3q 已完整运行但冻结候选进入Hold：功效模拟通过，正式模板资格和
+    通用控制基线未通过，因此 `freeze_candidate_ready=false`。本次没有读取
+    正式state-only结果，也没有生成Core Set；当前先做只读错误细分，不确认
+    失败候选的checksum。
 
 ## 项目文档
 
