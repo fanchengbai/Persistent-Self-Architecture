@@ -875,7 +875,8 @@ units 中选择与 128 tokens 绝对误差最小者，误差必须不超过 16 t
 - [x] Impl-3r-a 定位唯一失败项为goal BCa下界；
 - [x] Impl-3s v3完成但goal下界近失，终止模板调优；
 - [x] Impl-3t一次性留出资格门通过；
-- [ ] 人工核对并明确确认完整candidate checksum；
+- [x] 人工核对candidate、source/evidence digest、安全边界和冻结设计字段；
+- [ ] 项目负责人明确确认完整candidate checksum；
 - [ ] 将状态从 Draft 改为 Frozen for Generation。
 
 ## 22. 下一步
@@ -893,5 +894,6 @@ Impl-3s仍近失，且错误审计显示模板措辞与固定案例流混杂。v
 Impl-3t用新seed做一次同规模prompt-visible留出验证。它是2.9B路线的终止门，
 不是新一轮模板开发。
 
-Impl-3t 已一次性通过。现在停止任务开发与模型计算，只核对不可变候选、
-source/evidence digest及安全边界；人工明确确认checksum前不生成Core Set。
+Impl-3t 已一次性通过。不可变候选、source/evidence digest、安全边界和冻结
+设计字段也已人工核对通过。现在继续停止任务开发与模型计算，只等待项目
+负责人明确确认完整checksum；确认前不生成Core Set，也不运行正式实验。

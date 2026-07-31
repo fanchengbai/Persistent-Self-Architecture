@@ -422,4 +422,16 @@ seed `3061017642`做一次未观察的同规模留出验证；通过只进入che
 Impl-3t 已一次性通过：模板资格、控制基线和功效门均为true，
 `freeze_candidate_ready=true`，安全边界正常。不可变候选digest为
 `a354b208be0640da7ea70fe070f75bdec69186e496ba1cc14c3157dcd984e6cd`。
-当前只进入人工checksum审阅；明确确认前不得生成Core Set或运行正式实验。
+
+人工技术与内容审阅也已完成：
+
+- `self_digest_valid=true`、`payload_root_valid=true`；
+- 23项源码检查和10项证据检查全部为true；
+- `safety_boundary_valid=true`，确认性结果未读取，Core Set未生成；
+- 8个正式条件与D3接受清单完全一致；
+- D4–D8、N=320、5个正式seed、统计方案、4×4模板和4个filler均与已接受
+  冻结设计一致。
+
+因此候选具备由项目负责人确认的资格，但目前仍不是最终预注册包。下一步只
+等待项目负责人明确确认完整checksum；该确认只授权升级预注册包，不自动授权
+生成Core Set或运行正式实验。

@@ -934,8 +934,10 @@ Impl-3t因此不改prompt，只用新SHA-256 seed运行一次未观察留出资�
 
 Impl-3t 已一次性通过并输出不可变候选
 `a354b208be0640da7ea70fe070f75bdec69186e496ba1cc14c3157dcd984e6cd`。
-当前工程状态是“等待人工checksum确认”，不是“已预注册”；Core Set入口仍
-保持关闭。
+候选的self digest、payload root、23项源码、10项证据、安全边界和冻结设计
+字段已人工核对通过。当前工程状态是“等待项目负责人明确确认完整checksum”，
+不是“已预注册”；Core Set入口仍保持关闭，checksum确认本身也不自动启动
+Core Set生成或正式实验。
 
 ### Impl-4：工程参数冻结与预注册
 

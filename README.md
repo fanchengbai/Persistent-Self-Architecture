@@ -275,6 +275,10 @@ Phase 0 → Phase 1 — Research Design / State Infrastructure
 44. Impl-3t 一次性留出门全部通过：模板、控制和功效均有效，候选digest为
     `a354b208…e6cd`，确认结果未读取且Core Set未生成。当前停止计算，等待
     人工核对candidate、全部digest与安全边界后明确确认checksum。
+45. 候选的技术与内容审阅已经通过：self digest、payload root、23项源码、
+    10项证据和安全边界全部有效；8个正式条件与已接受D3一致，D4–D8、
+    N=320、随机种子、统计方案和模板数量也全部对得上。现在只等项目负责人
+    明确确认完整checksum；这不会自动生成Core Set或启动正式实验。
 
 ## 项目文档
 
