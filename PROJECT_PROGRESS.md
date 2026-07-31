@@ -1,7 +1,7 @@
 # Persistent Self Architecture 项目进度表
 
 > 最后更新：2026-07-31
-> 当前节点：EXP-001 最终预注册包已冻结；等待另行授权 Core Set，当前停止计算
+> 当前节点：Core Set生成授权已记录、生成器已就绪；等待云端用冻结tokenizer一次性生成，正式实验仍未授权
 > 研究状态：尚未进入正式确认性实验，尚未实现显式 Self Model
 
 ## 1. 这张表怎么使用
@@ -76,7 +76,9 @@
 | 36j. 人工 checksum 技术与内容审阅 | ✅ 通过 | 比较候选自校验、payload root、全部源码与证据digest、安全边界和冻结设计字段 | 自动门通过后仍要确认文件没有缺失、设计没有写错、冻结范围与此前决定一致 | 自校验、payload root、23项源码检查、10项证据检查和安全边界全部通过；8个正式条件与已接受D3一致，D4–D8、N=320、种子、统计方案和模板数量均一致 | Codex 核对 |
 | 36k. 项目负责人确认 checksum | ✅ 已确认 | 由项目负责人逐字确认完整candidate digest，并授权把候选升级为最终预注册包 | 技术审阅不能代替研究负责人的最终冻结决定；这一步只确认预注册内容，不自动授权生成Core Set或运行正式实验 | 已明确确认`a354b208be0640da7ea70fe070f75bdec69186e496ba1cc14c3157dcd984e6cd`；授权范围明确排除Core Set生成和正式实验 | 项目负责人确认 |
 | 37. Impl-4：最终预注册包 | ✅ 已冻结 | 固定候选、人工验证、负责人确认、样本量、随机种子、统计标准和安全边界，并计算最终包digest | 防止看到正式结果后改变成功标准，同时让任何人都能检查最终包是否被改动 | 状态=`final_preregistration_frozen`；最终digest=`0daf056dc6b38aa20fa69dd9e8df9b8065876529947cbc01353ffe604933d0c9`；包自校验、3个锁定文件、payload root和安全边界全部通过 | Codex 实现与验证 |
-| 37a. Core Set 授权与生成 | ⏸️ 未授权 | 在未来收到单独授权后，按最终预注册包生成/解封320组Core Set | checksum确认只冻结考试规则，不等于允许打开正式试卷 | 当前`core_set_generated=false`、`core_set_generation_authorized=false`，不执行 | 项目负责人另行授权 |
+| 37a. Core Set 生成授权 | ✅ 已授权 | 单独授权只生成并冻结Core Set，不运行模型或正式实验 | 把“允许出卷”和“允许考试”分开，避免一句继续同时打开两个不可逆阶段 | 授权绑定最终预注册digest `0daf056d…d0c9`和N=320；`generate_and_freeze_core_set=true`、`run_confirmatory_experiment=false` | 项目负责人确认 |
+| 37b. Core Set生成与冻结工具 | ✅ 已完成 | 验证最终预注册包和单独授权，用冻结seed、模板、标签、filler与tokenizer生成平衡试题并计算两层digest | 正式试题必须可重建、不可暗改，而且生成过程不能顺便加载模型或查看答案表现 | 固定320组×4状态×4代码轮换=1,280个语义案例、5,120条试题；验证16种模板对各20组，四类模板/filler/标签组合各80组；篡改、越权和重复生成测试通过 | Codex |
+| 37c. 云端生成 Core Set v1 | 🟡 等待执行 | 在云端只加载固定tokenizer，拟合4个131-token filler并生成最终Core Set包 | 本机没有冻结tokenizer，不能用假计数器制造正式digest；云端已有经校验的1.1MB tokenizer | 脚本已就绪；不会读取5.5GB模型权重，不运行推理。等待运行后回传manifest | 项目负责人云端运行；Codex核对 |
 | 38. Phase 2：正式原生 state 实验 | ⏳ 未开始 | 比较 original/reset/random/swap 等条件 | 这一步才真正测试 recurrent state 是否是跨时间因果载体 | 尚无研究结论 | 项目负责人运行；Codex 分析 |
 | 39. Phase 3：显式 Self Model | ⏳ 未开始 | 实现 Self Store、Self Encoder 和 gated injection | 只有原生状态基线可靠后，才能判断显式 Self Model 是否带来额外价值 | 目前只有设计，没有加入模型 | 后续由 Codex 实现 |
 | 40. Self 更新与演化 | ⏳ 未开始 | 让 Self State 根据经历受控更新、回滚和分化 | 这是“持续自我”真正更深入的部分 | 尚未开始 | 后续阶段 |
@@ -141,7 +143,10 @@ Batch 2 参数冻结
     ✅ candidate、verification、设计范围与安全边界人工核对通过
     ✅ 项目负责人明确确认完整 checksum
     ✅ 最终预注册包冻结并自校验通过
-    ⏸️ Core Set未授权、未生成
+    ✅ Core Set生成已单独授权
+    ✅ 生成与冻结工具已通过逻辑测试
+    🟡 等待云端用冻结tokenizer生成Core Set v1
+    ⏸️ 正式实验仍未授权
 正式 state 因果实验
    ⏳
 显式 Self Model
@@ -404,7 +409,10 @@ Impl-3t 已按该规则一次性通过：
 已升级为最终预注册包，最终包digest为
 `0daf056dc6b38aa20fa69dd9e8df9b8065876529947cbc01353ffe604933d0c9`。
 包内锁定候选、验证报告和人工确认记录；自校验、payload root和安全边界均
-通过。授权明确排除Core Set生成与正式实验，因此现在继续停止GPU计算。
+通过。项目负责人随后又单独授权生成并冻结Core Set，但仍明确排除正式实验。
+Core Set生成器现已就绪：它会生成320组、1,280个语义案例和5,120条完整代码
+轮换试题，只读取冻结tokenizer以确认4个filler恰好131 tokens，不加载模型
+权重。当前等待云端一次性生成并回传manifest。
 
 本次“持续 Self + 世界模型 + 内生驱动”理论评审不改变上述下一步。它补充的是
 显式 Self 和受约束更新均通过后的未来研究层：系统能否根据内部冲突、
@@ -479,3 +487,4 @@ Impl-3t 已按该规则一次性通过：
 | 2026-07-31 | Impl-3t 一次性留出资格门全部通过：模板、控制、功效有效，候选就绪且安全边界正常；停止计算，进入candidate digest `a354b208…e6cd` 的人工核对，尚未确认、未生成Core Set | 云端 `results/development/impl3t_exp001_formal_v3_holdout/summary.json` |
 | 2026-07-31 | Impl-3t候选技术与内容审阅通过：self digest、payload root、23项源码、10项证据和安全边界全部有效；8个条件与D3一致，D4–D8、N=320、种子、统计方案和模板数量核对无误。下一步只等待项目负责人明确确认完整checksum；尚未升级预注册包、生成Core Set或运行正式实验 | 云端 `preregistration_verification.manual.json`、`preregistration_candidate.json` |
 | 2026-07-31 | 项目负责人逐字确认完整candidate checksum并授权只升级最终预注册包；新增不可越权的finalize/verify入口，冻结候选、验证报告和人工确认记录。最终包digest为`0daf056d…d0c9`，自校验、3个锁定文件、payload root和安全边界全部通过；Core Set和正式实验仍未授权、未执行 | `preregistration/exp001/final_v1/manifest.json`、`scripts/finalize_exp001_preregistration.sh`、新增7项测试 |
+| 2026-07-31 | 项目负责人单独授权生成并冻结Core Set、继续禁止正式实验；新增授权锁、Core Set生成/验证入口和云端脚本。设计固定为320组×4状态×4代码轮换=1,280语义案例/5,120试题，16个历史×查询组合各20组，四类模板/filler/标签组合各80组；本地用测试tokenizer验证平衡、幂等、篡改检测和越权拒绝，真实digest等待云端冻结tokenizer生成 | `preregistration/exp001/core_set_authorization.json`、`scripts/generate_exp001_core_set.sh`、`src/psa/preregistration/core_set.py` |

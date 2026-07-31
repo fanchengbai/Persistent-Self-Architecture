@@ -282,6 +282,10 @@ Phase 0 → Phase 1 — Research Design / State Infrastructure
 46. 项目负责人已逐字确认完整候选checksum。最终预注册包现已冻结，digest为
     `0daf056d…d0c9`，包自校验、锁定文件、payload root和安全边界全部通过。
     本次授权明确不包括Core Set和正式实验，所以当前仍停止计算。
+47. 项目负责人随后单独授权生成并冻结Core Set，但继续禁止正式实验。生成器
+    已固定320组、1,280个语义案例和5,120条四代码轮换试题，并通过平衡、
+    幂等、篡改与越权测试；下一步在云端只读取冻结tokenizer生成最终digest，
+    不加载模型权重。
 
 ## 项目文档
 

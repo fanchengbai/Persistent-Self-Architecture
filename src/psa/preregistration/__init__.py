@@ -20,6 +20,10 @@ from psa.preregistration.finalize import (
     finalize_preregistration_package,
     verify_final_preregistration_package,
 )
+from psa.preregistration.core_set import (
+    generate_and_freeze_core_set,
+    verify_core_set_package,
+)
 
 __all__ = [
     "derive_formal_seed",
@@ -28,6 +32,7 @@ __all__ = [
     "evaluate_template_qualification",
     "generate_control_manifest",
     "generate_template_qualification_manifest",
+    "generate_and_freeze_core_set",
     "finalize_preregistration_package",
     "run_formal_freeze_candidate_gate",
     "run_formal_freeze_review",
@@ -35,5 +40,6 @@ __all__ = [
     "review_template_interactions",
     "simulate_power",
     "verify_final_preregistration_package",
+    "verify_core_set_package",
     "verify_preregistration_candidate",
 ]

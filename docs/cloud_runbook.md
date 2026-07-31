@@ -805,6 +805,32 @@ cat preregistration/exp001/final_v1/manifest.json
 或运行正式实验。预期最终digest为
 `0daf056dc6b38aa20fa69dd9e8df9b8065876529947cbc01353ffe604933d0c9`。
 
+### 5.24 只生成并冻结 EXP-001 Core Set
+
+项目负责人随后单独授权生成Core Set，但仍未授权正式实验。拉取最新提交并
+激活项目虚拟环境后运行：
+
+```bash
+bash scripts/generate_exp001_core_set.sh
+cat preregistration/exp001/core_set_v1/manifest.json
+```
+
+该脚本只验证1.1MB的冻结tokenizer，并用它确认4个filler各为131 tokens；
+不会加载2.9B模型权重，也不会执行任何试题。成功输出必须同时满足：
+
+- `status=core_set_frozen_unrun`；
+- `factorial_group_count=320`；
+- `semantic_case_count=1280`；
+- `trial_count=5120`；
+- `manifest_digest_valid=true`；
+- `content_valid=true`；
+- `safety_boundary_valid=true`；
+- `confirmatory_experiment_run=false`；
+- `confirmatory_results_observed=false`。
+
+运行后只回传`manifest.json`内容。不要运行模型，不要新增“顺便测试几题”的
+命令，也不要修改或重新抽取seed、模板、标签、filler或样本量。
+
 ## 6. 运行纯逻辑测试
 
 ```bash

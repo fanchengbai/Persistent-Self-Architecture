@@ -1,0 +1,78 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://persistent-self-architecture.local/exp001_core_set_package.schema.json",
+  "title": "EXP-001 Frozen Core Set Package",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "package_version",
+    "experiment_id",
+    "status",
+    "frozen_at_utc",
+    "final_preregistration_digest_sha256",
+    "core_set_digest_sha256",
+    "factorial_group_count",
+    "semantic_case_count",
+    "trial_count",
+    "authorization",
+    "safety_boundary",
+    "locked_files",
+    "package_payload_root_digest_sha256",
+    "core_set_package_digest_sha256"
+  ],
+  "properties": {
+    "package_version": {"const": "1.0"},
+    "experiment_id": {"const": "EXP-001"},
+    "status": {"const": "core_set_frozen_unrun"},
+    "frozen_at_utc": {"type": "string", "minLength": 20},
+    "final_preregistration_digest_sha256": {
+      "const": "0daf056dc6b38aa20fa69dd9e8df9b8065876529947cbc01353ffe604933d0c9"
+    },
+    "core_set_digest_sha256": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{64}$"
+    },
+    "factorial_group_count": {"const": 320},
+    "semantic_case_count": {"const": 1280},
+    "trial_count": {"const": 5120},
+    "authorization": {
+      "const": {
+        "generate_and_freeze_core_set": true,
+        "run_confirmatory_experiment": false
+      }
+    },
+    "safety_boundary": {
+      "type": "object",
+      "properties": {
+        "core_set_generated": {"const": true},
+        "core_set_frozen": {"const": true},
+        "confirmatory_experiment_authorized": {"const": false},
+        "confirmatory_experiment_run": {"const": false},
+        "confirmatory_results_observed": {"const": false}
+      },
+      "required": [
+        "core_set_generated",
+        "core_set_frozen",
+        "confirmatory_experiment_authorized",
+        "confirmatory_experiment_run",
+        "confirmatory_results_observed"
+      ]
+    },
+    "locked_files": {
+      "type": "object",
+      "required": [
+        "core_set.json",
+        "core_set_authorization.json",
+        "final_preregistration_manifest.json"
+      ]
+    },
+    "package_payload_root_digest_sha256": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{64}$"
+    },
+    "core_set_package_digest_sha256": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{64}$"
+    }
+  }
+}

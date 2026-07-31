@@ -23,9 +23,11 @@ from psa.evaluation import group_contrasts
 from psa.model import run_interface_gate
 from psa.preregistration import (
     finalize_preregistration_package,
+    generate_and_freeze_core_set,
     run_formal_freeze_candidate_gate,
     run_formal_freeze_review,
     verify_final_preregistration_package,
+    verify_core_set_package,
     verify_preregistration_candidate,
 )
 from psa.state import (
@@ -585,6 +587,24 @@ def _preregistration_final_verify(args: argparse.Namespace) -> int:
     return 0 if result["valid"] else 2
 
 
+def _core_set_generate(args: argparse.Namespace) -> int:
+    result = generate_and_freeze_core_set(
+        final_package_dir=args.final_package,
+        authorization_path=args.authorization,
+        config_path=args.config,
+        output_dir=args.output_dir,
+        project_root=args.project_root,
+    )
+    print(json.dumps(result, ensure_ascii=False, indent=2))
+    return 0 if result["valid"] else 2
+
+
+def _core_set_verify(args: argparse.Namespace) -> int:
+    result = verify_core_set_package(args.package_dir)
+    print(json.dumps(result, ensure_ascii=False, indent=2))
+    return 0 if result["valid"] else 2
+
+
 def _add_asset_common_arguments(parser: argparse.ArgumentParser) -> None:
     parser.add_argument("--manifest", required=True)
     parser.add_argument("--root", default=".psa-assets")
@@ -841,6 +861,27 @@ def build_parser() -> argparse.ArgumentParser:
     preregistration_final_verify.set_defaults(
         handler=_preregistration_final_verify
     )
+
+    core_set_generate = subparsers.add_parser(
+        "core-set-generate",
+        help=(
+            "generate and freeze the authorized EXP-001 Core Set without "
+            "running the confirmatory experiment"
+        ),
+    )
+    core_set_generate.add_argument("--final-package", required=True)
+    core_set_generate.add_argument("--authorization", required=True)
+    core_set_generate.add_argument("--config", required=True)
+    core_set_generate.add_argument("--output-dir", required=True)
+    core_set_generate.add_argument("--project-root", default=".")
+    core_set_generate.set_defaults(handler=_core_set_generate)
+
+    core_set_verify = subparsers.add_parser(
+        "core-set-verify",
+        help="verify a frozen unrun EXP-001 Core Set package",
+    )
+    core_set_verify.add_argument("--package-dir", required=True)
+    core_set_verify.set_defaults(handler=_core_set_verify)
 
     formal_freeze_review = subparsers.add_parser(
         "formal-freeze-review",

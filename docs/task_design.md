@@ -878,7 +878,9 @@ units 中选择与 128 tokens 绝对误差最小者，误差必须不超过 16 t
 - [x] 人工核对candidate、source/evidence digest、安全边界和冻结设计字段；
 - [x] 项目负责人明确确认完整candidate checksum；
 - [x] 将状态从 Draft 改为 Final Preregistration Frozen；
-- [ ] 等待单独授权后生成/解封 Core Set。
+- [x] 项目负责人单独授权生成并冻结Core Set，继续禁止正式实验；
+- [x] 实现320组Core Set平衡生成与冻结工具；
+- [ ] 在云端用冻结tokenizer生成并核对Core Set v1 digest。
 
 ## 22. 下一步
 
@@ -898,5 +900,9 @@ Impl-3t用新seed做一次同规模prompt-visible留出验证。它是2.9B路线
 Impl-3t 已一次性通过。不可变候选、source/evidence digest、安全边界和冻结
 设计字段已人工核对，项目负责人也已确认完整checksum。最终预注册包digest为
 `0daf056dc6b38aa20fa69dd9e8df9b8065876529947cbc01353ffe604933d0c9`。
-现在继续停止任务开发与模型计算；本次授权不包含Core Set或正式实验，必须
-等待后续单独授权。
+
+项目负责人现已补充Core Set生成授权，但没有授权正式实验。生成器固定为：
+320个独立factorial groups，每组4种I×G状态，每个语义案例完整轮换A–D，
+合计1,280个语义案例和5,120条试题；16个历史×查询组合各20组，四个历史、
+查询、filler和标签对组合各80组。云端生成只读取冻结tokenizer以确定4个
+filler恰好131 tokens，不加载模型权重或产生任何行为结果。

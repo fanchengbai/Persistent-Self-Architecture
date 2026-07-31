@@ -436,4 +436,10 @@ Impl-3t 已一次性通过：模板资格、控制基线和功效门均为true�
 最终预注册包。最终包状态为`final_preregistration_frozen`，digest为
 `0daf056dc6b38aa20fa69dd9e8df9b8065876529947cbc01353ffe604933d0c9`。
 候选、验证报告和人工确认记录均已锁定，包自校验、payload root与安全边界
-通过。Core Set生成和正式实验仍为未授权、未执行状态。
+通过。
+
+项目负责人随后单独授权生成并冻结Core Set，但仍未授权正式实验。该授权
+绑定最终预注册digest、N=320和“只生成不运行”范围。生成工具固定320组×4
+状态×4代码轮换，共1,280个语义案例和5,120条试题；真实Core Set digest必须
+在云端用冻结tokenizer拟合4个131-token filler后一次性产生。正式模型推理
+入口继续关闭。

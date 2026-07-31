@@ -956,6 +956,15 @@ Core Set入口仍保持关闭，确认记录明确写入`generate_core_set=false
 - raw return；
 - primary report。
 
+Impl-5拆分为两个独立授权边界。Impl-5a只生成并冻结Core Set：验证最终
+预注册digest和单独的项目负责人授权，使用core seed `22217530`生成320个
+factorial groups；每组4种状态×4次A–D轮换，共1,280个语义案例和5,120条
+未运行试题。生成器只加载冻结tokenizer来拟合4个131-token filler，不加载
+模型权重。输出状态必须为`core_set_frozen_unrun`，并同时记录
+`confirmatory_experiment_run=false`和`confirmatory_results_observed=false`。
+
+Impl-5b才允许加载模型执行Core Set；它需要新的单独授权，当前仍保持关闭。
+
 ### Impl-6：扩展
 
 - Delay；
