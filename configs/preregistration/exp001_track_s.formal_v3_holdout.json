@@ -1,0 +1,133 @@
+{
+  "extends": "configs/preregistration/exp001_track_s.formal_v1.json",
+  "config_version": "1.3",
+  "gate": "impl3t_exp001_formal_v3_holdout",
+  "revision": {
+    "revision_id": "formal-v3-one-shot-holdout",
+    "source_gate": "impl3s_exp001_formal_freeze_candidate_v3",
+    "source_candidate_digest_sha256": "44519a84c8b1d3ee91d82e89b15b1ddf2b5af47ad931e0a88578925168a93f86",
+    "allowed_evidence": "prompt_visible_development_only",
+    "decision": "freeze_v3_prompts_and_run_one_fresh_qualification_manifest",
+    "reason": [
+      "V3 improved the goal BCa lower bound from 0.890625 to 0.8984375 without passing 0.90.",
+      "Five of eight joint errors remained at history index 3, which retained the same assigned case stream across v2 and v3.",
+      "Errors also crossed query templates, filler variants, label pairs, and target combinations, so no further wording edit is justified."
+    ],
+    "one_shot_stopping_rule": {
+      "pass": "review the new immutable candidate checksum without generating Core Set",
+      "fail": "stop the G1h 2.9B formal qualification route",
+      "forbidden": [
+        "change prompts after observing holdout results",
+        "change thresholds",
+        "increase or resample the holdout",
+        "select only favorable templates"
+      ]
+    },
+    "unchanged": [
+      "v3 history template family",
+      "v2 query template family",
+      "v2 COLOR and SHAPE control family",
+      "model and tokenizer",
+      "history mode single_statement",
+      "identity and goal label pools",
+      "four answer-code rotations",
+      "four 131-token filler variants and fit algorithm",
+      "all five formal seeds",
+      "N=320",
+      "SESOI and statistical thresholds",
+      "power target",
+      "safety boundary"
+    ]
+  },
+  "prerequisites": [
+    {
+      "path": "results/development/impl3s_exp001_formal_freeze_candidate_v3/summary.json",
+      "checks": {
+        "valid": true,
+        "template_qualification_passed": false,
+        "control_baseline_passed": true,
+        "power_gate_passed": true,
+        "freeze_candidate_ready": false,
+        "confirmatory_results_observed": false,
+        "core_set_generated": false,
+        "candidate_digest_sha256": "44519a84c8b1d3ee91d82e89b15b1ddf2b5af47ad931e0a88578925168a93f86"
+      }
+    },
+    {
+      "path": "results/development/impl3s_exp001_formal_freeze_candidate_v3/formal_freeze_review.json",
+      "checks": {
+        "valid": true,
+        "route_decision": "revise_formal_template_family_only",
+        "confirmatory_results_observed": false,
+        "core_set_generated": false
+      }
+    }
+  ],
+  "history_protocol": {
+    "templates": [
+      {
+        "id": "formal-history-v3-01",
+        "user_text": "SAVE ONE COMPLETE TWO-FIELD STATE RECORD.\nFIELD 1 - CURRENT DOMAIN: {domain}\nFIELD 2 - CURRENT OPERATION: {operation}\nRetain both fields independently.",
+        "assistant_ack": "Both CURRENT DOMAIN and CURRENT OPERATION are stored."
+      },
+      {
+        "id": "formal-history-v3-02",
+        "user_text": "STORE BOTH PARTS OF THE CURRENT STATE.\nFIELD 1 - CURRENT DOMAIN: {domain}\nFIELD 2 - CURRENT OPERATION: {operation}\nNeither field may be omitted.",
+        "assistant_ack": "Both CURRENT DOMAIN and CURRENT OPERATION are saved."
+      },
+      {
+        "id": "formal-history-v3-03",
+        "user_text": "RECORD EXACTLY TWO CURRENT STATE FIELDS.\nFIELD 1 - CURRENT DOMAIN: {domain}\nFIELD 2 - CURRENT OPERATION: {operation}\nKeep the two fields separate.",
+        "assistant_ack": "Both CURRENT DOMAIN and CURRENT OPERATION are recorded."
+      },
+      {
+        "id": "formal-history-v3-04",
+        "user_text": "MEMORIZE THE COMPLETE CURRENT STATE PAIR.\nFIELD 1 - CURRENT DOMAIN: {domain}\nFIELD 2 - CURRENT OPERATION: {operation}\nThe saved record requires both fields.",
+        "assistant_ack": "Both CURRENT DOMAIN and CURRENT OPERATION are retained."
+      }
+    ]
+  },
+  "query_protocol": {
+    "templates": [
+      {
+        "id": "formal-query-v2-01",
+        "user_text": "TASK: exact two-field state match.\nGENERAL RULE: choose the unique option whose DOMAIN equals the saved CURRENT DOMAIN and whose OPERATION equals the saved CURRENT OPERATION.\nBoth fields must match. The saved values appear only inside the balanced options.\nOPTIONS:\n{options}\nReply with the matching option code only."
+      },
+      {
+        "id": "formal-query-v2-02",
+        "user_text": "TASK: recover the complete saved state pair.\nSTEP 1: match option DOMAIN to the saved CURRENT DOMAIN.\nSTEP 2: match option OPERATION to the saved CURRENT OPERATION.\nChoose the one option passing both steps. Current values are hidden outside the balanced options.\nOPTIONS:\n{options}\nReturn only its option code."
+      },
+      {
+        "id": "formal-query-v2-03",
+        "user_text": "TASK: select the exact saved binding.\nREQUIRED CONDITION A: DOMAIN must equal CURRENT DOMAIN.\nREQUIRED CONDITION B: OPERATION must equal CURRENT OPERATION.\nAn option is correct only when A and B are both true. Saved values occur only in the balanced options.\nOPTIONS:\n{options}\nAnswer with one option code only."
+      },
+      {
+        "id": "formal-query-v2-04",
+        "user_text": "TASK: choose the state-consistent two-field option.\nIgnore the option letter while comparing content. First compare DOMAIN with CURRENT DOMAIN, then compare OPERATION with CURRENT OPERATION. Select the unique option matching both saved fields.\nOPTIONS:\n{options}\nProvide only the matching code."
+      }
+    ]
+  },
+  "template_qualification": {
+    "manifest_seed": 3061017642,
+    "manifest_seed_namespace": "PSA|EXP-001|formal-v3-holdout|template-qualification",
+    "selection_role": "one_shot_held_out_validation"
+  },
+  "controls": {
+    "use_rotation_marginalized_semantic_controls": true,
+    "vocabulary": {
+      "single_field_symbols": ["luma", "sora", "pavi", "toke"],
+      "two_field_names": ["COLOR", "SHAPE"],
+      "two_field_values": [
+        ["red", "blue"],
+        ["circle", "square"]
+      ]
+    }
+  },
+  "source_files_append": [
+    "configs/preregistration/exp001_track_s.formal_v2.json",
+    "configs/preregistration/exp001_track_s.formal_v3.json",
+    "configs/preregistration/exp001_track_s.formal_v3_holdout.json",
+    "scripts/run_impl3t_exp001_formal_v3_holdout_gate.sh",
+    "src/psa/preregistration/formal_review.py"
+  ]
+}

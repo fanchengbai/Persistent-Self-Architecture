@@ -34,10 +34,15 @@ from psa.tasks import generate_factorial_group
 FORMAL_GATE = "impl3q_exp001_formal_freeze_candidate"
 FORMAL_GATE_V2 = "impl3r_exp001_formal_freeze_candidate_v2"
 FORMAL_GATE_V3 = "impl3s_exp001_formal_freeze_candidate_v3"
+FORMAL_GATE_HOLDOUT = "impl3t_exp001_formal_v3_holdout"
 SUPPORTED_FORMAL_GATES = (
     FORMAL_GATE,
     FORMAL_GATE_V2,
     FORMAL_GATE_V3,
+    FORMAL_GATE_HOLDOUT,
+)
+TEMPLATE_HOLDOUT_SEED_NAMESPACE = (
+    "PSA|EXP-001|formal-v3-holdout|template-qualification"
 )
 SEED_PURPOSES = {
     "core_generator": "core-generator",
@@ -130,6 +135,15 @@ def derive_formal_seed(purpose: str) -> int:
         raise ValueError(f"unsupported formal seed purpose: {purpose}")
     text = f"PSA|EXP-001|formal-v1|{purpose}".encode("utf-8")
     return int.from_bytes(hashlib.sha256(text).digest()[:4], "big")
+
+
+def derive_template_holdout_seed() -> int:
+    return int.from_bytes(
+        hashlib.sha256(
+            TEMPLATE_HOLDOUT_SEED_NAMESPACE.encode("utf-8")
+        ).digest()[:4],
+        "big",
+    )
 
 
 def _validate_seed_lock(config: Mapping[str, Any]) -> dict[str, int]:
@@ -399,7 +413,37 @@ def generate_template_qualification_manifest(
     if len({item["text"] for item in fillers}) != 4:
         raise ValueError("formal filler variants must have distinct text")
 
-    base_seed = int(config["seeds"]["core_generator"])
+    holdout_seed = qualification.get("manifest_seed")
+    if holdout_seed is None:
+        base_seed = int(config["seeds"]["core_generator"])
+        holdout_metadata: dict[str, Any] = {}
+    else:
+        expected_holdout_seed = derive_template_holdout_seed()
+        if int(holdout_seed) != expected_holdout_seed:
+            raise ValueError(
+                "template holdout seed does not match its frozen namespace"
+            )
+        if (
+            qualification.get("manifest_seed_namespace")
+            != TEMPLATE_HOLDOUT_SEED_NAMESPACE
+        ):
+            raise ValueError(
+                "template holdout seed namespace is not frozen"
+            )
+        if qualification.get("selection_role") != (
+            "one_shot_held_out_validation"
+        ):
+            raise ValueError(
+                "template holdout selection role is not one-shot"
+            )
+        base_seed = expected_holdout_seed
+        holdout_metadata = {
+            "manifest_seed": base_seed,
+            "manifest_seed_namespace": (
+                TEMPLATE_HOLDOUT_SEED_NAMESPACE
+            ),
+            "selection_role": "one_shot_held_out_validation",
+        }
     rng = random.Random(base_seed ^ 0x514C4659)
     pair_pool = tuple(itertools.product(identity_pairs, goal_pairs))
     trials: list[dict[str, Any]] = []
@@ -538,6 +582,7 @@ def generate_template_qualification_manifest(
         "trial_count": len(trials),
         "trials": trials,
         "manifest_digest_sha256": sha256_json(trials),
+        **holdout_metadata,
     }
 
 

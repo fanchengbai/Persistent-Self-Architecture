@@ -2,6 +2,7 @@
 
 from psa.preregistration.formal_freeze import (
     derive_formal_seed,
+    derive_template_holdout_seed,
     evaluate_control_records,
     evaluate_template_qualification,
     generate_control_manifest,
@@ -18,6 +19,7 @@ from psa.preregistration.formal_review import (
 
 __all__ = [
     "derive_formal_seed",
+    "derive_template_holdout_seed",
     "evaluate_control_records",
     "evaluate_template_qualification",
     "generate_control_manifest",

@@ -765,6 +765,22 @@ cat results/development/impl3s_exp001_formal_freeze_candidate_v3/summary.json
 阈值和安全边界。即使全部通过，也只回传summary和新的candidate checksum；
 人工复核与明确确认前，不生成Core Set、不运行正式state-only实验。
 
+### 5.23 运行 Impl-3t v3 一次性留出资格门
+
+该门不是v4，不修改v3任何history/query/control。运行前已固定新seed
+`3061017642`和一次性终止规则：
+
+```bash
+git pull --ff-only
+source .venv/bin/activate
+bash scripts/run_impl3t_exp001_formal_v3_holdout_gate.sh
+cat results/development/impl3t_exp001_formal_v3_holdout/summary.json
+```
+
+- 若全部门通过：停止计算，只回传summary和candidate checksum等待人工审阅；
+- 若任一资格门失败：停止G1h 2.9B正式资格路线；
+- 两种结果都不得触发新prompt、再次抽样、追加样本或生成Core Set。
+
 ## 6. 运行纯逻辑测试
 
 ```bash

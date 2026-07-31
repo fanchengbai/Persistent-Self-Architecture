@@ -928,6 +928,10 @@ Impl-3r 必须验证 Impl-3q Hold 和 Impl-3q-a 路线，仍不得生成 Core Se
 0.890625低于0.90，其他资格项均通过。Impl-3s保留v2 query和controls，只将
 四个history整体改为平行FIELD 1/2结构；不得只挑选观测满分模板。
 
+v3错误审计未提供可识别的下一项措辞修订，并暴露history索引与案例流混杂。
+Impl-3t因此不改prompt，只用新SHA-256 seed运行一次未观察留出资格集。
+其停止规则进入配置：通过只审checksum；失败停止2.9B；禁止再次抽样或调参。
+
 ### Impl-4：工程参数冻结与预注册
 
 - freeze；

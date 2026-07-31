@@ -45,7 +45,8 @@
       "enum": [
         "impl3q_exp001_formal_freeze_candidate",
         "impl3r_exp001_formal_freeze_candidate_v2",
-        "impl3s_exp001_formal_freeze_candidate_v3"
+        "impl3s_exp001_formal_freeze_candidate_v3",
+        "impl3t_exp001_formal_v3_holdout"
       ]
     },
     "model_id": {"type": "string", "minLength": 1},

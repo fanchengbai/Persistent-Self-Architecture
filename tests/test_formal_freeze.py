@@ -8,6 +8,7 @@ import unittest
 from psa.artifacts import payload_digest, sha256_file, sha256_json
 from psa.preregistration import (
     derive_formal_seed,
+    derive_template_holdout_seed,
     evaluate_control_records,
     evaluate_template_qualification,
     generate_control_manifest,
@@ -503,6 +504,83 @@ class FormalFreezeTests(unittest.TestCase):
         self.assertIn(
             "configs/preregistration/exp001_track_s.formal_v3.json",
             v3["source_files"],
+        )
+
+    def test_v3_holdout_is_fresh_one_shot_and_prompt_frozen(
+        self,
+    ) -> None:
+        v3_path = (
+            self.root
+            / "configs"
+            / "preregistration"
+            / "exp001_track_s.formal_v3.json"
+        )
+        holdout_path = (
+            self.root
+            / "configs"
+            / "preregistration"
+            / "exp001_track_s.formal_v3_holdout.json"
+        )
+        v3 = _load_formal_config(v3_path, self.root)
+        holdout = _load_formal_config(holdout_path, self.root)
+        self.assertEqual(
+            holdout["gate"],
+            "impl3t_exp001_formal_v3_holdout",
+        )
+        for field in (
+            "model_config",
+            "labels",
+            "answer_interface",
+            "history_protocol",
+            "query_protocol",
+            "filler_protocol",
+            "controls",
+            "seeds",
+            "core_design",
+            "statistics",
+            "power_simulation",
+            "safety_boundary",
+        ):
+            self.assertEqual(holdout[field], v3[field])
+        qualification = holdout["template_qualification"]
+        self.assertEqual(
+            qualification["manifest_seed"],
+            derive_template_holdout_seed(),
+        )
+        self.assertEqual(
+            qualification["selection_role"],
+            "one_shot_held_out_validation",
+        )
+        self.assertEqual(derive_template_holdout_seed(), 3061017642)
+
+        v3_manifest = generate_template_qualification_manifest(
+            v3,
+            token_counter=lambda _: 131,
+        )
+        holdout_manifest = generate_template_qualification_manifest(
+            holdout,
+            token_counter=lambda _: 131,
+        )
+        repeated_holdout = generate_template_qualification_manifest(
+            holdout,
+            token_counter=lambda _: 131,
+        )
+        self.assertEqual(v3_manifest["trial_count"], 512)
+        self.assertEqual(holdout_manifest["trial_count"], 512)
+        self.assertNotEqual(
+            v3_manifest["manifest_digest_sha256"],
+            holdout_manifest["manifest_digest_sha256"],
+        )
+        self.assertEqual(
+            holdout_manifest["manifest_digest_sha256"],
+            repeated_holdout["manifest_digest_sha256"],
+        )
+        self.assertEqual(
+            holdout_manifest["selection_role"],
+            "one_shot_held_out_validation",
+        )
+        self.assertFalse(
+            holdout["core_design"]["generate_or_unseal_core_set"]
         )
 
     def test_power_simulation_retains_320_groups(self) -> None:

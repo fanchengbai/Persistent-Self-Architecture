@@ -873,7 +873,8 @@ units 中选择与 128 tokens 绝对误差最小者，误差必须不超过 16 t
 - [x] Impl-3q prompt-visible首版资格门完成并保留Hold记录；
 - [x] Impl-3r v2 完成，控制和功效通过但模板资格Hold；
 - [x] Impl-3r-a 定位唯一失败项为goal BCa下界；
-- [ ] Impl-3s v3通过 prompt-visible资格门并人工确认checksum；
+- [x] Impl-3s v3完成但goal下界近失，终止模板调优；
+- [ ] Impl-3t一次性留出资格门通过并人工确认checksum；
 - [ ] 将状态从 Draft 改为 Frozen for Generation。
 
 ## 22. 下一步
@@ -886,3 +887,7 @@ Impl-3r 已证明 COLOR/SHAPE 控制和 N=320 功效门有效，但统一字段�
 Impl-3r-a 与精确报告现已完成：唯一失败项为goal BCa下界。Impl-3s只将
 全部四个history统一为FIELD 1 DOMAIN/FIELD 2 OPERATION结构，保留v2 query
 和controls及所有冻结数值。下一步运行该独立资格门。
+
+Impl-3s仍近失，且错误审计显示模板措辞与固定案例流混杂。v3现永久冻结；
+Impl-3t用新seed做一次同规模prompt-visible留出验证。它是2.9B路线的终止门，
+不是新一轮模板开发。
