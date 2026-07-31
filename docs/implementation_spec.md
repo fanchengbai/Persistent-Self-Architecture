@@ -965,6 +965,11 @@ factorial groups；每组4种状态×4次A–D轮换，共1,280个语义案例�
 
 Impl-5b才允许加载模型执行Core Set；它需要新的单独授权，当前仍保持关闭。
 
+Impl-5a云端生成已完成：320组、1,280个语义案例、5,120条试题全部通过冻结
+检查。Core Set digest为`6ea2b6be15a7728c96d84dcc8e48da64e740438980f818e78c8ee8570a47eb9d`，
+包digest为`9659e286de4128b43226f2d6df27075eba60bd953c2330ee70c0ec3e677f1642`。
+状态保持`core_set_frozen_unrun`；Impl-5b仍未授权。
+
 ### Impl-6：扩展
 
 - Delay；

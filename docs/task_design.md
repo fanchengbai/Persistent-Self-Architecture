@@ -880,7 +880,8 @@ units 中选择与 128 tokens 绝对误差最小者，误差必须不超过 16 t
 - [x] 将状态从 Draft 改为 Final Preregistration Frozen；
 - [x] 项目负责人单独授权生成并冻结Core Set，继续禁止正式实验；
 - [x] 实现320组Core Set平衡生成与冻结工具；
-- [ ] 在云端用冻结tokenizer生成并核对Core Set v1 digest。
+- [x] 在云端用冻结tokenizer生成并核对Core Set v1 digest；
+- [ ] 将云端冻结Core Set文件安全纳入版本控制。
 
 ## 22. 下一步
 
@@ -906,3 +907,10 @@ Impl-3t 已一次性通过。不可变候选、source/evidence digest、安全�
 合计1,280个语义案例和5,120条试题；16个历史×查询组合各20组，四个历史、
 查询、filler和标签对组合各80组。云端生成只读取冻结tokenizer以确定4个
 filler恰好131 tokens，不加载模型权重或产生任何行为结果。
+
+云端一次性生成现已完成。Core Set状态为`core_set_frozen_unrun`，包含320个
+factorial groups、1,280个语义案例和5,120条试题。Core Set digest为
+`6ea2b6be15a7728c96d84dcc8e48da64e740438980f818e78c8ee8570a47eb9d`，
+包digest为
+`9659e286de4128b43226f2d6df27075eba60bd953c2330ee70c0ec3e677f1642`。
+正式实验未授权、未运行，确认性结果未观察。

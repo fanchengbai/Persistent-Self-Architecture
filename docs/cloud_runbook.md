@@ -831,6 +831,18 @@ cat preregistration/exp001/core_set_v1/manifest.json
 运行后只回传`manifest.json`内容。不要运行模型，不要新增“顺便测试几题”的
 命令，也不要修改或重新抽取seed、模板、标签、filler或样本量。
 
+首次正式生成已通过，冻结值为：
+
+- Core Set digest：
+  `6ea2b6be15a7728c96d84dcc8e48da64e740438980f818e78c8ee8570a47eb9d`；
+- Core Set package digest：
+  `9659e286de4128b43226f2d6df27075eba60bd953c2330ee70c0ec3e677f1642`；
+- package payload root：
+  `1f4bd57f6f24cc5af676ff3b9c0e0e550c3f342a3643676b6731f473c6b3c02a`。
+
+正式实验仍未授权。下一步先用`ls -lh`或`du -h`查看`core_set.json`大小，
+再决定普通Git或大文件存储；不要重新生成第二份Core Set。
+
 ## 6. 运行纯逻辑测试
 
 ```bash

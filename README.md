@@ -286,6 +286,10 @@ Phase 0 → Phase 1 — Research Design / State Infrastructure
     已固定320组、1,280个语义案例和5,120条四代码轮换试题，并通过平衡、
     幂等、篡改与越权测试；下一步在云端只读取冻结tokenizer生成最终digest，
     不加载模型权重。
+48. Core Set v1已经一次性生成并冻结：320组、1,280个语义案例、5,120条
+    试题全部吻合，Core Set digest为`6ea2b6be…eb9d`，包digest为
+    `9659e286…1642`。状态仍是`core_set_frozen_unrun`；正式实验未授权、
+    未运行、没有结果。下一步只安全保存冻结文件。
 
 ## 项目文档
 
