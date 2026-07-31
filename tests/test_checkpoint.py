@@ -209,6 +209,9 @@ class CheckpointTests(unittest.TestCase):
         )
         for key in ("base_seed", "alternate_seed", "max_relative_l2_error"):
             self.assertEqual(random_replay[key], random_baseline[key])
+        self.assertEqual(
+            random_replay["continuation_shape_warmup_count"], 1
+        )
         state_baseline = json.loads(
             (
                 PROJECT_ROOT

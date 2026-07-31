@@ -3,6 +3,7 @@
   "gate": "impl3o_g1h_2_9b_random_matched",
   "development_only": true,
   "repeat_count": 10,
+  "continuation_shape_warmup_count": 1,
   "base_seed": 314159265,
   "alternate_seed": 271828182,
   "max_relative_l2_error": 0.01,
@@ -27,6 +28,7 @@
   "notes": [
     "This is a non-confirmatory engineering replay for the selected G1h 2.9B checkpoint.",
     "Seeds, scale threshold, continuation thresholds, and determinism policy are unchanged from Impl-2c.",
+    "One same-suffix continuation from a clone of the matched-random state is excluded from scoring, based on the pre-run Impl-3n-a first-shape-call evidence.",
     "Noise is centered per component and scaled to the source component L2 norm."
   ]
 }

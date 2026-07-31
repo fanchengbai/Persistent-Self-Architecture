@@ -608,7 +608,7 @@ cat results/development/impl3o_g1h_2.9b_random_matched/summary.json
 ```
 
 期望同 seed 可逐位复现、不同 seed 可区分、尺度匹配和续算均有效，组件数
-应为 96，最终 `valid=true`。
+应为 96，`continuation_shape_warmup_count=1`，最终 `valid=true`。
 
 ## 6. 运行纯逻辑测试
 

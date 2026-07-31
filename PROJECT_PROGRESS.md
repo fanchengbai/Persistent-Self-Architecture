@@ -61,7 +61,7 @@
 | 32. Impl-3n：2.9B reset/diff/swap 复验 | ⚠️ Revise | 对 96 个 state 组件执行比较、官方 reset 和完整交换 | 正式因果实验会依赖这些操作，必须先证明工具在 2.9B 上仍可靠且不修改来源状态 | 运行有效但总门失败：diff/swap 等均通过；reset 的 10/10 top-1 一致，logits 误差 0.03125 低于 0.0625，但 state 误差每次均为 0.155052，高于 0.125，因此容差通过 0/10 | 项目负责人运行；Codex 诊断 |
 | 33. Impl-3n-a：reset 首次形状执行诊断 | ✅ 完成 | 复现原门前奏后连续 reset 11 次，分别用第 1 次和第 2 次作参考比较后续调用 | 十次完全相同的超限更像第一次遇到该 token 长度时的 CUDA 首次执行差异；必须直接验证，不能直接丢掉第一次后宣布通过 | 路线为 `first_shape_call_outlier`：第1次参考对后续 0/10 通过，第2次稳定参考对第3–11次 9/9 通过，相邻调用 9/10 通过；异常仅发生在第1→2次 | 项目负责人运行；Codex 诊断 |
 | 34. Impl-3n-b：单次预热后完整状态操作复验 | ✅ 通过 | 在评分前执行一次相同 suffix 的 `state=None` 调用，然后原样重跑 diff/reset/swap | 用独立新门检验预先声明的单次预热能否消除已确认的首次形状效应，同时不覆盖原失败 | `reset_shape_warmup_count=1`；96/96 组件可区分，tokenizer、diff、reset、swap、来源状态不变性和总门全部通过。原 Impl-3n 的失败记录保留 | 项目负责人运行；Codex 诊断 |
-| 35. Impl-3o：2.9B matched random 复验 | 🟡 等待云端 | 生成与 2.9B 真实 state 分组件尺度匹配的随机状态，并验证种子复现和稳定续算 | random 对照必须和真状态同形同尺度，才能排除“随便塞噪声”的解释 | Impl-3n-b 前置门已通过，暂停解除；种子、尺度阈值和续算阈值均保持冻结，现在运行本门 | Codex 已完成；项目负责人运行 |
+| 35. Impl-3o：2.9B matched random 复验 | 🟡 等待云端 | 生成与 2.9B 真实 state 分组件尺度匹配的随机状态，并验证种子复现和稳定续算 | random 对照必须和真状态同形同尺度，才能排除“随便塞噪声”的解释 | Impl-3n-b 前置门已通过；在看到本门结果前预先固定一次不计分续算形状预热。种子、尺度阈值和正式10次续算阈值均不变 | Codex 已完成；项目负责人运行 |
 | 36. Batch 2：冻结任务参数 | ⏳ 未开始 | 冻结 checkpoint、标签池、模板、delay、答案格式、轮换读出和阈值 | 一旦冻结，后面不能因为结果不好随意改题或换模型 | 必须等待 Impl-3m/3n-b/3o 都通过 | 共同审阅 |
 | 37. Impl-4：预注册 | ⏳ 未开始 | 固定代码、配置、样本量、随机种子和判断标准 | 防止看到正式结果后改变成功标准 | 尚未开始 | Codex 整理；项目负责人确认 |
 | 38. Phase 2：正式原生 state 实验 | ⏳ 未开始 | 比较 original/reset/random/swap 等条件 | 这一步才真正测试 recurrent state 是否是跨时间因果载体 | 尚无研究结论 | 项目负责人运行；Codex 分析 |
@@ -279,7 +279,9 @@ cat results/development/impl3o_g1h_2.9b_random_matched/summary.json
 ```
 
 该门不测试 Self 语义；它验证 random 对照是否同形同尺度、种子可复现且
-能够稳定续算。收到 summary 前不进入 Batch 2 冻结。
+能够稳定续算。由于它也会首次遇到相同 suffix 形状，已在运行前依据
+Impl-3n-a 证据固定 `continuation_shape_warmup_count=1`，预热使用随机状态
+的副本且不计分。收到 summary 前不进入 Batch 2 冻结。
 
 完整选择依据和后续复验顺序见
 [checkpoint 迁移方案](docs/checkpoint_migration.md)。
@@ -330,3 +332,4 @@ cat results/development/impl3o_g1h_2.9b_random_matched/summary.json
 | 2026-07-31 | reset 详细报告显示 10/10 top-1 一致、logits 误差通过，但 state 误差固定为 0.155052 并超过 0.125；官方 0.8.32 实现确认 `state=None` 创建全零状态。新增不覆盖失败、不放宽阈值的 Impl-3n-a 首次形状执行诊断 | `results/development/impl3n_g1h_2.9b_state_operations/reset_validation.json`、`configs/gates/impl3na_g1h_2.9b_reset_stability.dev.json` |
 | 2026-07-31 | Impl-3n-a 确认 `first_shape_call_outlier`：第1次对后续 0/10，第2次参考后 9/9 稳定，相邻调用仅第1→2次失败。新增独立 Impl-3n-b，在计分前固定一次同形状 reset 预热，其余门槛和操作不变 | `results/development/impl3na_g1h_2.9b_reset_stability/summary.json`、`configs/gates/impl3nb_g1h_2.9b_state_operations_warmed.dev.json` |
 | 2026-07-31 | Impl-3n-b 在固定一次不计分预热后完整通过：96/96 组件 diff、官方 reset、完整 swap、tokenizer 和来源不变性全部有效；保留原 Impl-3n 失败，解除 Impl-3o 暂停 | `results/development/impl3nb_g1h_2.9b_state_operations_warmed/summary.json` |
+| 2026-07-31 | 在 Impl-3o 首次运行前，将已确认的首次 suffix 形状效应纳入其工程协议：固定一次使用 matched-random 状态副本的不计分续算预热；seed、尺度阈值和正式10次续算判定不变 | `configs/gates/impl3o_g1h_2.9b_random_matched.dev.json`、Impl-3n-a/3n-b 证据 |

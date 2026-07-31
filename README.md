@@ -220,7 +220,8 @@ Phase 0 → Phase 1 — Research Design / State Infrastructure
     diff/reset/swap 规则和原阈值复验；原 Impl-3n 失败记录保持不变。
 30. Impl-3n-b 完整通过：固定一次不计分预热后，96/96 组件 diff、官方
     reset、完整 swap、tokenizer 和来源不变性均有效。现在解除 Impl-3o
-    暂停，继续验证 2.9B 的尺度匹配随机状态对照。
+    暂停；在本门首次运行前，依据同一证据固定一次不计分续算形状预热，
+    再验证 2.9B 的尺度匹配随机状态对照。
 
 ## 项目文档
 

@@ -793,6 +793,19 @@ def run_random_state_gate(
     repeat_count = gate_config.get("repeat_count")
     if not isinstance(repeat_count, int) or repeat_count < 10:
         raise ValueError("repeat_count must be at least 10")
+    continuation_shape_warmup_count = gate_config.get(
+        "continuation_shape_warmup_count", 0
+    )
+    expected_warmup_count = (
+        1 if gate_name == "impl3o_g1h_2_9b_random_matched" else 0
+    )
+    if (
+        not isinstance(continuation_shape_warmup_count, int)
+        or continuation_shape_warmup_count != expected_warmup_count
+    ):
+        raise ValueError(
+            "continuation shape warmup count does not match the selected gate"
+        )
     base_seed = gate_config.get("base_seed")
     alternate_seed = gate_config.get("alternate_seed")
     if (
@@ -855,6 +868,8 @@ def run_random_state_gate(
     )
     random_inventory = inventory_state(random_state, adapter.torch)
     alternate_inventory = inventory_state(alternate_state, adapter.torch)
+    for _ in range(continuation_shape_warmup_count):
+        adapter.forward(suffix_tokens, clone_state(random_state))
     continuation = _repeat_from_state(
         adapter,
         suffix_tokens,
@@ -892,6 +907,12 @@ def run_random_state_gate(
         "development_only": True,
         "operation": "random_matched",
         "method": "per-component centered Gaussian matched to source L2 norm",
+        "continuation_shape_warmup_count": (
+            continuation_shape_warmup_count
+        ),
+        "shape_warmup_excluded_from_scoring": bool(
+            continuation_shape_warmup_count
+        ),
         "base_seed": base_seed,
         "alternate_seed": alternate_seed,
         "source_state_digest_sha256": source_before[
@@ -927,6 +948,9 @@ def run_random_state_gate(
         "development_only": True,
         "model_id": model_config.model_id,
         "gate_config_sha256": sha256_file(gate_config_path),
+        "continuation_shape_warmup_count": (
+            continuation_shape_warmup_count
+        ),
         "tokenizer_roundtrip_valid": tokenizer_valid,
         "component_count": scale["component_count"],
         "source_state_immutable": source_immutable,

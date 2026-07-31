@@ -485,4 +485,7 @@ Impl-3n-b 实际运行完整通过：`reset_shape_warmup_count=1`，96 个组件
 工程解释，但不会删除或改写原 Impl-3n 的失败。
 
 至此解除 Impl-3o 暂停，继续按冻结 seed、0.01 尺度误差上限和原续算阈值
-验证 matched-random 对照。
+验证 matched-random 对照。由于 Impl-3o 的续算也会首次遇到相同 suffix
+形状，在看到本门结果之前已固定 `continuation_shape_warmup_count=1`：
+使用 matched-random 状态的深拷贝做一次续算并排除计分。正式 random 状态
+不被修改，seed、尺度判定和后续10次续算阈值均不变。
