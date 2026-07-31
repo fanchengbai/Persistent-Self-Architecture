@@ -598,6 +598,8 @@ cat results/development/impl3nb_g1h_2.9b_state_operations_warmed/summary.json
 重点确认 `reset_shape_warmup_count=1`，并检查 `state_diff_valid`、
 `reset_valid`、`swap_valid`、`source_states_immutable` 和总 `valid`。
 
+实际结果上述字段全部通过，Impl-3o 的暂停已经解除。
+
 ### 5.18 Impl-3n-b 通过后运行 Impl-3o 随机状态复验
 
 ```bash

@@ -478,3 +478,11 @@ Impl-3n-a 实际路线为 `first_shape_call_outlier`：第1次参考对后续 0/
 `reset_shape_warmup_count=1` 与 `shape_warmup_excluded_from_scoring=true`。
 除这一次预热外，repeat=10、logits/state 阈值、确定性策略、diff、官方
 reset 语义、完整 swap 和来源不变性判断全部与 Impl-3n 相同。
+
+Impl-3n-b 实际运行完整通过：`reset_shape_warmup_count=1`，96 个组件
+全部可区分，tokenizer roundtrip、state diff、官方 reset、完整 swap、
+来源状态不变性和总 `valid` 均为 `true`。这支持“首次形状调用效应”的
+工程解释，但不会删除或改写原 Impl-3n 的失败。
+
+至此解除 Impl-3o 暂停，继续按冻结 seed、0.01 尺度误差上限和原续算阈值
+验证 matched-random 对照。
