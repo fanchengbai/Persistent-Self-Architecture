@@ -489,3 +489,18 @@ Impl-3n-b 实际运行完整通过：`reset_shape_warmup_count=1`，96 个组件
 形状，在看到本门结果之前已固定 `continuation_shape_warmup_count=1`：
 使用 matched-random 状态的深拷贝做一次续算并排除计分。正式 random 状态
 不被修改，seed、尺度判定和后续10次续算阈值均不变。
+
+Impl-3o 实际运行完整通过：
+
+- `component_count=96`；
+- `continuation_shape_warmup_count=1`；
+- 同 seed 逐位复现，不同 seed 可区分；
+- 逐组件尺度匹配有效，最大相对 L2 误差为
+  `2.8687819151988067e-05`，远低于 `0.01` 上限；
+- tokenizer、随机状态续算和来源状态不变性全部有效；
+- 总 `valid=true`。
+
+至此 G1h 2.9B 的能力读出、跨进程恢复、状态操作和 matched-random
+开发门全部闭合。下一步进入 Batch 2 参数冻结审阅，不直接运行确认集。
+冻结候选与剩余未决项见
+[`exp001_batch2_freeze_review.md`](exp001_batch2_freeze_review.md)。

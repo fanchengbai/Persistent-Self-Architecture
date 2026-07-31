@@ -914,7 +914,7 @@ Batch 2。`route_decision` 明确区分回答接口、单字段匹配和组合�
 - [x] official state inventory 固定；
 - [x] checkpoint L3 验证通过；
 - [x] 100 次 roundtrip 开发容差冻结；
-- [ ] Prompt-visible 能力门通过；
+- [x] Prompt-visible 能力门通过；G1h 2.9B 四代码轮换边际化后 32/32 语义案例正确；
 - [ ] dry run 资源预估完成；
 - [ ] source/config/schema digest 固定；
 - [ ] 预注册文件不可变；

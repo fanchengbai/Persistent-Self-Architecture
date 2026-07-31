@@ -222,6 +222,10 @@ Phase 0 → Phase 1 — Research Design / State Infrastructure
     reset、完整 swap、tokenizer 和来源不变性均有效。现在解除 Impl-3o
     暂停；在本门首次运行前，依据同一证据固定一次不计分续算形状预热，
     再验证 2.9B 的尺度匹配随机状态对照。
+31. Impl-3o 完整通过：96 个组件的 matched-random 状态同 seed 逐位复现、
+    异 seed 可区分，尺度与续算均有效；最大相对 L2 误差约 `2.87e-05`，
+    远低于 `0.01` 上限。2.9B 状态工程前置门至此闭合，项目进入 Batch 2
+    参数冻结审阅，尚未运行确认集。
 
 ## 项目文档
 
@@ -233,6 +237,7 @@ Phase 0 → Phase 1 — Research Design / State Infrastructure
 - [首轮研究主张](docs/research_claims.md)
 - [理论框架与模型架构](docs/architecture.md)
 - [内生调节与自主审议扩展](docs/endogenous_deliberation.md)
+- [EXP-001 Batch 2 参数冻结审阅单](docs/exp001_batch2_freeze_review.md)
 - [EXP-001 任务设计](docs/task_design.md)
 - [EXP-001 评价与统计协议](docs/evaluation_protocol.md)
 - [状态与 Checkpoint 格式](docs/state_format.md)

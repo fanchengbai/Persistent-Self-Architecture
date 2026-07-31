@@ -1,7 +1,7 @@
 # Persistent Self Architecture 项目进度表
 
 > 最后更新：2026-07-31
-> 当前节点：Impl-3n-b 单次预热后完整通过；等待 Impl-3o matched-random 复验；内生调节扩展已纳入后期路线
+> 当前节点：Impl-3o matched-random 已通过；进入 Batch 2 参数冻结审阅
 > 研究状态：尚未进入正式确认性实验，尚未实现显式 Self Model
 
 ## 1. 这张表怎么使用
@@ -62,8 +62,8 @@
 | 32. Impl-3n：2.9B reset/diff/swap 复验 | ⚠️ Revise | 对 96 个 state 组件执行比较、官方 reset 和完整交换 | 正式因果实验会依赖这些操作，必须先证明工具在 2.9B 上仍可靠且不修改来源状态 | 运行有效但总门失败：diff/swap 等均通过；reset 的 10/10 top-1 一致，logits 误差 0.03125 低于 0.0625，但 state 误差每次均为 0.155052，高于 0.125，因此容差通过 0/10 | 项目负责人运行；Codex 诊断 |
 | 33. Impl-3n-a：reset 首次形状执行诊断 | ✅ 完成 | 复现原门前奏后连续 reset 11 次，分别用第 1 次和第 2 次作参考比较后续调用 | 十次完全相同的超限更像第一次遇到该 token 长度时的 CUDA 首次执行差异；必须直接验证，不能直接丢掉第一次后宣布通过 | 路线为 `first_shape_call_outlier`：第1次参考对后续 0/10 通过，第2次稳定参考对第3–11次 9/9 通过，相邻调用 9/10 通过；异常仅发生在第1→2次 | 项目负责人运行；Codex 诊断 |
 | 34. Impl-3n-b：单次预热后完整状态操作复验 | ✅ 通过 | 在评分前执行一次相同 suffix 的 `state=None` 调用，然后原样重跑 diff/reset/swap | 用独立新门检验预先声明的单次预热能否消除已确认的首次形状效应，同时不覆盖原失败 | `reset_shape_warmup_count=1`；96/96 组件可区分，tokenizer、diff、reset、swap、来源状态不变性和总门全部通过。原 Impl-3n 的失败记录保留 | 项目负责人运行；Codex 诊断 |
-| 35. Impl-3o：2.9B matched random 复验 | 🟡 等待云端 | 生成与 2.9B 真实 state 分组件尺度匹配的随机状态，并验证种子复现和稳定续算 | random 对照必须和真状态同形同尺度，才能排除“随便塞噪声”的解释 | Impl-3n-b 前置门已通过；在看到本门结果前预先固定一次不计分续算形状预热。种子、尺度阈值和正式10次续算阈值均不变 | Codex 已完成；项目负责人运行 |
-| 36. Batch 2：冻结任务参数 | ⏳ 未开始 | 冻结 checkpoint、标签池、模板、delay、答案格式、轮换读出和阈值 | 一旦冻结，后面不能因为结果不好随意改题或换模型 | 必须等待 Impl-3m/3n-b/3o 都通过 | 共同审阅 |
+| 35. Impl-3o：2.9B matched random 复验 | ✅ 通过 | 生成与 2.9B 真实 state 分组件尺度匹配的随机状态，并验证种子复现和稳定续算 | random 对照必须和真状态同形同尺度，才能排除“随便塞噪声”的解释 | 96 个组件；同 seed 逐位复现、异 seed 可区分、尺度和续算均有效；最大相对 L2 误差仅 `2.8688e-05`，远低于 `0.01`；来源不变且总门 `valid=true` | 项目负责人运行；Codex 诊断 |
+| 36. Batch 2：冻结任务参数 | 🟡 审阅中 | 冻结 checkpoint、标签池、模板、delay、答案格式、轮换读出和阈值 | 一旦冻结，后面不能因为结果不好随意改题或换模型 | 3m/3n-b/3o 前置门全部通过；已形成冻结审阅单。模型、tokenizer、读出、标签池、131-token delay 和状态容差已有冻结候选；历史写入协议、正式模板、控制任务、正式 seeds 和统计模拟仍待完成 | Codex 整理；共同审阅 |
 | 37. Impl-4：预注册 | ⏳ 未开始 | 固定代码、配置、样本量、随机种子和判断标准 | 防止看到正式结果后改变成功标准 | 尚未开始 | Codex 整理；项目负责人确认 |
 | 38. Phase 2：正式原生 state 实验 | ⏳ 未开始 | 比较 original/reset/random/swap 等条件 | 这一步才真正测试 recurrent state 是否是跨时间因果载体 | 尚无研究结论 | 项目负责人运行；Codex 分析 |
 | 39. Phase 3：显式 Self Model | ⏳ 未开始 | 实现 Self Store、Self Encoder 和 gated injection | 只有原生状态基线可靠后，才能判断显式 Self Model 是否带来额外价值 | 目前只有设计，没有加入模型 | 后续由 Codex 实现 |
@@ -113,7 +113,9 @@
    ⚠️ Impl-3n 的 diff/swap 通过；reset 行为一致但 state 稳定超限
    ✅ Impl-3n-a 确认只有第1→2次异常，之后 9/9 稳定
    ✅ Impl-3n-b 单次预热后 diff/reset/swap 全部通过
-   🟡 Impl-3o matched-random 等待运行
+   ✅ Impl-3o matched-random 全部通过
+Batch 2 参数冻结
+   🟡 已形成审阅单，尚未生成预注册包
 正式 state 因果实验
    ⏳
 显式 Self Model
@@ -275,19 +277,25 @@ Impl-3n-b 已在独立目录完成。在评分 baseline 之前只执行一次同
 - tokenizer、diff、reset、swap、来源状态不变性全部为 `true`
 - 总 `valid=true`
 
-因此解除 Impl-3o 暂停，下一步只运行 matched-random 工程门：
+Impl-3o 已完整通过：
 
-```bash
-git pull --ff-only
-source .venv/bin/activate
-bash scripts/run_impl3o_g1h_2.9b_random_state_gate.sh
-cat results/development/impl3o_g1h_2.9b_random_matched/summary.json
-```
+- 96 个 state 组件；
+- 固定一次不计分形状预热；
+- 同 seed 逐位复现，不同 seed 可区分；
+- 最大相对 L2 尺度误差为 `2.8687819151988067e-05`，低于 `0.01`；
+- tokenizer、续算、来源状态不变性和总门全部为 `true`。
 
-该门不测试 Self 语义；它验证 random 对照是否同形同尺度、种子可复现且
-能够稳定续算。由于它也会首次遇到相同 suffix 形状，已在运行前依据
-Impl-3n-a 证据固定 `continuation_shape_warmup_count=1`，预热使用随机状态
-的副本且不计分。收到 summary 前不进入 Batch 2 冻结。
+这表示 2.9B 的跨进程恢复、状态操作和 matched-random 三类工程门已经闭合。
+当前不再运行新的模型开发门，进入
+[`EXP-001 Batch 2 参数冻结审阅`](docs/exp001_batch2_freeze_review.md)。
+
+下一步不是正式实验，而是：
+
+1. 共同确认 state-only Prompt 是否保留通用规则；
+2. 确认先做 Track S，并把 Track N 延后；
+3. 用开发集冻结历史写入协议；
+4. 冻结正式模板、控制任务、seeds 和统计模拟；
+5. 生成不可变预注册包后，才允许创建 Core Set。
 
 本次“持续 Self + 世界模型 + 内生驱动”理论评审不改变上述下一步。它补充的是
 显式 Self 和受约束更新均通过后的未来研究层：系统能否根据内部冲突、
@@ -346,3 +354,4 @@ Impl-3n-a 证据固定 `continuation_shape_warmup_count=1`，预热使用随机�
 | 2026-07-31 | Impl-3n-b 在固定一次不计分预热后完整通过：96/96 组件 diff、官方 reset、完整 swap、tokenizer 和来源不变性全部有效；保留原 Impl-3n 失败，解除 Impl-3o 暂停 | `results/development/impl3nb_g1h_2.9b_state_operations_warmed/summary.json` |
 | 2026-07-31 | 在 Impl-3o 首次运行前，将已确认的首次 suffix 形状效应纳入其工程协议：固定一次使用 matched-random 状态副本的不计分续算预热；seed、尺度阈值和正式10次续算判定不变 | `configs/gates/impl3o_g1h_2.9b_random_matched.dev.json`、Impl-3n-a/3n-b 证据 |
 | 2026-07-31 | 评审“持续 Self + 世界模型 + 内生驱动”架构：吸收计算路由、记忆回放和零新外部观察实验；将内部张力改为派生控制信号，加入 timer/random/外部反思基线与有意义更新标准；纳入 Phase/Stage 5，但不改变当前 Impl-3o | `docs/endogenous_deliberation.md`、`docs/architecture.md` v0.2、`docs/definitions.md` |
+| 2026-07-31 | Impl-3o 完整通过：96 组件 matched-random 同 seed 逐位复现、异 seed 可区分、尺度与续算有效，最大相对 L2 误差 `2.8688e-05`；2.9B 状态工程门全部闭合，进入 Batch 2 冻结审阅而非正式实验 | 云端 `results/development/impl3o_g1h_2.9b_random_matched/summary.json`、`docs/exp001_batch2_freeze_review.md` |

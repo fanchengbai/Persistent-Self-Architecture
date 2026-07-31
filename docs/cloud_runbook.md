@@ -610,6 +610,12 @@ cat results/development/impl3o_g1h_2.9b_random_matched/summary.json
 期望同 seed 可逐位复现、不同 seed 可区分、尺度匹配和续算均有效，组件数
 应为 96，`continuation_shape_warmup_count=1`，最终 `valid=true`。
 
+实际结果全部通过。最大相对 L2 尺度误差为
+`2.8687819151988067e-05`，同 seed 逐位复现、不同 seed 可区分，续算、
+tokenizer 和来源状态不变性均有效。至此停止继续运行开发模型门，进入
+[`EXP-001 Batch 2 参数冻结审阅`](exp001_batch2_freeze_review.md)；在预注册
+包完成前不运行确认集。
+
 ## 6. 运行纯逻辑测试
 
 ```bash
