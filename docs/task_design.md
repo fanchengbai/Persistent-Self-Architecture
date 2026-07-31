@@ -835,6 +835,20 @@ Impl-3p 实际选择 `single_statement`：标签边际化准确率为 31/32
 不变。另两种更强写入均为 32/32，但按预先固定的最简通过规则不能取代
 已经通过的单次声明。正式冻结候选因此只写入一次 I/G。
 
+D4随后冻结4个正式 `single_statement` 历史模板和4个state-only查询模板。
+16种组合在320个factorial groups中各出现20次。Impl-3q只用prompt-visible
+资格题检查这些模板：每个模板组合8个语义案例，每个案例完整轮换A–D，
+合计128个语义案例、512条读出。资格不通过只能在不查看正式state-only
+结果的前提下Revise。
+
+正式delay仍为11 units / 131 tokens。4个filler由固定的中性句子多重集和
+确定性padding算法生成，并由冻结tokenizer逐一确认恰好131 tokens；最终
+文本和digest进入预注册候选包。
+
+D5控制集固定为96条：答案代码复制、无关单字段词法匹配、无关双字段符号
+匹配各32条。每类8个语义案例×4代码轮换。它们不测试Self，只用于识别
+state干预是否造成一般性能力损伤。
+
 ### Q5 干扰 token 档位
 
 Impl-3 先按 tokenizer-only 规则标定标准 delay 候选：在 1–32 个中性 filler
@@ -851,22 +865,16 @@ units 中选择与 128 tokens 绝对误差最小者，误差必须不超过 16 t
 - [x] 平衡、切分和泄漏规则已定义；
 - [x] 原始测量和失败解释已定义；
 - [ ] 共同确认 Track N 的首组语义；
-- [ ] 确定 checkpoint/tokenizer 后建立标签池；
-- [ ] 冻结历史模板、测试模板和通用规则；
-- [ ] 冻结干扰档位；
+- [x] 确定 G1h 2.9B checkpoint/tokenizer 后建立 Track S 标签池；
+- [x] D4 冻结4×4历史/测试模板和通用规则候选；
+- [x] 冻结标准干扰档位为11 units / 131 tokens；
 - [x] 起草与 `evaluation_protocol.md` 的样本量、统计模型和阈值映射；
-- [ ] 共同审阅并冻结任务—评价映射；
+- [x] D4–D8 共同审阅并冻结任务—评价映射候选；
+- [ ] Impl-3q prompt-visible资格门通过并人工确认checksum；
 - [ ] 将状态从 Draft 改为 Frozen for Generation。
 
 ## 22. 下一步
 
-`docs/evaluation_protocol.md` 已起草。下一步需要共同审阅并冻结：
-
-1. 主要与次要终点；
-2. 配对实验单位；
-3. 样本量与 power / precision 目标；
-4. 多层或混合效应统计模型；
-5. directional transfer、joint binding 和 specificity 的正式公式；
-6. 多重比较处理；
-7. Go / Revise / Stop 数值阈值；
-8. 探索集与确认集的边界。
+任务—评价映射已按D4–D8形成冻结候选。下一步运行Impl-3q，只用
+prompt-visible数据验证模板与控制任务、估计开发期nuisance、复核N=320功效
+并生成候选checksum。人工确认checksum前，不生成Core Set。

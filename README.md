@@ -234,6 +234,11 @@ Phase 0 → Phase 1 — Research Design / State Infrastructure
     均未被修改。按运行前冻结的“最简通过优先”规则，正式候选采用
     `single_statement`，接下来先冻结正式模板、控制任务、seeds 与统计协议，
     不直接进入确认集。
+34. D4–D8 已确认并实现为 Impl-3q 正式冻结候选门：4×4正式模板、4个
+    131-token filler、96条通用能力控制、SHA-256固定seed、原SESOI和
+    N=320功效模拟全部写入配置。该门只看prompt-visible资格证据，并在代码
+    层禁止生成Core Set或读取正式state-only结果；通过后仍需人工确认候选
+    checksum。
 
 ## 项目文档
 

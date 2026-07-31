@@ -21,6 +21,10 @@ from psa.development import (
 from psa.environment import collect_environment
 from psa.evaluation import group_contrasts
 from psa.model import run_interface_gate
+from psa.preregistration import (
+    run_formal_freeze_candidate_gate,
+    verify_preregistration_candidate,
+)
 from psa.state import (
     run_checkpoint_roundtrip_gate,
     run_random_state_gate,
@@ -513,6 +517,44 @@ def _history_binding_gate(args: argparse.Namespace) -> int:
     return 0 if result["valid"] else 2
 
 
+def _formal_freeze_candidate_gate(args: argparse.Namespace) -> int:
+    failure_path = Path(args.output_dir) / "failure_report.json"
+    failure_path.unlink(missing_ok=True)
+    try:
+        result = run_formal_freeze_candidate_gate(
+            config_path=args.config,
+            output_dir=args.output_dir,
+            project_root=args.project_root,
+        )
+    except Exception as exc:
+        failure = {
+            "failure_version": "1.0",
+            "created_at_utc": datetime.now(timezone.utc).isoformat(),
+            "development_only": True,
+            "confirmatory_results_observed": False,
+            "core_set_generated": False,
+            "gate": "impl3q_exp001_formal_freeze_candidate",
+            "exception_type": type(exc).__name__,
+            "message": str(exc),
+            "config": str(Path(args.config).resolve()),
+        }
+        _write_json(failure_path, failure)
+        raise
+    print(json.dumps(result, ensure_ascii=False, indent=2))
+    return 0 if result["valid"] else 2
+
+
+def _preregistration_verify(args: argparse.Namespace) -> int:
+    result = verify_preregistration_candidate(
+        args.candidate,
+        project_root=args.project_root,
+    )
+    if args.output:
+        _write_json(Path(args.output), result)
+    print(json.dumps(result, ensure_ascii=False, indent=2))
+    return 0 if result["valid"] else 2
+
+
 def _add_asset_common_arguments(parser: argparse.ArgumentParser) -> None:
     parser.add_argument("--manifest", required=True)
     parser.add_argument("--root", default=".psa-assets")
@@ -714,6 +756,34 @@ def build_parser() -> argparse.ArgumentParser:
     history_binding_gate.add_argument("--output-dir", required=True)
     history_binding_gate.add_argument("--project-root", default=".")
     history_binding_gate.set_defaults(handler=_history_binding_gate)
+
+    formal_freeze_candidate_gate = subparsers.add_parser(
+        "formal-freeze-candidate-gate",
+        help=(
+            "qualify formal prompt-visible templates and controls, simulate "
+            "power, and build a preregistration checksum candidate"
+        ),
+    )
+    formal_freeze_candidate_gate.add_argument("--config", required=True)
+    formal_freeze_candidate_gate.add_argument("--output-dir", required=True)
+    formal_freeze_candidate_gate.add_argument(
+        "--project-root",
+        default=".",
+    )
+    formal_freeze_candidate_gate.set_defaults(
+        handler=_formal_freeze_candidate_gate
+    )
+
+    preregistration_verify = subparsers.add_parser(
+        "preregistration-verify",
+        help="verify a preregistration candidate and all locked file digests",
+    )
+    preregistration_verify.add_argument("--candidate", required=True)
+    preregistration_verify.add_argument("--project-root", default=".")
+    preregistration_verify.add_argument("--output")
+    preregistration_verify.set_defaults(
+        handler=_preregistration_verify
+    )
 
     return parser
 

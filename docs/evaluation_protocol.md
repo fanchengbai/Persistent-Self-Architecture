@@ -877,6 +877,24 @@ generator seed
 
 这仍不是 Persistent Self 结论。
 
+### 23.6 D4–D8 正式冻结补充
+
+项目负责人于2026-07-31确认：
+
+- 正式Track S使用4×4历史/查询模板族与4个131-token filler；
+- 每个state条件同步运行96条通用能力控制；
+- 第11、13、14和15节的SESOI、重采样、Holm校正与损伤预警原样保留；
+- 正式seed使用
+  `PSA|EXP-001|formal-v1|<purpose>` 的SHA-256前32 bits公开推导；
+- Core Set下限保持320个factorial groups；
+- 在生成Core Set前，同时运行基于prompt-visible开发group contrasts的
+  nuisance代理模拟和 \(d_z=0.20\) 标准化保守模拟，两者对E1–E3均须达到
+  至少90%功效。
+
+这些决定由Impl-3q只在prompt-visible资格数据上验证。Impl-3q不得生成Core
+Set，不得运行或读取正式state-only结果；其输出只是等待人工确认checksum
+的预注册候选。
+
 ## 24. 结果报告模板
 
 每个终点至少报告：
@@ -948,20 +966,20 @@ Batch 4 完成前不查看 Batch 6/7 结果来修改主要假设。
 
 ## 27. 预注册前仍需填写
 
-- [ ] 远程模型 checkpoint 和 revision；
-- [ ] tokenizer 与答案代码；
-- [ ] Track S 标签池；
+- [x] 远程模型 checkpoint 和 revision；
+- [x] tokenizer 与答案代码；
+- [x] Track S 标签池；
 - [ ] Track N 首组语义；
-- [ ] 标准 delay 的确切 token 数；
-- [ ] restore 工程绝对下限；
-- [ ] 100 次开发 roundtrip 得到的最终数值容差；
-- [ ] 通用能力控制任务；
-- [ ] generator 版本和正式 seeds；
+- [x] 标准 delay 的确切 token 数；
+- [x] restore 工程绝对下限；
+- [x] 100 次开发 roundtrip 得到的最终数值容差；
+- [x] 通用能力控制任务候选；
+- [x] generator 版本和正式 seeds；
 - [ ] 320 groups 的模拟功效复核；
-- [ ] 统计实现库与版本；
-- [ ] 共同审阅 SESOI；
+- [x] 统计实现和Python版本约束；
+- [x] 共同审阅 SESOI；
+- [ ] Impl-3q模板资格、控制基线和双重功效门通过；
 - [ ] 将本文状态改为 Preregistered；
 - [ ] 为预注册版本计算不可变 checksum。
 
 在这些项目完成前，不运行确认性 Batch 4。
-

@@ -1,0 +1,80 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://persistent-self-architecture.local/formal_freeze_summary.schema.json",
+  "title": "Impl-3q Formal Freeze Candidate Summary",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "summary_version",
+    "gate",
+    "development_only",
+    "confirmatory_results_observed",
+    "core_set_generated",
+    "started_at_utc",
+    "finished_at_utc",
+    "model_id",
+    "load_seconds",
+    "run_seconds",
+    "cuda_peak_memory_bytes",
+    "formal_history_mode",
+    "template_semantic_case_count",
+    "template_trial_count",
+    "control_trial_count",
+    "shape_warmup_count",
+    "template_qualification_passed",
+    "control_baseline_passed",
+    "power_gate_passed",
+    "planned_factorial_group_count",
+    "candidate_digest_sha256",
+    "payload_root_digest_sha256",
+    "freeze_candidate_ready",
+    "human_checksum_confirmation_required",
+    "route_decision",
+    "reports",
+    "valid"
+  ],
+  "properties": {
+    "summary_version": {"const": "1.0"},
+    "gate": {"const": "impl3q_exp001_formal_freeze_candidate"},
+    "development_only": {"const": true},
+    "confirmatory_results_observed": {"const": false},
+    "core_set_generated": {"const": false},
+    "started_at_utc": {"type": "string"},
+    "finished_at_utc": {"type": "string"},
+    "model_id": {"type": "string"},
+    "load_seconds": {"type": "number", "minimum": 0},
+    "run_seconds": {"type": "number", "minimum": 0},
+    "cuda_peak_memory_bytes": {"type": "integer", "minimum": 0},
+    "formal_history_mode": {"const": "single_statement"},
+    "template_semantic_case_count": {"const": 128},
+    "template_trial_count": {"const": 512},
+    "control_trial_count": {"const": 96},
+    "shape_warmup_count": {"type": "integer", "minimum": 1},
+    "template_qualification_passed": {"type": "boolean"},
+    "control_baseline_passed": {"type": "boolean"},
+    "power_gate_passed": {"type": "boolean"},
+    "planned_factorial_group_count": {"type": "integer", "minimum": 320},
+    "candidate_digest_sha256": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{64}$"
+    },
+    "payload_root_digest_sha256": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{64}$"
+    },
+    "freeze_candidate_ready": {"type": "boolean"},
+    "human_checksum_confirmation_required": {"const": true},
+    "route_decision": {
+      "enum": [
+        "review_preregistration_checksum",
+        "hold_and_revise_without_confirmatory_results"
+      ]
+    },
+    "reports": {
+      "type": "array",
+      "items": {"type": "string"},
+      "minItems": 9
+    },
+    "valid": {"type": "boolean"}
+  }
+}

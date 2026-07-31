@@ -323,6 +323,38 @@ class CliTests(unittest.TestCase):
                 "Impl-3p prerequisite evidence is incomplete",
             )
 
+    def test_formal_freeze_failure_preserves_safety_boundary(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            output_dir = Path(directory) / "gate"
+            with patch(
+                "psa.cli.run_formal_freeze_candidate_gate",
+                side_effect=RuntimeError(
+                    "Impl-3q prerequisite evidence is incomplete"
+                ),
+            ):
+                exit_code = main(
+                    [
+                        "formal-freeze-candidate-gate",
+                        "--config",
+                        "configs/preregistration/test.json",
+                        "--output-dir",
+                        str(output_dir),
+                    ]
+                )
+
+            self.assertEqual(exit_code, 2)
+            report = json.loads(
+                (output_dir / "failure_report.json").read_text(
+                    encoding="utf-8"
+                )
+            )
+            self.assertEqual(
+                report["gate"],
+                "impl3q_exp001_formal_freeze_candidate",
+            )
+            self.assertFalse(report["confirmatory_results_observed"])
+            self.assertFalse(report["core_set_generated"])
+
 
 if __name__ == "__main__":
     unittest.main()

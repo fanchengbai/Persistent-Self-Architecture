@@ -1,0 +1,109 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://persistent-self-architecture.local/exp001_preregistration_candidate.schema.json",
+  "title": "EXP-001 Preregistration Candidate",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "candidate_version",
+    "created_at_utc",
+    "status",
+    "gate",
+    "model_id",
+    "confirmed_decision_ids",
+    "history_mode",
+    "formal_template_count",
+    "formal_query_template_count",
+    "filler_variant_count",
+    "control_trial_count",
+    "factorial_group_count",
+    "seeds",
+    "statistics",
+    "conditions",
+    "qualification",
+    "source_config",
+    "source_file_digests",
+    "evidence_file_digests",
+    "payload_root_digest_sha256",
+    "core_set_generated",
+    "core_set_unsealed",
+    "formal_state_only_results_observed",
+    "human_checksum_confirmation_required",
+    "eligible_for_human_freeze",
+    "candidate_digest_sha256"
+  ],
+  "properties": {
+    "candidate_version": {"const": "1.0"},
+    "created_at_utc": {"type": "string", "minLength": 20},
+    "status": {
+      "enum": [
+        "frozen_candidate_awaiting_human_checksum_confirmation",
+        "hold_not_eligible_for_human_freeze"
+      ]
+    },
+    "gate": {"const": "impl3q_exp001_formal_freeze_candidate"},
+    "model_id": {"type": "string", "minLength": 1},
+    "confirmed_decision_ids": {
+      "type": "array",
+      "items": {"enum": ["D4", "D5", "D6", "D7", "D8"]},
+      "minItems": 5,
+      "maxItems": 5,
+      "uniqueItems": true
+    },
+    "history_mode": {"const": "single_statement"},
+    "formal_template_count": {"const": 4},
+    "formal_query_template_count": {"const": 4},
+    "filler_variant_count": {"const": 4},
+    "control_trial_count": {"const": 96},
+    "factorial_group_count": {"type": "integer", "minimum": 320},
+    "seeds": {"type": "object"},
+    "statistics": {"type": "object"},
+    "conditions": {
+      "type": "array",
+      "items": {"type": "string"},
+      "minItems": 8
+    },
+    "qualification": {
+      "type": "object",
+      "required": [
+        "prerequisites_valid",
+        "template_qualification_passed",
+        "control_baseline_passed",
+        "power_gate_passed"
+      ]
+    },
+    "source_config": {
+      "type": "object",
+      "required": ["path", "sha256"]
+    },
+    "source_file_digests": {
+      "type": "object",
+      "minProperties": 1,
+      "additionalProperties": {
+        "type": "string",
+        "pattern": "^[0-9a-f]{64}$"
+      }
+    },
+    "evidence_file_digests": {
+      "type": "object",
+      "minProperties": 1,
+      "additionalProperties": {
+        "type": "string",
+        "pattern": "^[0-9a-f]{64}$"
+      }
+    },
+    "payload_root_digest_sha256": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{64}$"
+    },
+    "core_set_generated": {"const": false},
+    "core_set_unsealed": {"const": false},
+    "formal_state_only_results_observed": {"const": false},
+    "human_checksum_confirmation_required": {"const": true},
+    "eligible_for_human_freeze": {"type": "boolean"},
+    "candidate_digest_sha256": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{64}$"
+    }
+  }
+}

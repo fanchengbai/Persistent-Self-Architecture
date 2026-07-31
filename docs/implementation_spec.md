@@ -887,6 +887,23 @@ Impl-3p 随后在 Batch 2 比较三种历史写入协议。固定规则选择首
 准确率达到 0.80 的模式，而不是选择最高分。实际三种模式均通过，最简的
 `single_statement` 为 31/32，因此路线固定为 `freeze_single_statement`。
 
+Impl-3q 实现 D4–D8 的正式冻结候选门。它固定：
+
+- 4个 `single_statement` 历史模板×4个state-only查询模板；
+- 4个经固定tokenizer拟合到131 tokens的中性filler；
+- 128个prompt-visible语义案例及完整四代码轮换，共512条模板资格读出；
+- 3类×32条、共96条通用能力控制；
+- 由公开SHA-256命名空间推导的Core、control、bootstrap、permutation和
+  simulation seeds；
+- 原SESOI、N=320、10,000次bootstrap、至少100,000次置换与Holm校正；
+- 开发期经验nuisance与 \(d_z=0.20\) 保守标准化两套功效模拟。
+
+该门只生成 `preregistration_candidate.json`。候选包锁定影响结论的源码、
+配置、schema、资格原始记录和报告，并再次用只读命令核验。实现中固定
+`formal_state_only_results_observed=false`、`core_set_generated=false`，
+配置试图放开任一边界时必须拒绝运行。即使
+`freeze_candidate_ready=true`，仍需项目负责人确认候选checksum。
+
 ### Impl-4：工程参数冻结与预注册
 
 - freeze；

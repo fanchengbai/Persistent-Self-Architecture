@@ -1,0 +1,220 @@
+{
+  "config_version": "1.0",
+  "gate": "impl3q_exp001_formal_freeze_candidate",
+  "research_scope": "EXP-001 Track S confirmatory core",
+  "confirmation": {
+    "confirmed_by_project_owner": true,
+    "confirmed_at_date": "2026-07-31",
+    "decision_ids": ["D4", "D5", "D6", "D7", "D8"]
+  },
+  "model_config": "configs/models/rwkv7_g1h_2.9b.candidate.json",
+  "prerequisites": [
+    {
+      "path": "results/development/impl3p_g1h_2.9b_history_binding/summary.json",
+      "checks": {
+        "valid": true,
+        "history_binding_gate_passed": true,
+        "selected_mode": "single_statement",
+        "route_decision": "freeze_single_statement"
+      }
+    }
+  ],
+  "answer_interface": {
+    "answer_codes": ["A", "B", "C", "D"],
+    "assistant_prefix": "<think></think",
+    "forced_answer_prefix": ">\n",
+    "continuation_prefix": "",
+    "rotation_count": 4,
+    "aggregation": "mean_candidate_log_score_by_semantic_option",
+    "post_hoc_code_calibration_allowed": false
+  },
+  "labels": {
+    "identity_label_pairs": [
+      ["baf", "zom"],
+      ["niv", "teg"]
+    ],
+    "goal_label_pairs": [
+      ["vam", "zep"],
+      ["qir", "bok"]
+    ]
+  },
+  "history_protocol": {
+    "mode": "single_statement",
+    "templates": [
+      {
+        "id": "formal-history-01",
+        "user_text": "SAVE THE CURRENT STATE AS ONE BINDING.\nCURRENT DOMAIN: {domain}\nCURRENT OPERATION: {operation}",
+        "assistant_ack": "Current state saved."
+      },
+      {
+        "id": "formal-history-02",
+        "user_text": "RECORD ONE ACTIVE STATE BINDING.\nACTIVE DOMAIN: {domain}\nACTIVE OPERATION: {operation}",
+        "assistant_ack": "Active state recorded."
+      },
+      {
+        "id": "formal-history-03",
+        "user_text": "SET THE PRESENT STATE IN A SINGLE RECORD.\nPRESENT DOMAIN: {domain}\nPRESENT OPERATION: {operation}",
+        "assistant_ack": "Present state set."
+      },
+      {
+        "id": "formal-history-04",
+        "user_text": "STORE THIS ONE CURRENT CONFIGURATION.\nCONFIGURATION DOMAIN: {domain}\nCONFIGURATION OPERATION: {operation}",
+        "assistant_ack": "Current configuration stored."
+      }
+    ]
+  },
+  "query_protocol": {
+    "general_rule_visible": true,
+    "current_values_visible_outside_balanced_options": false,
+    "templates": [
+      {
+        "id": "formal-query-01",
+        "user_text": "TASK: exact two-field state match.\nGENERAL RULE: choose the unique option matching both the saved domain and saved operation.\nThe saved values are not repeated outside the balanced options.\nOPTIONS:\n{options}\nReply with the matching option code only."
+      },
+      {
+        "id": "formal-query-02",
+        "user_text": "TASK: recover the paired state.\nGENERAL RULE: select the sole option whose domain and operation both equal the stored state.\nNo current value is stated outside the balanced options.\nOPTIONS:\n{options}\nReturn only the corresponding option code."
+      },
+      {
+        "id": "formal-query-03",
+        "user_text": "TASK: identify the complete saved binding.\nGENERAL RULE: an option is correct only when both its domain field and operation field match the current state.\nCurrent fields appear only inside the balanced options.\nOPTIONS:\n{options}\nAnswer using only one option code."
+      },
+      {
+        "id": "formal-query-04",
+        "user_text": "TASK: choose the state-consistent pair.\nGENERAL RULE: compare both fields and choose the one option consistent with the stored domain-operation binding.\nThe hidden current values are not disclosed beyond the balanced options.\nOPTIONS:\n{options}\nProvide the matching code only."
+      }
+    ]
+  },
+  "filler_protocol": {
+    "variant_count": 4,
+    "delay_units": 11,
+    "target_token_count": 131,
+    "fit_algorithm": "neutral_multiset_then_deterministic_padding_v1",
+    "neutral_units": [
+      "NEUTRAL-FILLER: unrelated system record.",
+      "NEUTRAL-FILLER: system record unrelated.",
+      "NEUTRAL-FILLER: record unrelated to system state.",
+      "NEUTRAL-FILLER: unrelated record with no action."
+    ],
+    "padding_fragments": [" neutral", " log", " note", " x"]
+  },
+  "template_qualification": {
+    "semantic_cases_per_template_pair": 8,
+    "history_query_pair_count": 16,
+    "expected_semantic_case_count": 128,
+    "expected_trial_count": 512,
+    "bootstrap_replicates": 10000,
+    "minimum_joint_accuracy_lower_bound": 0.8,
+    "minimum_identity_accuracy_lower_bound": 0.9,
+    "minimum_goal_accuracy_lower_bound": 0.9,
+    "minimum_per_history_template_accuracy": 0.8,
+    "minimum_per_query_template_accuracy": 0.8,
+    "minimum_format_valid_rate": 0.99,
+    "require_complete_four_code_rotation": true,
+    "prewarm_each_token_shape": true
+  },
+  "controls": {
+    "task_types": [
+      "answer_code_copy",
+      "single_field_lexical_match",
+      "unrelated_two_field_symbol_match"
+    ],
+    "semantic_cases_per_task": 8,
+    "rotations_per_case": 4,
+    "expected_trial_count": 96,
+    "minimum_baseline_accuracy_per_task": 0.9,
+    "minimum_baseline_format_valid_rate": 0.99,
+    "alerts": {
+      "maximum_accuracy_drop_points": 0.05,
+      "maximum_format_drop_points": 0.02,
+      "maximum_mean_target_log_prob_drop": 0.25,
+      "maximum_state_norm_percentile": 0.999
+    }
+  },
+  "seeds": {
+    "derivation_namespace": "PSA|EXP-001|formal-v1|<purpose>",
+    "derivation": "unsigned big-endian SHA-256 first 32 bits",
+    "core_generator": 22217530,
+    "control_generator": 62511541,
+    "bootstrap": 1969423784,
+    "permutation": 2721869949,
+    "simulation": 4045556568
+  },
+  "core_design": {
+    "track": "synthetic",
+    "factorial_group_count": 320,
+    "states_per_group": 4,
+    "history_query_pair_count": 16,
+    "groups_per_history_query_pair": 20,
+    "conditions": [
+      "continuous",
+      "restored",
+      "reset",
+      "random_matched",
+      "swapped_I",
+      "swapped_G",
+      "swapped_both",
+      "prompt_visible"
+    ],
+    "generate_or_unseal_core_set": false
+  },
+  "statistics": {
+    "familywise_alpha": 0.05,
+    "primary_endpoints": ["E1_identity_transfer", "E2_goal_transfer", "E3_joint_binding"],
+    "multiple_comparison_correction": "Holm",
+    "bootstrap": {
+      "unit": "factorial_group",
+      "replicates": 10000,
+      "confidence": 0.95,
+      "method": "BCa_with_percentile_fallback"
+    },
+    "permutation": {
+      "minimum_replicates": 100000,
+      "alternative": "predeclared_directional"
+    },
+    "sesoi": {
+      "identity_log_odds": 0.5,
+      "goal_log_odds": 0.5,
+      "joint_log_margin": 0.5,
+      "minimum_joint_accuracy": 0.6,
+      "identity_specificity": 0.25,
+      "goal_specificity": 0.25,
+      "prompt_normalized_retention": 0.2
+    }
+  },
+  "power_simulation": {
+    "replicates": 10000,
+    "minimum_power": 0.9,
+    "standardized_paired_effect_dz": 0.2,
+    "test": "one_sided_normal_simulation_with_bonferroni_conservative_alpha",
+    "nuisance_source": "prompt_visible_formal_qualification_group_contrasts",
+    "require_standardized_and_empirical_proxy": true,
+    "sample_size_may_decrease": false,
+    "increase_sample_size_if_below_target": true
+  },
+  "source_files": [
+    "configs/preregistration/exp001_track_s.formal_v1.json",
+    "configs/models/rwkv7_g1h_2.9b.candidate.json",
+    "configs/assets/exp001_rwkv7_g1h_2.9b_candidate.json",
+    "scripts/run_impl3q_exp001_formal_freeze_candidate_gate.sh",
+    "src/psa/cli.py",
+    "src/psa/artifacts/integrity.py",
+    "src/psa/preregistration/__init__.py",
+    "src/psa/preregistration/formal_freeze.py",
+    "src/psa/development/capability_ladder.py",
+    "src/psa/development/history_binding.py",
+    "src/psa/development/impl3.py",
+    "src/psa/evaluation/resampling.py",
+    "src/psa/model/rwkv7.py",
+    "src/psa/tasks/identity_goal.py",
+    "schemas/exp001_preregistration_candidate.schema.json",
+    "schemas/formal_freeze_summary.schema.json",
+    "docs/evaluation_protocol.md",
+    "docs/task_design.md"
+  ],
+  "safety_boundary": {
+    "formal_state_only_results_allowed": false,
+    "core_set_generation_allowed": false,
+    "human_checksum_confirmation_required": true
+  }
+}

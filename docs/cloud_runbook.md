@@ -659,6 +659,49 @@ A–D，因此共运行 384 条受控读出。它按固定复杂度顺序选择�
 至此不再运行历史写入开发门，进入正式模板、控制任务、seeds、统计模拟和
 预注册包冻结。
 
+### 5.20 运行 Impl-3q 正式冻结候选门
+
+项目负责人确认 D4–D8 后运行：
+
+```bash
+git pull --ff-only
+source .venv/bin/activate
+bash scripts/run_impl3q_exp001_formal_freeze_candidate_gate.sh
+cat results/development/impl3q_exp001_formal_freeze_candidate/summary.json
+```
+
+该门会：
+
+1. 用固定 tokenizer 将4个中性 filler 各自确定为恰好131 tokens；
+2. 运行128个语义案例×4代码轮换，共512条prompt-visible模板资格读出；
+3. 运行96条与I/G无关的通用能力控制；
+4. 从32个prompt-visible factorial groups估计开发期nuisance SD；
+5. 同时运行经验代理和 \(d_z=0.20\) 标准化两套10,000次功效模拟；
+6. 锁定配置、源码、schema、原始记录和报告的SHA-256；
+7. 生成等待人工确认checksum的预注册候选。
+
+必须检查：
+
+```bash
+python -m psa preregistration-verify \
+  --candidate results/development/impl3q_exp001_formal_freeze_candidate/preregistration_candidate.json \
+  --project-root .
+```
+
+只有以下字段同时满足，才把结果交给项目负责人确认：
+
+- `valid=true`；
+- `template_qualification_passed=true`；
+- `control_baseline_passed=true`；
+- `power_gate_passed=true`；
+- `freeze_candidate_ready=true`；
+- `route_decision=review_preregistration_checksum`；
+- `confirmatory_results_observed=false`；
+- `core_set_generated=false`。
+
+即使全部满足，也不能继续运行确认集。下一步是人工核对并明确确认
+`candidate_digest_sha256`；没有这一步，不得生成或解封 Core Set。
+
 ## 6. 运行纯逻辑测试
 
 ```bash
