@@ -262,6 +262,9 @@ Phase 0 → Phase 1 — Research Design / State Infrastructure
     identity、joint、格式及所有单模板点估计均通过。Impl-3s因此只把四个
     history整体改为对称的FIELD 1 DOMAIN/FIELD 2 OPERATION写入结构，
     v2查询、控制、模型、样本量、seed和阈值全部不变。
+41. Impl-3s 运行有效但模板资格再次失败；控制、功效和安全边界仍通过。
+    当前暂停设计v4，先只读比较v2/v3的区间和错误分布，避免把开发资格集
+    变成可以无限调prompt直到通过的目标。
 
 ## 项目文档
 

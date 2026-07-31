@@ -403,3 +403,7 @@ history-v2-03，history-v2-02满分；四个query均超过90%。这支持只修�
 单模板点估计均通过。Impl-3s因此不选择观测满分的history-v2-02，而将四个
 history作为整体改为平行的FIELD 1 DOMAIN/FIELD 2 OPERATION结构。v2查询、
 控制、模型、delay、seed、N和阈值不变。
+
+Impl-3s 已有效运行，但正式模板资格再次失败；控制与功效仍通过，未读取
+确认结果或生成Core Set。为限制开发集过拟合，现在暂停v4设计，先只读比较
+v2/v3的BCa区间、模板交互与错误集中度。没有新的终止判定前，不再修改模板。
