@@ -1,9 +1,9 @@
 # Persistent Self Architecture：理论框架与模型架构
 
-> 版本：v0.1  
+> 版本：v0.2
 > 状态：Phase 0 架构草案，尚未冻结、尚未实现  
-> 日期：2026-07-29  
-> 依赖文档：[`definitions.md`](definitions.md)、[`research_claims.md`](research_claims.md)、[`research_map.md`](research_map.md)  
+> 日期：2026-07-31
+> 依赖文档：[`definitions.md`](definitions.md)、[`research_claims.md`](research_claims.md)、[`research_map.md`](research_map.md)、[`endogenous_deliberation.md`](endogenous_deliberation.md)
 > 目标：把 PSA 的研究定义转化为可实现、可干预、可比较、可证伪的系统设计。
 
 ## 1. 文档定位
@@ -67,6 +67,10 @@ Prompt、Memory 和 Self 条件应尽量保持信息量、任务、答案空间�
 ### P7 最小性原则
 
 首版只加入回答核心因果问题所需的模块。暂不加入情绪、好奇心、开放式价值观、多智能体社会或自主长期训练。
+
+### P8 内生计算可证伪原则
+
+未来若加入“自主审议”，必须区分工程唤醒与因果触发。只有当 Self、冲突或不确定性的受控干预能改变是否继续计算、采用何种内部动作或分配多少预算，并优于定时、随机回放和外部反思提示基线，才能称为内生调节。
 
 ## 3. 四层研究框架
 
@@ -174,6 +178,8 @@ flowchart LR
 | \(c_t\) | Coupling Signal | 注入基础模型的门控信号 | 否 | Self 的作用通路 |
 | \(a_t\) | Action | 选择、文本或工具动作 | 记录 | 否 |
 | \(e_t\) | Update Evidence | 支持或反对状态更新的结构化证据 | 是 | Self 更新依据 |
+
+未来内生调节阶段还会使用 \(d_t\)（派生驱动信号）、\(u_t\)（内部审议决策）和 \(b_t\)（有界计算预算）。它们是控制信号，不属于 Self State v0.1，也不在当前 EXP-001 中实现。
 
 ### 5.1 \(R_t\) 与 \(S_t\) 的关键区别
 
@@ -677,7 +683,20 @@ E 还需要以下消融：
 - fork、rollback；
 - 稳定性—可塑性测试。
 
-### Stage 5：长期与元认知研究
+### Stage 5：内生调节与自主审议
+
+只有 Stage 3 已证明显式 Self 具有独立因果价值，且 Stage 4 的更新、权限和 rollback 可靠后，才加入：
+
+- 由 Self、World、Memory 和证据派生的驱动信号；
+- 可关闭、可替换的 Deliberation Controller；
+- `stop / retrieve / replay / simulate / verify` 内部动作；
+- 每轮 token、时间和工具调用预算；
+- 零新外部观察条件；
+- timer、随机回放、外部反思提示和 Memory-only 对照。
+
+这一阶段不测试意识。它只测试 Self 是否能因果影响“是否继续计算、如何计算以及计算后是否产生有用且受约束的状态变化”。完整设计见 [`endogenous_deliberation.md`](endogenous_deliberation.md)。
+
+### Stage 6：长期与元认知研究
 
 研究个体分化、能力估计、置信度校准和跨任务轨迹。是否扩展模型规模由此前结果决定。
 
@@ -865,3 +884,45 @@ commit_update(decision) -> NewSelfState
 上述第 1–4 项均已形成 v0.1 草案，下一步是共同审阅、补充远程模型参数并冻结。
 
 在第 1–2 项冻结前，不配置正式实验，不产生确认性结果。
+
+## 24. 未来扩展：内生调节闭环
+
+当前主架构描述的是“外部观察或任务到来后，Self 如何参与决策并受证据更新”。未来扩展增加另一条入口：即使没有新外部观察，系统也可以检查已有 Self、World、Memory 和未解决证据是否存在需要处理的冲突。
+
+```mermaid
+flowchart LR
+    SELF["Self State S_t"]
+    WORLD["World State W_t"]
+    MEMORY["Memory M_t"]
+    DRIVE["Drive Signal d_t<br/>派生而非 Self 字段"]
+    CTRL["Deliberation Decision u_t"]
+    BUDGET["Bounded Budget b_t"]
+    MODEL["RWKV + R_t"]
+    EVIDENCE["Evidence e_t"]
+    UPDATE["Constrained Update"]
+
+    SELF --> DRIVE
+    WORLD --> DRIVE
+    MEMORY --> DRIVE
+    DRIVE --> CTRL
+    CTRL --> BUDGET
+    CTRL --> MEMORY
+    BUDGET --> MODEL
+    MEMORY --> MODEL
+    SELF --> MODEL
+    WORLD --> MODEL
+    MODEL --> EVIDENCE
+    EVIDENCE --> UPDATE
+    UPDATE --> SELF
+    UPDATE --> WORLD
+    UPDATE --> MEMORY
+```
+
+该扩展遵守四个边界：
+
+1. **张力是派生量**：不把短暂控制信号写成身份或价值字段；
+2. **计算有上限**：每次内部审议都有预算和停止条件；
+3. **更新有证据**：系统自己的叙述不能自证 Self 更新；
+4. **结论有基线**：必须与 timer、随机回放、外部提示和不审议条件比较。
+
+因此，本次架构扩展不修改当前 Impl-3o、EXP-001 或 Stage 1–4 的门槛，只为显式 Self 和受约束更新通过后的研究预留可证伪路线。

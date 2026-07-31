@@ -232,6 +232,7 @@ Phase 0 → Phase 1 — Research Design / State Infrastructure
 - [操作性定义](docs/definitions.md)
 - [首轮研究主张](docs/research_claims.md)
 - [理论框架与模型架构](docs/architecture.md)
+- [内生调节与自主审议扩展](docs/endogenous_deliberation.md)
 - [EXP-001 任务设计](docs/task_design.md)
 - [EXP-001 评价与统计协议](docs/evaluation_protocol.md)
 - [状态与 Checkpoint 格式](docs/state_format.md)

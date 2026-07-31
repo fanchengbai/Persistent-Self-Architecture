@@ -1,7 +1,7 @@
 # Persistent Self Architecture 项目进度表
 
 > 最后更新：2026-07-31
-> 当前节点：Impl-3n-b 单次预热后完整通过；等待 Impl-3o matched-random 复验
+> 当前节点：Impl-3n-b 单次预热后完整通过；等待 Impl-3o matched-random 复验；内生调节扩展已纳入后期路线
 > 研究状态：尚未进入正式确认性实验，尚未实现显式 Self Model
 
 ## 1. 这张表怎么使用
@@ -31,6 +31,7 @@
 | 2. 文献和理论调研 | ✅ 首轮完成 | 梳理记忆、World Model、Persona、Agent state、Self Model 等研究 | 看前人做到了哪里，避免重复造轮子或把旧机制换个名字 | 已形成研究地图、术语边界和首轮研究主张；后续仍会按需要补充文献 | Codex |
 | 3. 划清概念边界 | ✅ 完成 | 区分 Prompt、Memory、原生 recurrent state 和显式 Self State | 模型“记住了内容”不等于模型“拥有 Self Model” | 已明确：只有状态能持续、更新、被干预并因果影响行为，才有资格继续讨论 Self | Codex |
 | 4. 设计总体架构 | ✅ 初版完成 | 设计 World Model、Memory、原生 state、Self Store、Encoder、注入和更新模块 | 先画清楚未来系统由什么组成，再决定先验证哪一块 | 显式 Self Model 已完成理论设计，但尚未写入模型 | Codex |
+| 4a. 评审内生驱动扩展 | ✅ 设计完成 | 评审“持续 Self + 世界模型 + 内生驱动”的闭环，并设计零新外部观察下的自主审议层 | 当前架构说明了 Self 如何影响一次决策，但还没有解释系统为什么会因内部冲突主动继续计算 | 已新增 Drive Signal、Deliberation Controller、预算与记忆回放的未来设计；明确 timer/random/外部反思基线和三道 ED 实验门。它属于显式 Self 与受约束更新通过后的阶段，不改变当前 Impl-3o | Codex |
 | 5. 设计 EXP-001 | ✅ 完成 | 设计“身份约束 × 当前目标”的四状态任务 | 用一个很小、可量化的任务测试状态是否真的影响选择 | 已形成四组合任务、swap/reset/random 对照和评价指标 | Codex |
 | 6. 建立代码与实验骨架 | ✅ 完成 | 实现任务生成、泄漏检查、统计方法、配置和报告格式 | 相当于先把实验室的记录表、评分器和质检流程搭好 | 本地纯逻辑测试目前达到 74 项全部通过 | Codex |
 | 7. 准备模型和数据下载 | ✅ 完成 | 提供脚本下载固定版本的 RWKV 模型和 tokenizer | 云服务器只需运行脚本，不用手动寻找文件 | 模型约 861 MB、tokenizer 约 1.1 MB，哈希验证通过 | Codex 编写；项目负责人云端执行 |
@@ -67,7 +68,8 @@
 | 38. Phase 2：正式原生 state 实验 | ⏳ 未开始 | 比较 original/reset/random/swap 等条件 | 这一步才真正测试 recurrent state 是否是跨时间因果载体 | 尚无研究结论 | 项目负责人运行；Codex 分析 |
 | 39. Phase 3：显式 Self Model | ⏳ 未开始 | 实现 Self Store、Self Encoder 和 gated injection | 只有原生状态基线可靠后，才能判断显式 Self Model 是否带来额外价值 | 目前只有设计，没有加入模型 | 后续由 Codex 实现 |
 | 40. Self 更新与演化 | ⏳ 未开始 | 让 Self State 根据经历受控更新、回滚和分化 | 这是“持续自我”真正更深入的部分 | 尚未开始 | 后续阶段 |
-| 41. 最终研究结论 | ⏳ 未开始 | 汇总统计结果、失败案例和替代解释 | 最终回答项目假设是否得到支持，而不是只展示几个有趣案例 | 尚未开始 | 共同完成 |
+| 41. 内生调节与自主审议 | ⏳ 未开始 | 让 Self/冲突决定是否检索、回放、模拟或停止，并在零新外部观察条件下受控更新 | 检验系统是否不仅“有状态”，还会因内部状态选择继续计算；同时排除定时器和随机回放解释 | 设计说明已完成；必须等待显式 Self 因果价值和受约束更新两道前置门，不创建空壳代码 | 后续阶段 |
+| 42. 最终研究结论 | ⏳ 未开始 | 汇总统计结果、失败案例和替代解释 | 最终回答项目假设是否得到支持，而不是只展示几个有趣案例 | 尚未开始 | 共同完成 |
 
 ## 3. 当前所在位置
 
@@ -116,6 +118,10 @@
    ⏳
 显式 Self Model
    ⏳
+受约束 Self 更新
+   ⏳
+内生调节与自主审议
+   ⏳ 仅完成设计，前置门未满足
 ```
 
 当前不能得出的结论：
@@ -283,6 +289,12 @@ cat results/development/impl3o_g1h_2.9b_random_matched/summary.json
 Impl-3n-a 证据固定 `continuation_shape_warmup_count=1`，预热使用随机状态
 的副本且不计分。收到 summary 前不进入 Batch 2 冻结。
 
+本次“持续 Self + 世界模型 + 内生驱动”理论评审不改变上述下一步。它补充的是
+显式 Self 和受约束更新均通过后的未来研究层：系统能否根据内部冲突、
+不确定性或未完成目标，选择 `stop / retrieve / replay / simulate / verify`，
+并在零新外部观察时产生有依据、有预算、可回滚的状态变化。完整设计见
+[`docs/endogenous_deliberation.md`](docs/endogenous_deliberation.md)。
+
 完整选择依据和后续复验顺序见
 [checkpoint 迁移方案](docs/checkpoint_migration.md)。
 
@@ -333,3 +345,4 @@ Impl-3n-a 证据固定 `continuation_shape_warmup_count=1`，预热使用随机�
 | 2026-07-31 | Impl-3n-a 确认 `first_shape_call_outlier`：第1次对后续 0/10，第2次参考后 9/9 稳定，相邻调用仅第1→2次失败。新增独立 Impl-3n-b，在计分前固定一次同形状 reset 预热，其余门槛和操作不变 | `results/development/impl3na_g1h_2.9b_reset_stability/summary.json`、`configs/gates/impl3nb_g1h_2.9b_state_operations_warmed.dev.json` |
 | 2026-07-31 | Impl-3n-b 在固定一次不计分预热后完整通过：96/96 组件 diff、官方 reset、完整 swap、tokenizer 和来源不变性全部有效；保留原 Impl-3n 失败，解除 Impl-3o 暂停 | `results/development/impl3nb_g1h_2.9b_state_operations_warmed/summary.json` |
 | 2026-07-31 | 在 Impl-3o 首次运行前，将已确认的首次 suffix 形状效应纳入其工程协议：固定一次使用 matched-random 状态副本的不计分续算预热；seed、尺度阈值和正式10次续算判定不变 | `configs/gates/impl3o_g1h_2.9b_random_matched.dev.json`、Impl-3n-a/3n-b 证据 |
+| 2026-07-31 | 评审“持续 Self + 世界模型 + 内生驱动”架构：吸收计算路由、记忆回放和零新外部观察实验；将内部张力改为派生控制信号，加入 timer/random/外部反思基线与有意义更新标准；纳入 Phase/Stage 5，但不改变当前 Impl-3o | `docs/endogenous_deliberation.md`、`docs/architecture.md` v0.2、`docs/definitions.md` |
