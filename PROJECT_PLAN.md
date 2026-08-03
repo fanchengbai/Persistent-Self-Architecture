@@ -4,8 +4,8 @@
 
 ## 1. 文档信息
 
-- 项目阶段：Phase 0 — Research Design
-- 初始基础模型：RWKV-7 0.4B
+- 项目阶段：Phase 2 — EXP-001 结果报告与控制缺口闭合决策
+- 当前确认模型：RWKV-7 G1h 2.9B（`rwkv7-g1h-2.9b-20260710`）
 - 计划原则：小规模验证、因果优先、对照充分、结果可复现、允许否定结论
 - 更新方式：每完成一个阶段或发生关键技术决策后更新本文档
 
@@ -559,12 +559,16 @@ Self State 只在部分任务、时间尺度或耦合机制下有效，明确其
 
 ## 16. 下一步行动
 
-继续完成 Phase 0，不启动实验：
+EXP-001已完成320组、40,960条记录的冻结确认性运行、独立完整性验证和只读
+统计分析。所有已采集主要终点与联合绑定门通过；Gate 2/Gate 4因最终Core Set
+缺少预注册控制而不能完整判定。下一步不重跑EXP-001：
 
-1. 共同审阅并冻结 `docs/definitions.md`。
-2. 共同审阅 `docs/research_claims.md` 与 `docs/architecture.md`。
-3. 共同审阅并冻结 `docs/task_design.md` 的变量、任务和混淆控制。
-4. 共同审阅 `docs/evaluation_protocol.md`，冻结指标、样本量、统计方法、SESOI 和阈值。
-5. 共同审阅 `docs/state_format.md` 与 `docs/implementation_spec.md`。
-6. 确定远程 checkpoint/tokenizer，填写工程参数并完成预注册。
-7. 完成设计审查后，再实现纯逻辑骨架和远程 state 保存/恢复闭环。
+1. 持久化EXP-001的summary、完整报告、group contrasts及SHA-256；
+2. 以`docs/exp001_confirmatory_results.md`为结果解释基线，更新研究记录；
+3. 由项目负责人决定是否单独预注册`EXP-001B`来补齐matched-context、每条件
+   同步通用能力控制和自由生成格式读出；
+4. 若决定实施EXP-001B，先完成任务、统计、样本量和授权冻结，不复用EXP-001
+   的运行授权，也不修改EXP-001原始结果；
+5. Phase 3可以继续框架和接口设计，但在Gate 4闭合前不启动显式Self Model的
+   正式确认性实验；
+6. 补充门闭合后，再作一次明确的Phase 2 Go / Revise / Stop决策。
