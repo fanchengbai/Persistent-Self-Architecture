@@ -314,6 +314,10 @@ Phase 0 → Phase 1 — Research Design / State Infrastructure
     runner证据和项目负责人授权，并且只允许完整320组运行。中断只能显式恢复，
     完成后不能重跑；执行期只保存40,960条原始记录及哈希账本，不汇报中间
     准确率。当前仍未运行Core Set，必须提交后再次取得云端preflight digest。
+56. 正式执行锁提交后的云端最终preflight已经通过，失败项为空，最终待授权
+    digest为`9a22a0cf…bd2f`。runner证据有效，但授权、正式运行和结果观察字段仍
+    全部为false。现在停在项目负责人独立授权门；“继续”和旧授权都不能替代
+    对这个完整digest及正式运行范围的明确确认。
 
 ## 项目文档
 

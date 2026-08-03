@@ -1,7 +1,7 @@
 # Persistent Self Architecture 项目进度表
 
 > 最后更新：2026-08-03
-> 当前节点：Impl-5b-c正式执行锁已完成本地实现；等待云端重跑非推理预检生成最终授权digest
+> 当前节点：Impl-5b-c最终云端预检通过；等待项目负责人审阅并明确授权完整确认性实验
 > 研究状态：尚未进入正式确认性实验，尚未实现显式 Self Model
 
 ## 1. 这张表怎么使用
@@ -85,6 +85,8 @@
 | 37g. Impl-5b-b：正式runner本地开发自测 | ✅ 已完成 | 用非Core合成夹具实现8条件状态路由、分组原子写入、断点恢复、完整性账本和默认拒绝正式执行 | 在真正考试前先用假试卷证明执行器不会串state、漏条件、半写结果或在失败后悄悄重跑 | 已实现continuous/restored/reset/random/swap/prompt-visible八条件、逐组原子落盘和仅补缺组的恢复；开发入口拒绝EXP-001/Core身份，不汇报准确率或中间决策；122项本地测试与编译检查通过 | Codex |
 | 37h. Impl-5b-b：云端非Core真实模型开发门 | ✅ 已通过 | 在2.9B真实模型上只运行固定的16条非Core开发题，形成128条条件记录；随后重跑非推理preflight | 本地假后端只能证明流程，云端真模型才能证明状态构造、磁盘恢复、matched random和显存路径确实可执行 | runner开发门`valid=true`，128条原始记录完整，运行约32.84秒、加载约6.37秒、峰值显存6,311,951,360字节；不含准确率或中间结论。新版preflight全部检查通过，runner证据有效，digest=`d41d735c…74f5`；模型未在预检中加载、Core Set未评分、正式实验未授权 | 项目负责人云端运行；Codex核对 |
 | 37i. Impl-5b-c：正式执行锁与封装 | ✅ 本地完成 | 在不运行Core Set的前提下实现最终授权文件校验、整批320组执行、失败即停、断点恢复、完成前禁止汇总以及最终只读结果封装 | 当前通用runner已通过，但正式启动入口必须先于最终授权冻结，否则后补代码会改变digest并使授权失效 | 启动前会现场重建preflight并逐项验证精确授权；只能完整执行320组，首次中断后必须显式resume，完成后拒绝重跑；runner只写40,960条原始记录和完整性digest，不输出准确率或中间结论。127项测试与编译检查通过，Core Set仍未运行；等待提交和云端新版preflight | Codex |
+| 37j. Impl-5b-c：最终云端非推理预检 | ✅ 已通过 | 在正式执行锁源码固定后，再次核对主机、Git、模型、Tokenizer、冻结包、runner证据和全部执行源码 | 最终授权必须绑定不会再因补入口代码而变化的运行计划，不能复用任何开发阶段digest | `valid=true`、runner证据有效、失败检查为空；最终待授权digest=`9a22a0cf7fc89eed51caaed227211608b2e9492fc4db6c20fd2a89351389bd2f`。授权、运行和结果观察字段仍全部为false | 项目负责人云端运行；Codex核对 |
+| 37k. 项目负责人正式实验授权 | ⏸️ 等待明确决定 | 负责人逐字确认最终preflight digest，并明确是否允许运行完整320组、只在全量完成后观察结果、禁止修改冻结设计和完成后自动重跑 | 这是首次允许模型读取冻结Core Set，属于不可由“继续”或旧授权推断的独立决策 | 尚未授权；不得创建授权记录或运行`scripts/run_exp001_confirmatory.sh` | 项目负责人 |
 | 38. Phase 2：正式原生 state 实验 | ⏳ 未开始 | 比较 original/reset/random/swap 等条件 | 这一步才真正测试 recurrent state 是否是跨时间因果载体 | 尚无研究结论 | 项目负责人运行；Codex 分析 |
 | 39. Phase 3：显式 Self Model | ⏳ 未开始 | 实现 Self Store、Self Encoder 和 gated injection | 只有原生状态基线可靠后，才能判断显式 Self Model 是否带来额外价值 | 目前只有设计，没有加入模型 | 后续由 Codex 实现 |
 | 40. Self 更新与演化 | ⏳ 未开始 | 让 Self State 根据经历受控更新、回滚和分化 | 这是“持续自我”真正更深入的部分 | 尚未开始 | 后续阶段 |
@@ -158,7 +160,8 @@ Batch 2 参数冻结
     ✅ 仅用非Core夹具完成runner本地实现与122项测试
     ✅ 云端非Core真实模型开发门及新版非推理预检通过
     ✅ 正式执行锁与整批原始结果封装已完成本地实现
-    🔵 等待全量回归、提交和云端最终预检
+    ✅ 正式执行锁提交后的云端最终预检通过
+    ⏸️ 等待项目负责人逐字确认最终digest并单独授权
     ⏸️ 正式实验仍未授权
 正式 state 因果实验
    ⏳
@@ -454,6 +457,14 @@ Impl-5b-c现已完成本地实现：任何模型加载之前都会现场重建pr
 后拒绝再次运行。执行器在完整结束前只保存逐组原始分数和SHA-256账本，不计算
 准确率或研究结论。当前只完成逻辑测试，Core Set仍未运行。
 
+正式执行锁提交后，云端最终非推理preflight再次通过：`valid=true`、runner
+开发证据有效、失败检查为空，最终待授权digest为
+`9a22a0cf7fc89eed51caaed227211608b2e9492fc4db6c20fd2a89351389bd2f`。
+此时`confirmatory_experiment_authorized=false`、
+`confirmatory_experiment_run=false`、`confirmatory_results_observed=false`。
+下一步只能由项目负责人作出独立正式授权决定，不能把本次结果或此前的“继续”
+解释为授权。
+
 本次“持续 Self + 世界模型 + 内生驱动”理论评审不改变上述下一步。它补充的是
 显式 Self 和受约束更新均通过后的未来研究层：系统能否根据内部冲突、
 不确定性或未完成目标，选择 `stop / retrieve / replay / simulate / verify`，
@@ -536,3 +547,4 @@ Impl-5b-c现已完成本地实现：任何模型加载之前都会现场重建pr
 | 2026-08-03 | 完成Impl-5b-b本地runner开发：8条件显式路由、每组4个历史state、真实safetensors恢复、确定性matched random、按组原子写入、断点只补缺组和篡改拒绝均已实现；固定开发入口只构造16条非Core题并产生128条原始条件记录，不计算准确率或中间结论。122项本地测试与编译检查通过；Core Set仍未读取，旧preflight digest随源码变化失效 | `src/psa/confirmatory/runner.py`、`src/psa/confirmatory/rwkv_backend.py`、`scripts/run_impl5b_confirmatory_runner_development_gate.sh` |
 | 2026-08-03 | 云端Impl-5b-b非Core真实模型开发门通过：1组16题覆盖8条件，共128条原始记录，约32.84秒，峰值显存6,311,951,360字节；无准确率、无中间决策、无Core Set推理。随后新版preflight全部检查通过，runner证据有效，digest=`d41d735c…74f5`，Git=`c1171d2`。正式字段仍全为false；由于正式执行锁尚未实现，该digest不提前用于授权 | 云端`results/development/impl5b_confirmatory_runner_dev/summary.json`、`results/development/impl5b_confirmatory_preflight/preflight.json` |
 | 2026-08-03 | 完成Impl-5b-c正式执行锁本地实现：模型加载前现场重建并匹配preflight，授权必须精确绑定全部冻结digest且字段不可扩展；正式入口固定全量320组/40,960条记录，无子集模式。中断必须显式恢复，完整结束后禁止重跑，非空新输出目录和已登记文件篡改均拒绝；完成包只含原始记录账本，不含准确率或中间决策。127项测试与编译检查通过，尚未运行Core Set，需提交后重跑云端preflight | `src/psa/confirmatory/formal.py`、`scripts/run_exp001_confirmatory.sh`、`tests/test_confirmatory_formal.py` |
+| 2026-08-03 | 正式执行锁提交后的云端最终preflight通过：`valid=true`、runner证据有效、失败检查为空，最终待授权digest=`9a22a0cf…bd2f`；正式授权、运行和结果观察仍全部为false。进入项目负责人独立授权门，不创建授权记录、不运行Core Set | 云端`results/development/impl5b_confirmatory_preflight/preflight.json` |
