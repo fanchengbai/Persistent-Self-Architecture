@@ -965,6 +965,21 @@ factorial groups；每组4种状态×4次A–D轮换，共1,280个语义案例�
 
 Impl-5b才允许加载模型执行Core Set；它需要新的单独授权，当前仍保持关闭。
 
+Impl-5b进一步拆成不可跳过的三段：
+
+1. `Impl-5b-a preflight`：不加载模型，验证最终预注册包、冻结Core Set、模型
+   与tokenizer SHA-256、CUDA环境、Git干净状态、磁盘/显存和冻结评分源码；
+2. `Impl-5b-b runner development`：只用非Core开发夹具完成分组恢复、原子
+   写入、断点续跑和结果封装测试；
+3. `Impl-5b-c confirmatory run`：只有新的项目负责人授权精确绑定实际主机的
+   preflight digest后才可启动，且禁止中途报告准确率或自动重跑。
+
+Impl-5b-a现已实现。稳定计划明确320组、1,280语义案例、5,120条代码轮换
+试题和8种条件，共40,960个trial-condition单元。现有Core Set授权中的
+`run_confirmatory_experiment=false`不能被复用；缺少新授权或digest不一致时
+必须拒绝。该入口只生成开发预检报告，记录`model_loaded=false`、
+`confirmatory_trial_scored=false`和`confirmatory_results_observed=false`。
+
 Impl-5a云端生成已完成：320组、1,280个语义案例、5,120条试题全部通过冻结
 检查。Core Set digest为`6ea2b6be15a7728c96d84dcc8e48da64e740438980f818e78c8ee8570a47eb9d`，
 包digest为`9659e286de4128b43226f2d6df27075eba60bd953c2330ee70c0ec3e677f1642`。

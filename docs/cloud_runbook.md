@@ -848,6 +848,33 @@ cat preregistration/exp001/core_set_v1/manifest.json
 第二份Core Set，也不要加载模型“顺便测试”。下一步必须等待项目负责人另行
 明确授权确认性运行。
 
+### 5.25 运行 Impl-5b-a 非推理预检
+
+迁移到新主机或准备正式runner前，先执行：
+
+```bash
+source .venv/bin/activate
+git status --short
+bash scripts/preflight_exp001_confirmatory_run.sh
+cat results/development/impl5b_confirmatory_preflight/preflight.json
+```
+
+该脚本会重新计算5.5GB模型和tokenizer的SHA-256，并检查最终预注册包、冻结
+Core Set、CUDA/Python依赖、Git状态、磁盘、显存和冻结评分源码。它不会加载
+RWKV模型，也不会评分任何Core Set试题。
+
+通过时应满足：
+
+- `valid=true`；
+- `status=preflight_valid_authorization_still_required`；
+- `model_loaded=false`；
+- `confirmatory_trial_scored=false`；
+- `confirmatory_experiment_authorized=false`；
+- `confirmatory_results_observed=false`。
+
+只回传`preflight_digest_sha256`和失败检查项；此时仍不得运行正式实验。下一步
+是用非Core开发夹具实现和测试完整runner，之后才讨论绑定该digest的新授权。
+
 ## 6. 运行纯逻辑测试
 
 ```bash

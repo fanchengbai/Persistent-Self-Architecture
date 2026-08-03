@@ -1,0 +1,49 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://persistent-self-architecture.local/exp001_confirmatory_run_authorization.schema.json",
+  "title": "EXP-001 Confirmatory Run Authorization",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "authorization_version",
+    "experiment_id",
+    "authorized_by_role",
+    "authorized_at_utc",
+    "authorization_text",
+    "preflight_digest_sha256",
+    "final_preregistration_digest_sha256",
+    "core_set_digest_sha256",
+    "core_set_package_digest_sha256",
+    "model_id",
+    "authorization"
+  ],
+  "properties": {
+    "authorization_version": {"const": "1.0"},
+    "experiment_id": {"const": "EXP-001"},
+    "authorized_by_role": {"const": "project_owner"},
+    "authorized_at_utc": {"type": "string", "minLength": 20},
+    "authorization_text": {"type": "string", "minLength": 20},
+    "preflight_digest_sha256": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{64}$"
+    },
+    "final_preregistration_digest_sha256": {
+      "const": "0daf056dc6b38aa20fa69dd9e8df9b8065876529947cbc01353ffe604933d0c9"
+    },
+    "core_set_digest_sha256": {
+      "const": "6ea2b6be15a7728c96d84dcc8e48da64e740438980f818e78c8ee8570a47eb9d"
+    },
+    "core_set_package_digest_sha256": {
+      "const": "9659e286de4128b43226f2d6df27075eba60bd953c2330ee70c0ec3e677f1642"
+    },
+    "model_id": {"const": "rwkv7-g1h-2.9b-20260710"},
+    "authorization": {
+      "const": {
+        "run_confirmatory_experiment": true,
+        "observe_results_after_full_completion": true,
+        "modify_frozen_design": false,
+        "automatic_rerun_after_results": false
+      }
+    }
+  }
+}

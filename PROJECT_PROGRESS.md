@@ -1,7 +1,7 @@
 # Persistent Self Architecture 项目进度表
 
-> 最后更新：2026-07-31
-> 当前节点：EXP-001 Core Set v1已冻结、校验并通过提交`ffd79ae`纳入GitHub；等待单独的正式实验授权
+> 最后更新：2026-08-03
+> 当前节点：Impl-5b-a非推理预检与独立授权锁已通过111项测试；等待新主机/云端运行只读预检
 > 研究状态：尚未进入正式确认性实验，尚未实现显式 Self Model
 
 ## 1. 这张表怎么使用
@@ -80,6 +80,8 @@
 | 37b. Core Set生成与冻结工具 | ✅ 已完成 | 验证最终预注册包和单独授权，用冻结seed、模板、标签、filler与tokenizer生成平衡试题并计算两层digest | 正式试题必须可重建、不可暗改，而且生成过程不能顺便加载模型或查看答案表现 | 固定320组×4状态×4代码轮换=1,280个语义案例、5,120条试题；验证16种模板对各20组，四类模板/filler/标签组合各80组；篡改、越权和重复生成测试通过 | Codex |
 | 37c. 云端生成 Core Set v1 | ✅ 已冻结 | 在云端只加载固定tokenizer，拟合4个131-token filler并生成最终Core Set包 | 本机没有冻结tokenizer，不能用假计数器制造正式digest；云端已有经校验的1.1MB tokenizer | `status=core_set_frozen_unrun`；320组、1,280语义案例、5,120试题；Core Set digest=`6ea2b6be…eb9d`，包digest=`9659e286…1642`，安全边界保持关闭 | 项目负责人云端运行；Codex核对 |
 | 37d. 持久化冻结 Core Set | ✅ 已完成 | 将云端`core_set_v1`目录原样纳入普通Git | 只留在临时云盘上可能因实例释放而丢失；必须保留生成时的原始冻结文件 | `core_set.json`和整个目录均约11MB，已通过提交`ffd79ae`推送GitHub并快进同步到本机；3个锁定文件的SHA-256均与`manifest.json`一致。无需LFS、压缩或重新生成 | 项目负责人云端提交；Codex同步复核 |
+| 37e. Impl-5b-a：非推理预检与授权锁 | ✅ 已完成 | 在加载模型前核对最终预注册包、Core Set、模型/Tokenizer、环境、磁盘、显存和冻结评分源码，并产生稳定预检digest | “文件齐全”不等于“已获准考试”；必须让旧Core Set授权无法越权，并把未来正式授权绑定到一次精确预检 | 新增`confirmatory-preflight`、授权Schema和云端脚本；计划固定8条件×5,120轮换试题=40,960个trial-condition单元；旧授权复用、digest错绑均被拒绝；111项测试通过，未加载模型、未评分Core Set | Codex |
+| 37f. 新主机/云端运行非推理预检 | 🟡 等待运行 | 在实际实验主机验证CUDA环境、固定版本的软件依赖、模型文件SHA-256、Git干净状态和冻结包完整性 | 正式runner设计必须建立在真实主机和真实5.5GB权重校验通过的基础上，不能仅凭本机逻辑测试 | 预期输出`preflight_valid_authorization_still_required`及一个preflight digest；该步骤不加载模型、不产生正式结果，也不构成正式授权 | 项目负责人运行；Codex核对 |
 | 38. Phase 2：正式原生 state 实验 | ⏳ 未开始 | 比较 original/reset/random/swap 等条件 | 这一步才真正测试 recurrent state 是否是跨时间因果载体 | 尚无研究结论 | 项目负责人运行；Codex 分析 |
 | 39. Phase 3：显式 Self Model | ⏳ 未开始 | 实现 Self Store、Self Encoder 和 gated injection | 只有原生状态基线可靠后，才能判断显式 Self Model 是否带来额外价值 | 目前只有设计，没有加入模型 | 后续由 Codex 实现 |
 | 40. Self 更新与演化 | ⏳ 未开始 | 让 Self State 根据经历受控更新、回滚和分化 | 这是“持续自我”真正更深入的部分 | 尚未开始 | 后续阶段 |
@@ -148,6 +150,8 @@ Batch 2 参数冻结
     ✅ 生成与冻结工具已通过逻辑测试
     ✅ 云端Core Set v1已生成并冻结
     ✅ 冻结目录已通过普通Git持久化并复核
+    ✅ 非推理预检与独立授权锁已通过111项测试
+    🟡 等待实际主机运行非推理预检
     ⏸️ 正式实验仍未授权
 正式 state 因果实验
    ⏳
@@ -421,8 +425,12 @@ Core Set已在云端一次性生成：320组、1,280个语义案例和5,120条�
 现已通过普通Git提交`ffd79ae`安全保存到GitHub，并快进同步回本机。同步后对
 `core_set.json`、`core_set_authorization.json`和
 `final_preregistration_manifest.json`重新计算SHA-256，三者均与冻结
-`manifest.json`一致。当前没有待补的Core Set工程步骤；下一步必须等待项目
-负责人另行、明确授权正式确认性实验。
+`manifest.json`一致。Core Set工程步骤已经闭合。随后新增Impl-5b-a非推理
+预检：它在加载模型前验证冻结包、资产、环境、Git状态、显存/磁盘和冻结评分
+源码，并把8种条件×5,120条轮换试题明确为40,960个trial-condition单元。
+旧的Core Set生成授权不能通过正式授权检查，未来授权还必须绑定实际主机产生
+的精确preflight digest。当前只等待新主机/云端运行该预检；正式runner尚未
+执行，Core Set仍未评分，正式实验仍需项目负责人另行明确授权。
 
 本次“持续 Self + 世界模型 + 内生驱动”理论评审不改变上述下一步。它补充的是
 显式 Self 和受约束更新均通过后的未来研究层：系统能否根据内部冲突、
@@ -501,3 +509,4 @@ Core Set已在云端一次性生成：320组、1,280个语义案例和5,120条�
 | 2026-07-31 | Core Set v1已在云端用冻结tokenizer一次性生成并自校验：320组、1,280语义案例、5,120试题；状态`core_set_frozen_unrun`，Core Set digest `6ea2b6be…eb9d`、包digest `9659e286…1642`、payload root `1f4bd57f…c02a`。正式实验未授权、未运行、未观察结果；下一步只持久化冻结文件 | 云端`preregistration/exp001/core_set_v1/manifest.json` |
 | 2026-07-31 | 冻结Core Set文件大小复核完成：`core_set.json`与整个`core_set_v1`目录均约11MB，适合普通Git且远低于GitHub 100MB单文件限制；不采用LFS、不压缩、不重新生成。为避免桌面文档提交与云端数据提交分叉，固定顺序为桌面先push、云端再pull/add/commit/push | 云端`ls -lh`、`du -sh`、`git status --short` |
 | 2026-07-31 | Core Set v1已通过提交`ffd79ae`推送GitHub并快进同步到本机；3个锁定文件的SHA-256全部与冻结manifest一致，持久化步骤闭合。状态继续为`core_set_frozen_unrun`，正式实验仍未授权、未运行、未观察结果 | `preregistration/exp001/core_set_v1/manifest.json`、Git提交`ffd79ae` |
+| 2026-08-03 | 完成Impl-5b-a非推理预检和独立正式授权锁：冻结包、资产、环境、源码与资源门统一进入稳定preflight digest；旧Core Set授权不能越权，未来正式授权必须精确绑定该digest。计划规模明确为40,960个trial-condition单元；111项测试通过，未加载模型、未评分Core Set、未观察正式结果 | `src/psa/confirmatory/preflight.py`、`scripts/preflight_exp001_confirmatory_run.sh`、`schemas/exp001_confirmatory_run_authorization.schema.json` |

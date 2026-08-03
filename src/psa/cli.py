@@ -9,6 +9,7 @@ from typing import Any
 
 from psa.assets import fetch_manifest, load_manifest, plan_manifest, verify_manifest
 from psa.artifacts import canonical_json_bytes, sha256_file, sha256_json
+from psa.confirmatory import build_confirmatory_preflight
 from psa.development import (
     run_g1_capability_audit,
     run_capability_ladder_gate,
@@ -605,6 +606,20 @@ def _core_set_verify(args: argparse.Namespace) -> int:
     return 0 if result["valid"] else 2
 
 
+def _confirmatory_preflight(args: argparse.Namespace) -> int:
+    result = build_confirmatory_preflight(
+        project_root=args.project_root,
+        final_package_dir=args.final_package,
+        core_set_package_dir=args.core_set_package,
+        model_config_path=args.model_config,
+        asset_manifest_path=args.asset_manifest,
+        asset_root=args.asset_root,
+    )
+    _write_json(Path(args.output), result)
+    print(json.dumps(result, ensure_ascii=False, indent=2))
+    return 0 if result["valid"] else 2
+
+
 def _add_asset_common_arguments(parser: argparse.ArgumentParser) -> None:
     parser.add_argument("--manifest", required=True)
     parser.add_argument("--root", default=".psa-assets")
@@ -882,6 +897,25 @@ def build_parser() -> argparse.ArgumentParser:
     )
     core_set_verify.add_argument("--package-dir", required=True)
     core_set_verify.set_defaults(handler=_core_set_verify)
+
+    confirmatory_preflight = subparsers.add_parser(
+        "confirmatory-preflight",
+        help=(
+            "verify the frozen EXP-001 packages, assets, environment, and "
+            "source digests without loading the model or scoring Core Set trials"
+        ),
+    )
+    confirmatory_preflight.add_argument("--final-package", required=True)
+    confirmatory_preflight.add_argument("--core-set-package", required=True)
+    confirmatory_preflight.add_argument("--model-config", required=True)
+    confirmatory_preflight.add_argument("--asset-manifest", required=True)
+    confirmatory_preflight.add_argument(
+        "--asset-root",
+        default=".psa-assets",
+    )
+    confirmatory_preflight.add_argument("--output", required=True)
+    confirmatory_preflight.add_argument("--project-root", default=".")
+    confirmatory_preflight.set_defaults(handler=_confirmatory_preflight)
 
     formal_freeze_review = subparsers.add_parser(
         "formal-freeze-review",

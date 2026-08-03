@@ -295,6 +295,10 @@ Phase 0 → Phase 1 — Research Design / State Infrastructure
 50. `core_set_v1`已通过提交`ffd79ae`推送GitHub并快进同步回本机；三个锁定
     文件的SHA-256均与冻结manifest一致。Core Set持久化完成，状态继续是
     `core_set_frozen_unrun`；下一步必须等待单独的正式实验授权。
+51. Impl-5b-a非推理预检和独立授权锁已经实现并通过111项测试。它先核对
+    冻结包、5.5GB模型、tokenizer、CUDA环境、磁盘/显存和冻结评分源码，明确
+    正式规模为40,960个trial-condition单元；旧的Core Set授权不能用于正式
+    运行。下一步只在实际主机运行预检，仍不加载模型或评分Core Set。
 
 ## 项目文档
 
