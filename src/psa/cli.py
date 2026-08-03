@@ -9,7 +9,10 @@ from typing import Any
 
 from psa.assets import fetch_manifest, load_manifest, plan_manifest, verify_manifest
 from psa.artifacts import canonical_json_bytes, sha256_file, sha256_json
-from psa.confirmatory import build_confirmatory_preflight
+from psa.confirmatory import (
+    build_confirmatory_preflight,
+    run_confirmatory_runner_development_gate,
+)
 from psa.development import (
     run_g1_capability_audit,
     run_capability_ladder_gate,
@@ -614,8 +617,19 @@ def _confirmatory_preflight(args: argparse.Namespace) -> int:
         model_config_path=args.model_config,
         asset_manifest_path=args.asset_manifest,
         asset_root=args.asset_root,
+        runner_evidence_path=args.runner_evidence,
     )
     _write_json(Path(args.output), result)
+    print(json.dumps(result, ensure_ascii=False, indent=2))
+    return 0 if result["valid"] else 2
+
+
+def _confirmatory_runner_dev_gate(args: argparse.Namespace) -> int:
+    result = run_confirmatory_runner_development_gate(
+        model_config_path=args.model_config,
+        output_dir=args.output_dir,
+        project_root=args.project_root,
+    )
     print(json.dumps(result, ensure_ascii=False, indent=2))
     return 0 if result["valid"] else 2
 
@@ -914,8 +928,21 @@ def build_parser() -> argparse.ArgumentParser:
         default=".psa-assets",
     )
     confirmatory_preflight.add_argument("--output", required=True)
+    confirmatory_preflight.add_argument("--runner-evidence")
     confirmatory_preflight.add_argument("--project-root", default=".")
     confirmatory_preflight.set_defaults(handler=_confirmatory_preflight)
+
+    confirmatory_runner_dev = subparsers.add_parser(
+        "confirmatory-runner-dev-gate",
+        help=(
+            "exercise all runner conditions with one explicit non-Core "
+            "development fixture"
+        ),
+    )
+    confirmatory_runner_dev.add_argument("--model-config", required=True)
+    confirmatory_runner_dev.add_argument("--output-dir", required=True)
+    confirmatory_runner_dev.add_argument("--project-root", default=".")
+    confirmatory_runner_dev.set_defaults(handler=_confirmatory_runner_dev_gate)
 
     formal_freeze_review = subparsers.add_parser(
         "formal-freeze-review",

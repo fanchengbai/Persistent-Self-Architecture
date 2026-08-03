@@ -55,6 +55,16 @@ FROZEN_SCORING_SOURCES = (
     "src/psa/development/history_binding.py",
     "src/psa/evaluation/resampling.py",
 )
+RUNNER_SOURCES = (
+    "src/psa/confirmatory/preflight.py",
+    "src/psa/confirmatory/runner.py",
+    "src/psa/confirmatory/rwkv_backend.py",
+    "src/psa/confirmatory/development.py",
+    "src/psa/cli.py",
+    "scripts/preflight_exp001_confirmatory_run.sh",
+    "scripts/run_impl5b_confirmatory_runner_development_gate.sh",
+    "schemas/exp001_confirmatory_run_authorization.schema.json",
+)
 
 
 def _load_object(path: str | Path, label: str) -> dict[str, Any]:
@@ -149,6 +159,7 @@ def build_confirmatory_preflight(
     model_config_path: str | Path,
     asset_manifest_path: str | Path,
     asset_root: str | Path,
+    runner_evidence_path: str | Path | None = None,
     environment_report: Mapping[str, Any] | None = None,
     asset_report: Mapping[str, Any] | None = None,
 ) -> dict[str, Any]:
@@ -171,6 +182,14 @@ def build_confirmatory_preflight(
     core_manifest = _load_object(core_root / "manifest.json", "Core Set manifest")
     core_set = _load_object(core_root / "core_set.json", "Core Set")
     model_config = _load_object(model_path, "model config")
+    runner_evidence = None
+    runner_evidence_source = None
+    if runner_evidence_path is not None:
+        runner_evidence_source = Path(runner_evidence_path).resolve()
+        runner_evidence = _load_object(
+            runner_evidence_source,
+            "runner development evidence",
+        )
 
     if environment_report is None:
         environment_report = collect_environment(root)
@@ -191,6 +210,38 @@ def build_confirmatory_preflight(
             "actual_sha256": actual,
             "valid": bool(isinstance(expected, str) and actual == expected),
         }
+    runner_source_digests = {
+        relative: sha256_file(root / relative)
+        for relative in RUNNER_SOURCES
+        if (root / relative).is_file()
+    }
+    runner_sources_complete = set(runner_source_digests) == set(RUNNER_SOURCES)
+    runner_evidence_valid = bool(
+        isinstance(runner_evidence, Mapping)
+        and runner_evidence.get("valid") is True
+        and runner_evidence.get("gate")
+        == "impl5b_confirmatory_runner_development"
+        and runner_evidence.get("development_only") is True
+        and runner_evidence.get("fixture_kind")
+        == "non_core_confirmatory_runner_fixture"
+        and runner_evidence.get("group_count") == 1
+        and runner_evidence.get("trial_count") == 16
+        and runner_evidence.get("condition_count") == 8
+        and runner_evidence.get("raw_record_count") == 128
+        and runner_evidence.get("runner_source_digests")
+        == {
+            relative: runner_source_digests[relative]
+            for relative in (
+                "src/psa/confirmatory/runner.py",
+                "src/psa/confirmatory/rwkv_backend.py",
+                "src/psa/confirmatory/development.py",
+            )
+        }
+        and runner_evidence.get("contains_derived_accuracy") is False
+        and runner_evidence.get("formal_authorization_used") is False
+        and runner_evidence.get("confirmatory_experiment_run") is False
+        and runner_evidence.get("confirmatory_results_observed") is False
+    )
 
     environment_checks = _environment_checks(environment_report)
     asset_checks = _asset_model_consistency(model_config, asset_report)
@@ -241,6 +292,7 @@ def build_confirmatory_preflight(
         "frozen_scoring_sources_valid": all(
             item["valid"] for item in source_checks.values()
         ),
+        "runner_sources_complete": runner_sources_complete,
     }
 
     git = environment_report.get("git", {})
@@ -277,6 +329,12 @@ def build_confirmatory_preflight(
             relative: item["actual_sha256"]
             for relative, item in source_checks.items()
         },
+        "runner_source_digests": runner_source_digests,
+        "runner_development_evidence_sha256": (
+            sha256_file(runner_evidence_source)
+            if runner_evidence_valid and runner_evidence_source is not None
+            else None
+        ),
         "safety_rules": {
             "partial_core_runs_forbidden": True,
             "intermediate_accuracy_reporting_forbidden": True,
@@ -287,6 +345,7 @@ def build_confirmatory_preflight(
     }
     preflight_digest = sha256_json(stable_plan)
     valid = all(all_checks.values())
+    authorization_ready = bool(valid and runner_evidence_valid)
     return {
         "report_version": "0.1",
         "created_at_utc": datetime.now(timezone.utc).isoformat(),
@@ -298,13 +357,21 @@ def build_confirmatory_preflight(
         "confirmatory_results_observed": False,
         "status": (
             "preflight_valid_authorization_still_required"
-            if valid
-            else "preflight_failed"
+            if authorization_ready
+            else (
+                "preflight_valid_runner_evidence_required"
+                if valid
+                else "preflight_failed"
+            )
         ),
         "route_decision": (
-            "implement_and_development_test_full_runner"
-            if valid
-            else "hold_and_repair_preflight_without_core_inference"
+            "review_project_owner_confirmatory_authorization"
+            if authorization_ready
+            else (
+                "run_non_core_runner_development_gate"
+                if valid
+                else "hold_and_repair_preflight_without_core_inference"
+            )
         ),
         "paths": {
             "project_root": str(root),
@@ -312,10 +379,19 @@ def build_confirmatory_preflight(
             "core_set_package": _relative(core_root, root),
             "model_config": _relative(model_path, root),
             "asset_manifest": _relative(asset_path, root),
+            "runner_evidence": (
+                _relative(runner_evidence_source, root)
+                if runner_evidence_source is not None
+                else None
+            ),
         },
         "checks": all_checks,
         "frozen_scoring_source_checks": source_checks,
         "run_plan_candidate": stable_plan,
+        "runner_development_evidence": {
+            "provided": runner_evidence is not None,
+            "valid": runner_evidence_valid,
+        },
         "preflight_digest_sha256": preflight_digest,
         "authorization_boundary": {
             "existing_core_set_authorization_allows_run": False,
@@ -341,6 +417,12 @@ def verify_confirmatory_run_authorization(
     }
     checks = {
         "preflight_valid": preflight.get("valid") is True,
+        "runner_evidence_valid": bool(
+            isinstance(preflight.get("runner_development_evidence"), Mapping)
+            and preflight["runner_development_evidence"].get("valid") is True
+            and preflight.get("status")
+            == "preflight_valid_authorization_still_required"
+        ),
         "authorization_version_valid": authorization.get(
             "authorization_version"
         )

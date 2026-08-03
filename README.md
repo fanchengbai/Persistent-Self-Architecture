@@ -299,6 +299,13 @@ Phase 0 → Phase 1 — Research Design / State Infrastructure
     冻结包、5.5GB模型、tokenizer、CUDA环境、磁盘/显存和冻结评分源码，明确
     正式规模为40,960个trial-condition单元；旧的Core Set授权不能用于正式
     运行。下一步只在实际主机运行预检，仍不加载模型或评分Core Set。
+52. 新主机预检已完整通过，digest为`fc6c5ccc…d9a7`，所有正式运行字段仍为
+    false。该digest只证明runner开发前的主机与冻结资产有效；runner源码一旦
+    加入便必须重新预检。当前进入只使用非Core夹具的runner开发，不提前授权。
+53. Impl-5b-b的runner本地实现已通过122项测试：它明确路由8种状态条件，按组
+    原子保存并支持断点只补缺组，同时拒绝把EXP-001/Core Set冒充开发夹具。
+    下一步先在云端真实2.9B模型上运行固定的16条非Core题，再重跑非推理预检。
+    `fc6c5ccc…d9a7`已因runner源码变化失效；正式实验仍未授权。
 
 ## 项目文档
 

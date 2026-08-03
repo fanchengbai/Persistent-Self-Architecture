@@ -980,6 +980,21 @@ Impl-5b-a现已实现。稳定计划明确320组、1,280语义案例、5,120条�
 必须拒绝。该入口只生成开发预检报告，记录`model_loaded=false`、
 `confirmatory_trial_scored=false`和`confirmatory_results_observed=false`。
 
+Impl-5b-b的本地执行器现已实现，但它还不是正式实验入口。其固定条件为
+`continuous`、`restored`、`reset`、`random_matched`、`swapped_I`、
+`swapped_G`、`swapped_both`和`prompt_visible`。每组先对实际token长度预热，
+建立四个历史state；`restored`必须经过临时safetensors磁盘往返，随机state按
+预注册命名空间确定性生成，swap条件显式记录来源组合和判分组合。每个组生成
+16试题×8条件=128条原始分数记录，组文件先写临时文件、同步磁盘后原子替换，
+manifest只把完整组登记为完成；恢复时只补未完成组并校验已登记文件SHA-256。
+
+开发门只能调用代码内固定生成的非Core夹具：实验ID为`DEV-IMPL5B-RUNNER`，
+标签为amber/cobalt与orbit/prism，禁止`EXP-001`和`coregrp-*`身份。开发报告
+明确写入`contains_derived_accuracy=false`、`confirmatory_experiment_run=false`
+和`confirmatory_results_observed=false`。本地逻辑与故障注入测试共122项通过；
+仍需云端真实2.9B模型开发门通过，再把该证据和当前runner源码digest纳入一次
+新的非推理preflight。runner开发前的preflight digest不得用于授权。
+
 Impl-5a云端生成已完成：320组、1,280个语义案例、5,120条试题全部通过冻结
 检查。Core Set digest为`6ea2b6be15a7728c96d84dcc8e48da64e740438980f818e78c8ee8570a47eb9d`，
 包digest为`9659e286de4128b43226f2d6df27075eba60bd953c2330ee70c0ec3e677f1642`。

@@ -863,17 +863,46 @@ cat results/development/impl5b_confirmatory_preflight/preflight.json
 Core Set、CUDA/Python依赖、Git状态、磁盘、显存和冻结评分源码。它不会加载
 RWKV模型，也不会评分任何Core Set试题。
 
-通过时应满足：
+在runner开发门尚未运行时，通过基础检查应满足：
 
 - `valid=true`；
-- `status=preflight_valid_authorization_still_required`；
+- `status=preflight_valid_runner_evidence_required`；
 - `model_loaded=false`；
 - `confirmatory_trial_scored=false`；
 - `confirmatory_experiment_authorized=false`；
 - `confirmatory_results_observed=false`。
 
-只回传`preflight_digest_sha256`和失败检查项；此时仍不得运行正式实验。下一步
-是用非Core开发夹具实现和测试完整runner，之后才讨论绑定该digest的新授权。
+runner开发前生成的digest会在runner源码提交后失效，不能用于正式授权。
+
+### 5.26 运行 Impl-5b-b 非Core runner开发门
+
+拉取包含runner的最新提交后，先运行真实2.9B模型的非Core开发门，再重新运行
+非推理预检：
+
+```bash
+source .venv/bin/activate
+git status --short
+bash scripts/run_impl5b_confirmatory_runner_development_gate.sh
+cat results/development/impl5b_confirmatory_runner_dev/summary.json
+bash scripts/preflight_exp001_confirmatory_run.sh
+cat results/development/impl5b_confirmatory_preflight/preflight.json
+```
+
+开发门只使用代码生成的16条非Core题，覆盖8个条件并写出128条原始记录；它会
+加载2.9B模型，但拒绝EXP-001/Core Set身份，不计算准确率，也不产生研究结论。
+开发门摘要应满足：
+
+- `valid=true`、`fixture_kind=non_core_confirmatory_runner_fixture`；
+- `group_count=1`、`trial_count=16`、`condition_count=8`；
+- `raw_record_count=128`、`contains_derived_accuracy=false`；
+- `formal_authorization_used=false`；
+- `confirmatory_experiment_run=false`、`confirmatory_results_observed=false`。
+
+随后重跑的preflight应包含有效runner证据，并显示
+`status=preflight_valid_authorization_still_required`和
+`route_decision=review_project_owner_confirmatory_authorization`。回传两个summary、
+新`preflight_digest_sha256`及失败检查项。即便全部通过，正式实验依然未授权；
+不要运行Core Set，也不要复用旧digest或旧Core Set生成授权。
 
 ## 6. 运行纯逻辑测试
 

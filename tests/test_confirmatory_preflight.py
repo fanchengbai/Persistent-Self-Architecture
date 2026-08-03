@@ -2,7 +2,10 @@ from __future__ import annotations
 
 import json
 from pathlib import Path
+import tempfile
 import unittest
+
+from psa.artifacts import canonical_json_bytes, sha256_file
 
 from psa.confirmatory import (
     build_confirmatory_preflight,
@@ -14,6 +17,36 @@ class ConfirmatoryPreflightTests(unittest.TestCase):
     @classmethod
     def setUpClass(cls) -> None:
         cls.root = Path(__file__).resolve().parents[1]
+        cls.temporary = tempfile.TemporaryDirectory(dir=cls.root)
+        cls.runner_evidence_path = (
+            Path(cls.temporary.name) / "runner_summary.json"
+        )
+        cls.runner_evidence_path.write_bytes(
+            canonical_json_bytes(
+                {
+                    "valid": True,
+                    "gate": "impl5b_confirmatory_runner_development",
+                    "development_only": True,
+                    "fixture_kind": "non_core_confirmatory_runner_fixture",
+                    "group_count": 1,
+                    "trial_count": 16,
+                    "condition_count": 8,
+                    "raw_record_count": 128,
+                    "runner_source_digests": {
+                        relative: sha256_file(cls.root / relative)
+                        for relative in (
+                            "src/psa/confirmatory/runner.py",
+                            "src/psa/confirmatory/rwkv_backend.py",
+                            "src/psa/confirmatory/development.py",
+                        )
+                    },
+                    "contains_derived_accuracy": False,
+                    "formal_authorization_used": False,
+                    "confirmatory_experiment_run": False,
+                    "confirmatory_results_observed": False,
+                }
+            )
+        )
         model_config = json.loads(
             (
                 cls.root
@@ -68,7 +101,7 @@ class ConfirmatoryPreflightTests(unittest.TestCase):
                 },
             ],
         }
-        cls.preflight = build_confirmatory_preflight(
+        common = dict(
             project_root=cls.root,
             final_package_dir=(
                 cls.root / "preregistration" / "exp001" / "final_v1"
@@ -92,6 +125,15 @@ class ConfirmatoryPreflightTests(unittest.TestCase):
             environment_report=cls.environment,
             asset_report=cls.assets,
         )
+        cls.preflight_without_runner = build_confirmatory_preflight(**common)
+        cls.preflight = build_confirmatory_preflight(
+            **common,
+            runner_evidence_path=cls.runner_evidence_path,
+        )
+
+    @classmethod
+    def tearDownClass(cls) -> None:
+        cls.temporary.cleanup()
 
     def test_preflight_is_valid_but_does_not_authorize_or_run(self) -> None:
         self.assertTrue(self.preflight["valid"])
@@ -101,11 +143,31 @@ class ConfirmatoryPreflightTests(unittest.TestCase):
         self.assertFalse(self.preflight["confirmatory_experiment_run"])
         self.assertFalse(self.preflight["confirmatory_results_observed"])
         self.assertEqual(
+            self.preflight["status"],
+            "preflight_valid_authorization_still_required",
+        )
+        self.assertTrue(
+            self.preflight["runner_development_evidence"]["valid"]
+        )
+        self.assertEqual(
             self.preflight["run_plan_candidate"][
                 "planned_trial_condition_count"
             ],
             40960,
         )
+
+    def test_preflight_without_runner_evidence_is_not_authorization_ready(self) -> None:
+        report = self.preflight_without_runner
+        self.assertTrue(report["valid"])
+        self.assertEqual(
+            report["status"],
+            "preflight_valid_runner_evidence_required",
+        )
+        self.assertEqual(
+            report["route_decision"],
+            "run_non_core_runner_development_gate",
+        )
+        self.assertFalse(report["runner_development_evidence"]["valid"])
 
     def test_core_set_authorization_cannot_be_reused_for_formal_run(self) -> None:
         old_authorization = json.loads(

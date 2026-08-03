@@ -6,6 +6,7 @@ PYTHON_BIN="${PYTHON_BIN:-python}"
 ASSET_ROOT="${PSA_ASSET_ROOT:-${PROJECT_ROOT}/.psa-assets}"
 OUTPUT_DIR="${PSA_PREFLIGHT_OUTPUT_DIR:-${PROJECT_ROOT}/results/development/impl5b_confirmatory_preflight}"
 OUTPUT_PATH="${OUTPUT_DIR}/preflight.json"
+RUNNER_EVIDENCE="${PROJECT_ROOT}/results/development/impl5b_confirmatory_runner_dev/summary.json"
 
 if [[ -z "${VIRTUAL_ENV:-}" ]]; then
   echo "error: activate the project virtual environment before running this script" >&2
@@ -18,6 +19,11 @@ export RWKV_V7_ON=1
 export RWKV_JIT_ON=0
 export RWKV_CUDA_ON=0
 
+EXTRA_ARGS=()
+if [[ -f "${RUNNER_EVIDENCE}" ]]; then
+  EXTRA_ARGS+=(--runner-evidence "${RUNNER_EVIDENCE}")
+fi
+
 "${PYTHON_BIN}" -m psa confirmatory-preflight \
   --final-package "${PROJECT_ROOT}/preregistration/exp001/final_v1" \
   --core-set-package "${PROJECT_ROOT}/preregistration/exp001/core_set_v1" \
@@ -25,7 +31,8 @@ export RWKV_CUDA_ON=0
   --asset-manifest "${PROJECT_ROOT}/configs/assets/exp001_rwkv7_g1h_2.9b_candidate.json" \
   --asset-root "${ASSET_ROOT}" \
   --output "${OUTPUT_PATH}" \
-  --project-root "${PROJECT_ROOT}"
+  --project-root "${PROJECT_ROOT}" \
+  "${EXTRA_ARGS[@]}"
 
 echo "EXP-001 non-inference confirmatory preflight finished."
 echo "No model was loaded and no Core Set trial was scored."
