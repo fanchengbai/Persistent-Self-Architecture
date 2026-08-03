@@ -28,6 +28,9 @@ from psa.confirmatory.rwkv_backend import (
     derive_random_state_seed,
     disk_roundtrip_states,
 )
+from psa.confirmatory.verification import (
+    verify_exp001_confirmatory_raw_package,
+)
 
 __all__ = [
     "build_confirmatory_preflight",
@@ -48,4 +51,5 @@ __all__ = [
     "prepare_exp001_confirmatory_launch",
     "run_exp001_confirmatory",
     "run_locked_confirmatory_groups",
+    "verify_exp001_confirmatory_raw_package",
 ]

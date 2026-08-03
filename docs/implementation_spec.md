@@ -1009,6 +1009,14 @@ digest、Core Set两层digest、模型ID和精确权限范围。授权文件应�
 不计算准确率、置信区间或研究决策；完整结束时只生成组payload digest与计数，
 之后必须先验证完整原始包，才能进入独立只读分析阶段。
 
+原始包验证器与正式runner分离。它读取冻结Core Set、原始manifest、completion、
+最终preflight和授权文件，但不计算任何endpoint、准确率、置信区间或显著性。
+验证项目包括：授权链与四个冻结身份digest；320个预期组文件集合无增删；每个
+文件SHA-256与manifest账本一致；每组16试题×8条件恰好覆盖一次；A–D分数为
+有限数；plan与record digest可重算；总记录数为40,960；group payload digest
+同时匹配manifest与completion。只有全部通过，状态才成为
+`raw_package_verified_unanalyzed`，随后才允许开启冻结的只读统计分析。
+
 Impl-5a云端生成已完成：320组、1,280个语义案例、5,120条试题全部通过冻结
 检查。Core Set digest为`6ea2b6be15a7728c96d84dcc8e48da64e740438980f818e78c8ee8570a47eb9d`，
 包digest为`9659e286de4128b43226f2d6df27075eba60bd953c2330ee70c0ec3e677f1642`。

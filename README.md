@@ -325,6 +325,10 @@ Phase 0 → Phase 1 — Research Design / State Infrastructure
 58. 云端完整确认性runner已经在后台启动，bash和Python进程均存活。首次监控
     显示`waiting 0/320`只是因为终端位于`~`、相对路径指向了错误位置；正式
     输出仍在项目目录。当前只允许查看状态和完成组数，不读取组级分数。
+59. 正式原始运行已经完成：320/320组和40,960条记录齐全，payload digest为
+    `db4ba70e…5ba7`，峰值显存约6.39GB。runner没有计算准确率或中间结论，结果
+    仍标记为未观察。下一步先用独立验证器复核每个组文件、SHA-256账本、授权链
+    和总payload digest；验证通过前不进入统计分析。
 
 ## 项目文档
 

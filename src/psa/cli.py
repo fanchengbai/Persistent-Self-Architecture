@@ -13,6 +13,7 @@ from psa.confirmatory import (
     build_confirmatory_preflight,
     run_exp001_confirmatory,
     run_confirmatory_runner_development_gate,
+    verify_exp001_confirmatory_raw_package,
 )
 from psa.development import (
     run_g1_capability_audit,
@@ -653,6 +654,18 @@ def _confirmatory_run(args: argparse.Namespace) -> int:
     return 0 if result["valid"] else 2
 
 
+def _confirmatory_raw_verify(args: argparse.Namespace) -> int:
+    result = verify_exp001_confirmatory_raw_package(
+        output_dir=args.output_dir,
+        core_set_package_dir=args.core_set_package,
+        preflight_path=args.preflight,
+        authorization_path=args.authorization,
+    )
+    _write_json(Path(args.output), result)
+    print(json.dumps(result, ensure_ascii=False, indent=2))
+    return 0 if result["valid"] else 2
+
+
 def _add_asset_common_arguments(parser: argparse.ArgumentParser) -> None:
     parser.add_argument("--manifest", required=True)
     parser.add_argument("--root", default=".psa-assets")
@@ -982,6 +995,20 @@ def build_parser() -> argparse.ArgumentParser:
     confirmatory_run.add_argument("--resume", action="store_true")
     confirmatory_run.add_argument("--project-root", default=".")
     confirmatory_run.set_defaults(handler=_confirmatory_run)
+
+    confirmatory_raw_verify = subparsers.add_parser(
+        "confirmatory-raw-verify",
+        help=(
+            "verify the complete EXP-001 raw package without deriving or "
+            "reporting research metrics"
+        ),
+    )
+    confirmatory_raw_verify.add_argument("--output-dir", required=True)
+    confirmatory_raw_verify.add_argument("--core-set-package", required=True)
+    confirmatory_raw_verify.add_argument("--preflight", required=True)
+    confirmatory_raw_verify.add_argument("--authorization", required=True)
+    confirmatory_raw_verify.add_argument("--output", required=True)
+    confirmatory_raw_verify.set_defaults(handler=_confirmatory_raw_verify)
 
     formal_freeze_review = subparsers.add_parser(
         "formal-freeze-review",

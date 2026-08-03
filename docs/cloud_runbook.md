@@ -921,6 +921,30 @@ cat results/development/impl5b_confirmatory_preflight/preflight.json
 `scripts/run_exp001_confirmatory.sh`，也不要自行创建授权文件。只有项目负责人
 逐字确认新的完整digest并明确授权后，才会单独生成授权记录和正式运行命令。
 
+### 5.28 验证完整原始确认包（不分析结果）
+
+正式runner显示`confirmatory_raw_complete`后，可以同步新增的验证器代码；此时
+实验已经结束，拉取代码不会触发重跑或修改忽略目录中的原始文件：
+
+```bash
+git pull --ff-only
+source .venv/bin/activate
+bash scripts/verify_exp001_confirmatory_raw.sh
+cat results/confirmatory/exp001_v1.raw_verification.json
+```
+
+验证器只核对授权链、320个组文件、逐组哈希、条件覆盖、记录数与payload
+digest，不生成准确率或统计结论。通过时应为：
+
+- `valid=true`；
+- `status=raw_package_verified_unanalyzed`；
+- `failed_checks=[]`、`failed_group_count=0`；
+- `completed_group_count=320`、`verified_record_count=40960`；
+- `confirmatory_results_observed=false`；
+- `route_decision=begin_frozen_read_only_analysis`。
+
+只回传该验证报告。在它通过之前，不打开`groups/*.json`，不运行临时统计命令。
+
 ## 6. 运行纯逻辑测试
 
 ```bash

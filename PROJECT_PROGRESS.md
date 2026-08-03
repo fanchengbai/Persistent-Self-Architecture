@@ -1,7 +1,7 @@
 # Persistent Self Architecture 项目进度表
 
 > 最后更新：2026-08-03
-> 当前节点：EXP-001完整确认性实验已在云端启动；只监控320组完成进度，不读取原始分数
+> 当前节点：EXP-001原始确认性运行320/320完整结束且尚未观察结果；等待云端执行只读完整性验证
 > 研究状态：尚未进入正式确认性实验，尚未实现显式 Self Model
 
 ## 1. 这张表怎么使用
@@ -87,7 +87,8 @@
 | 37i. Impl-5b-c：正式执行锁与封装 | ✅ 本地完成 | 在不运行Core Set的前提下实现最终授权文件校验、整批320组执行、失败即停、断点恢复、完成前禁止汇总以及最终只读结果封装 | 当前通用runner已通过，但正式启动入口必须先于最终授权冻结，否则后补代码会改变digest并使授权失效 | 启动前会现场重建preflight并逐项验证精确授权；只能完整执行320组，首次中断后必须显式resume，完成后拒绝重跑；runner只写40,960条原始记录和完整性digest，不输出准确率或中间结论。127项测试与编译检查通过，Core Set仍未运行；等待提交和云端新版preflight | Codex |
 | 37j. Impl-5b-c：最终云端非推理预检 | ✅ 已通过 | 在正式执行锁源码固定后，再次核对主机、Git、模型、Tokenizer、冻结包、runner证据和全部执行源码 | 最终授权必须绑定不会再因补入口代码而变化的运行计划，不能复用任何开发阶段digest | `valid=true`、runner证据有效、失败检查为空；最终待授权digest=`9a22a0cf7fc89eed51caaed227211608b2e9492fc4db6c20fd2a89351389bd2f`。授权、运行和结果观察字段仍全部为false | 项目负责人云端运行；Codex核对 |
 | 37k. 项目负责人正式实验授权 | ✅ 已明确授权 | 负责人逐字确认最终preflight digest，并明确允许运行完整320组、只在全量完成后观察结果、禁止修改冻结设计和完成后自动重跑 | 这是首次允许模型读取冻结Core Set，属于不可由“继续”或旧授权推断的独立决策 | 已逐字确认`9a22a0cf7fc89eed51caaed227211608b2e9492fc4db6c20fd2a89351389bd2f`；授权范围固定320组、5,120试题、8条件、40,960单元，只允许全量完成并验证后观察结果 | 项目负责人 |
-| 37l. EXP-001完整确认性运行 | 🔵 正在运行 | 在云端创建不进入Git的授权记录，通过启动锁后运行全部320组，并只监控完成组数 | 将授权文本转成机器可验证记录，同时避免授权文件改变Git commit和preflight digest | 后台bash与`python -m psa confirmatory-run`进程均存活，Python处于高负载；首次监控显示`waiting 0/320`是因为终端位于`~`、相对路径看错目录，并非runner失败。当前不读取组分数、不计算准确率、不重复启动 | 项目负责人云端运行；Codex核对完整性 |
+| 37l. EXP-001完整确认性运行 | ✅ 原始包完整结束 | 在云端创建不进入Git的授权记录，通过启动锁后运行全部320组，并只监控完成组数 | 将授权文本转成机器可验证记录，同时避免授权文件改变Git commit和preflight digest | `status=confirmatory_raw_complete`、`valid=true`；320组和40,960条原始记录全部写入，payload digest=`db4ba70e…5ba7`，峰值显存6,391,454,720字节。没有派生准确率、中间决策或结果观察；禁止重跑 | 项目负责人云端运行；Codex核对完成摘要 |
+| 37m. 原始确认包只读完整性验证 | 🔵 等待云端验证 | 不计算研究指标，只核对Core Set与授权链、320个组文件、每组128条结构、SHA-256账本、总记录数和payload digest | `completion.json`是运行器自报完成；在首次观察分数前必须用独立入口重新遍历并证明原始包没有缺失、篡改或半写 | 验证器、缺失/篡改拒绝和无指标输出测试已实现，项目全套130项测试通过；云端拉取后只运行`verify_exp001_confirmatory_raw.sh`。通过前不得分析准确率或打开组级结果 | Codex实现；项目负责人云端运行 |
 | 38. Phase 2：正式原生 state 实验 | ⏳ 未开始 | 比较 original/reset/random/swap 等条件 | 这一步才真正测试 recurrent state 是否是跨时间因果载体 | 尚无研究结论 | 项目负责人运行；Codex 分析 |
 | 39. Phase 3：显式 Self Model | ⏳ 未开始 | 实现 Self Store、Self Encoder 和 gated injection | 只有原生状态基线可靠后，才能判断显式 Self Model 是否带来额外价值 | 目前只有设计，没有加入模型 | 后续由 Codex 实现 |
 | 40. Self 更新与演化 | ⏳ 未开始 | 让 Self State 根据经历受控更新、回滚和分化 | 这是“持续自我”真正更深入的部分 | 尚未开始 | 后续阶段 |
@@ -163,7 +164,8 @@ Batch 2 参数冻结
     ✅ 正式执行锁与整批原始结果封装已完成本地实现
     ✅ 正式执行锁提交后的云端最终预检通过
     ✅ 项目负责人已逐字确认最终digest并单独授权
-    🔵 云端完整320组运行已启动；仅监控完成组数
+    ✅ 云端完整320组原始运行结束，40,960条记录齐全
+    🔵 等待独立只读完整性验证；尚未观察结果
     ⏸️ 正式实验仍未授权
 正式 state 因果实验
    ⏳
@@ -478,6 +480,14 @@ trial-condition单元；只允许全量完成且完整性验证后观察结果�
 `waiting 0/320`是监控终端位于`~`而使用了相对路径造成的观察路径错误；正式
 输出仍位于项目绝对路径。没有重新启动进程，也没有打开组级原始分数。
 
+正式runner现已写完全部320组和40,960条原始记录，完成状态为
+`confirmatory_raw_complete`，payload digest为
+`db4ba70ed521b55f23c4fc0ddafd2fb09af3cbe0132c0f065358a96f858b5ba7`，
+峰值显存6,391,454,720字节。完成摘要继续明确
+`contains_derived_accuracy=false`、`contains_interim_decision=false`和
+`confirmatory_results_observed=false`。下一步先运行独立原始包验证器，不直接
+进入统计分析。
+
 本次“持续 Self + 世界模型 + 内生驱动”理论评审不改变上述下一步。它补充的是
 显式 Self 和受约束更新均通过后的未来研究层：系统能否根据内部冲突、
 不确定性或未完成目标，选择 `stop / retrieve / replay / simulate / verify`，
@@ -563,3 +573,4 @@ trial-condition单元；只允许全量完成且完整性验证后观察结果�
 | 2026-08-03 | 正式执行锁提交后的云端最终preflight通过：`valid=true`、runner证据有效、失败检查为空，最终待授权digest=`9a22a0cf…bd2f`；正式授权、运行和结果观察仍全部为false。进入项目负责人独立授权门，不创建授权记录、不运行Core Set | 云端`results/development/impl5b_confirmatory_preflight/preflight.json` |
 | 2026-08-03 | 项目负责人逐字确认最终preflight digest `9a22a0cf…bd2f`并明确授权冻结的EXP-001完整确认性实验：固定2.9B模型、320组、5,120试题、8条件/40,960单元，只在全量完成和完整性验证后观察结果；不修改冻结设计、不在完成后自动重跑。尚未启动模型，下一步只在云端忽略目录生成授权记录并通过正式启动锁 | 项目负责人授权原文 |
 | 2026-08-03 | EXP-001完整确认性运行已在云端后台启动；bash和Python runner进程存活，Python高负载。首次`waiting 0/320`由监控终端停在`~`并使用相对路径导致，正式输出目录没有改变。未读取原始分数、未计算中间准确率、未重复启动 | 云端进程检查 |
+| 2026-08-03 | EXP-001原始确认性运行完整结束：320/320组、40,960条记录、`valid=true`，payload digest=`db4ba70e…5ba7`，峰值显存6,391,454,720字节；runner未派生准确率、未作中间决策、未标记结果已观察。新增独立只读完整性验证器，在统计分析前复核授权链、文件集合、逐组SHA-256、结构覆盖和总payload digest；全套130项测试通过 | 云端`completion.json`、`src/psa/confirmatory/verification.py`、`scripts/verify_exp001_confirmatory_raw.sh` |
