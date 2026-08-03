@@ -31,6 +31,11 @@ from psa.confirmatory.rwkv_backend import (
 from psa.confirmatory.verification import (
     verify_exp001_confirmatory_raw_package,
 )
+from psa.confirmatory.analysis import (
+    analyze_confirmatory_group,
+    run_exp001_confirmatory_analysis,
+    summarize_confirmatory_groups,
+)
 
 __all__ = [
     "build_confirmatory_preflight",
@@ -52,4 +57,7 @@ __all__ = [
     "run_exp001_confirmatory",
     "run_locked_confirmatory_groups",
     "verify_exp001_confirmatory_raw_package",
+    "analyze_confirmatory_group",
+    "summarize_confirmatory_groups",
+    "run_exp001_confirmatory_analysis",
 ]

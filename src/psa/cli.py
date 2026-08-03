@@ -10,6 +10,7 @@ from typing import Any
 from psa.assets import fetch_manifest, load_manifest, plan_manifest, verify_manifest
 from psa.artifacts import canonical_json_bytes, sha256_file, sha256_json
 from psa.confirmatory import (
+    run_exp001_confirmatory_analysis,
     build_confirmatory_preflight,
     run_exp001_confirmatory,
     run_confirmatory_runner_development_gate,
@@ -666,6 +667,20 @@ def _confirmatory_raw_verify(args: argparse.Namespace) -> int:
     return 0 if result["valid"] else 2
 
 
+def _confirmatory_analyze(args: argparse.Namespace) -> int:
+    result = run_exp001_confirmatory_analysis(
+        raw_output_dir=args.raw_output_dir,
+        raw_verification_path=args.raw_verification,
+        core_set_package_dir=args.core_set_package,
+        final_package_dir=args.final_package,
+        analysis_config_path=args.analysis_config,
+        analysis_output_dir=args.analysis_output_dir,
+        project_root=args.project_root,
+    )
+    print(json.dumps(result, ensure_ascii=False, indent=2))
+    return 0 if result["valid"] else 2
+
+
 def _add_asset_common_arguments(parser: argparse.ArgumentParser) -> None:
     parser.add_argument("--manifest", required=True)
     parser.add_argument("--root", default=".psa-assets")
@@ -1009,6 +1024,22 @@ def build_parser() -> argparse.ArgumentParser:
     confirmatory_raw_verify.add_argument("--authorization", required=True)
     confirmatory_raw_verify.add_argument("--output", required=True)
     confirmatory_raw_verify.set_defaults(handler=_confirmatory_raw_verify)
+
+    confirmatory_analyze = subparsers.add_parser(
+        "confirmatory-analyze",
+        help=(
+            "apply the pinned read-only EXP-001 analysis only after the full "
+            "raw package has passed independent verification"
+        ),
+    )
+    confirmatory_analyze.add_argument("--raw-output-dir", required=True)
+    confirmatory_analyze.add_argument("--raw-verification", required=True)
+    confirmatory_analyze.add_argument("--core-set-package", required=True)
+    confirmatory_analyze.add_argument("--final-package", required=True)
+    confirmatory_analyze.add_argument("--analysis-config", required=True)
+    confirmatory_analyze.add_argument("--analysis-output-dir", required=True)
+    confirmatory_analyze.add_argument("--project-root", default=".")
+    confirmatory_analyze.set_defaults(handler=_confirmatory_analyze)
 
     formal_freeze_review = subparsers.add_parser(
         "formal-freeze-review",

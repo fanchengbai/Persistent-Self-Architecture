@@ -1017,6 +1017,21 @@ digest、Core Set两层digest、模型ID和精确权限范围。授权文件应�
 同时匹配manifest与completion。只有全部通过，状态才成为
 `raw_package_verified_unanalyzed`，随后才允许开启冻结的只读统计分析。
 
+确认性分析器在首次读取真实分数前单独冻结。其配置digest为
+`d97e01329ced3bb9d292d8223f9f105dfa5b88456e14d59d9db79a24b975b8ea`，
+主要读出固定使用`continuous`条件和四代码完整轮换后的语义log-score均值。
+E1、E2、E3分别对应`identity_transfer`、`goal_transfer`和
+`mean_joint_margin`；以factorial group为单位运行10,000次BCa、100,000次
+单侧符号翻转并对三项作Holm校正。reset/random、restore、三类swap、
+prompt-visible、specificity和0.50单变量策略上限作为冻结辅助门。
+
+分析输出与原始目录分离且拒绝覆盖非空目录；原始manifest/completion保持
+`confirmatory_results_observed=false`，新分析报告才记录结果已经观察。最终八
+条件Core Set没有采集旧协议要求的matched-context、每条件96条同步通用能力
+控制，也没有自由生成格式记录。这些缺口固定报告为不可评估，不能用开发资格
+证据或其他条件替代，因此即使已测效应全部通过，也不能授予完整Gate 2/Gate 4
+Go。详细操作化规则见`docs/exp001_confirmatory_analysis_plan.md`。
+
 Impl-5a云端生成已完成：320组、1,280个语义案例、5,120条试题全部通过冻结
 检查。Core Set digest为`6ea2b6be15a7728c96d84dcc8e48da64e740438980f818e78c8ee8570a47eb9d`，
 包digest为`9659e286de4128b43226f2d6df27075eba60bd953c2330ee70c0ec3e677f1642`。

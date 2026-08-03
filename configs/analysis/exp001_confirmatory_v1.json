@@ -1,0 +1,66 @@
+{
+  "analysis_id": "EXP-001-confirmatory-v1",
+  "analysis_version": "1.0",
+  "experiment_id": "EXP-001",
+  "primary_readout_condition": "continuous",
+  "primary_endpoints": {
+    "E1_identity_transfer": "identity_transfer",
+    "E2_goal_transfer": "goal_transfer",
+    "E3_joint_binding": "mean_joint_margin"
+  },
+  "rotation_readout": {
+    "method": "mean_semantic_log_score_across_complete_A_D_rotation",
+    "required_rotation_count": 4
+  },
+  "bootstrap": {
+    "unit": "factorial_group",
+    "replicates": 10000,
+    "confidence": 0.95,
+    "method": "BCa_with_percentile_fallback",
+    "seed": 1969423784
+  },
+  "permutation": {
+    "method": "paired_group_level_sign_flip",
+    "alternative": "greater",
+    "replicates": 100000,
+    "seed": 2721869949
+  },
+  "multiple_comparison": {
+    "method": "Holm",
+    "familywise_alpha": 0.05
+  },
+  "sesoi": {
+    "E1_identity_transfer": 0.5,
+    "E2_goal_transfer": 0.5,
+    "E3_joint_binding": 0.5,
+    "joint_accuracy_lower_bound": 0.6,
+    "identity_specificity": 0.25,
+    "goal_specificity": 0.25,
+    "baseline_joint_margin_advantage": 0.5,
+    "prompt_normalized_retention": 0.2
+  },
+  "engineering_gates": {
+    "restored_option_score_max_abs_error": 0.0625,
+    "require_restored_semantic_argmax_match": true
+  },
+  "secondary_readouts": {
+    "baseline_conditions": ["reset", "random_matched"],
+    "swap_conditions": ["swapped_I", "swapped_G", "swapped_both"],
+    "capability_condition": "prompt_visible",
+    "restore_condition": "restored"
+  },
+  "frozen_design_gaps": {
+    "matched_context": "not_present_in_frozen_eight_condition_core_set",
+    "per_condition_general_capability_controls": "not_present_in_40960_raw_records",
+    "formal_generated_format_readout": "scoring_runner_recorded_log_scores_not_generated_format"
+  },
+  "decision_policy": {
+    "endpoint_support_requires": [
+      "holm_adjusted_p_below_0.05",
+      "point_estimate_at_or_above_sesoi",
+      "95_percent_CI_lower_above_zero"
+    ],
+    "full_gate_requires_all_preregistered_controls": true,
+    "missing_required_control_status": "not_assessable_no_full_go"
+  }
+}

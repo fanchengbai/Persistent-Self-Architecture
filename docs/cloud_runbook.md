@@ -945,6 +945,31 @@ digest，不生成准确率或统计结论。通过时应为：
 
 只回传该验证报告。在它通过之前，不打开`groups/*.json`，不运行临时统计命令。
 
+### 5.29 冻结并运行只读确认性分析
+
+只有5.28的完整性验证全部通过，并且分析器提交已经推送后，才在云端同步代码。
+先确认工作树干净和分析计划digest，再运行唯一入口：
+
+```bash
+git pull --ff-only
+source .venv/bin/activate
+git status --short
+sha256sum configs/analysis/exp001_confirmatory_v1.json
+bash scripts/analyze_exp001_confirmatory.sh
+cat results/confirmatory/exp001_v1_analysis/summary.json
+```
+
+分析计划SHA-256必须为
+`d97e01329ced3bb9d292d8223f9f105dfa5b88456e14d59d9db79a24b975b8ea`。
+脚本只读已验证的原始目录，并把结果写入新的`exp001_v1_analysis`目录；该目录
+非空时拒绝覆盖。它不加载模型、不运行或恢复实验，也不修改原始manifest和
+completion。首次成功分析后，只有新分析报告会记录
+`confirmatory_results_observed=true`。
+
+先只回传`summary.json`。不要手工筛选group、重算子集、调整阈值或自动重跑。
+完整报告会如实标记最终Core Set未采集的`matched-context`、同步通用能力控制
+和自由生成格式读出，因此这些项目不会被开发集证据代替。
+
 ## 6. 运行纯逻辑测试
 
 ```bash
