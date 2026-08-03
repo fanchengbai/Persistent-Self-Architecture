@@ -228,6 +228,42 @@ class ConfirmatoryPreflightTests(unittest.TestCase):
         self.assertFalse(changed["valid"])
         self.assertFalse(changed["checks"]["preflight_digest_bound"])
 
+    def test_future_authorization_rejects_extra_fields_and_short_text(self) -> None:
+        authorization = {
+            "authorization_version": "1.0",
+            "experiment_id": "EXP-001",
+            "authorized_by_role": "project_owner",
+            "authorized_at_utc": "2026-08-03T00:00:00Z",
+            "authorization_text": "too short",
+            "preflight_digest_sha256": self.preflight[
+                "preflight_digest_sha256"
+            ],
+            "final_preregistration_digest_sha256": (
+                "0daf056dc6b38aa20fa69dd9e8df9b8065876529947cbc01353ffe604933d0c9"
+            ),
+            "core_set_digest_sha256": (
+                "6ea2b6be15a7728c96d84dcc8e48da64e740438980f818e78c8ee8570a47eb9d"
+            ),
+            "core_set_package_digest_sha256": (
+                "9659e286de4128b43226f2d6df27075eba60bd953c2330ee70c0ec3e677f1642"
+            ),
+            "model_id": "rwkv7-g1h-2.9b-20260710",
+            "authorization": {
+                "run_confirmatory_experiment": True,
+                "observe_results_after_full_completion": True,
+                "modify_frozen_design": False,
+                "automatic_rerun_after_results": False,
+            },
+            "unexpected": True,
+        }
+        report = verify_confirmatory_run_authorization(
+            authorization,
+            preflight=self.preflight,
+        )
+        self.assertFalse(report["valid"])
+        self.assertFalse(report["checks"]["authorization_shape_exact"])
+        self.assertFalse(report["checks"]["authorization_text_present"])
+
 
 if __name__ == "__main__":
     unittest.main()

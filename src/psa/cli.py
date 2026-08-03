@@ -11,6 +11,7 @@ from psa.assets import fetch_manifest, load_manifest, plan_manifest, verify_mani
 from psa.artifacts import canonical_json_bytes, sha256_file, sha256_json
 from psa.confirmatory import (
     build_confirmatory_preflight,
+    run_exp001_confirmatory,
     run_confirmatory_runner_development_gate,
 )
 from psa.development import (
@@ -634,6 +635,24 @@ def _confirmatory_runner_dev_gate(args: argparse.Namespace) -> int:
     return 0 if result["valid"] else 2
 
 
+def _confirmatory_run(args: argparse.Namespace) -> int:
+    result = run_exp001_confirmatory(
+        project_root=args.project_root,
+        final_package_dir=args.final_package,
+        core_set_package_dir=args.core_set_package,
+        model_config_path=args.model_config,
+        asset_manifest_path=args.asset_manifest,
+        asset_root=args.asset_root,
+        runner_evidence_path=args.runner_evidence,
+        preflight_path=args.preflight,
+        authorization_path=args.authorization,
+        output_dir=args.output_dir,
+        resume=args.resume,
+    )
+    print(json.dumps(result, ensure_ascii=False, indent=2))
+    return 0 if result["valid"] else 2
+
+
 def _add_asset_common_arguments(parser: argparse.ArgumentParser) -> None:
     parser.add_argument("--manifest", required=True)
     parser.add_argument("--root", default=".psa-assets")
@@ -943,6 +962,26 @@ def build_parser() -> argparse.ArgumentParser:
     confirmatory_runner_dev.add_argument("--output-dir", required=True)
     confirmatory_runner_dev.add_argument("--project-root", default=".")
     confirmatory_runner_dev.set_defaults(handler=_confirmatory_runner_dev_gate)
+
+    confirmatory_run = subparsers.add_parser(
+        "confirmatory-run",
+        help=(
+            "run the complete frozen EXP-001 Core Set only after exact "
+            "project-owner authorization"
+        ),
+    )
+    confirmatory_run.add_argument("--final-package", required=True)
+    confirmatory_run.add_argument("--core-set-package", required=True)
+    confirmatory_run.add_argument("--model-config", required=True)
+    confirmatory_run.add_argument("--asset-manifest", required=True)
+    confirmatory_run.add_argument("--asset-root", default=".psa-assets")
+    confirmatory_run.add_argument("--runner-evidence", required=True)
+    confirmatory_run.add_argument("--preflight", required=True)
+    confirmatory_run.add_argument("--authorization", required=True)
+    confirmatory_run.add_argument("--output-dir", required=True)
+    confirmatory_run.add_argument("--resume", action="store_true")
+    confirmatory_run.add_argument("--project-root", default=".")
+    confirmatory_run.set_defaults(handler=_confirmatory_run)
 
     formal_freeze_review = subparsers.add_parser(
         "formal-freeze-review",

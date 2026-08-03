@@ -56,13 +56,16 @@ FROZEN_SCORING_SOURCES = (
     "src/psa/evaluation/resampling.py",
 )
 RUNNER_SOURCES = (
+    ".gitignore",
     "src/psa/confirmatory/preflight.py",
     "src/psa/confirmatory/runner.py",
     "src/psa/confirmatory/rwkv_backend.py",
     "src/psa/confirmatory/development.py",
+    "src/psa/confirmatory/formal.py",
     "src/psa/cli.py",
     "scripts/preflight_exp001_confirmatory_run.sh",
     "scripts/run_impl5b_confirmatory_runner_development_gate.sh",
+    "scripts/run_exp001_confirmatory.sh",
     "schemas/exp001_confirmatory_run_authorization.schema.json",
 )
 
@@ -415,6 +418,19 @@ def verify_confirmatory_run_authorization(
         "modify_frozen_design": False,
         "automatic_rerun_after_results": False,
     }
+    expected_keys = {
+        "authorization_version",
+        "experiment_id",
+        "authorized_by_role",
+        "authorized_at_utc",
+        "authorization_text",
+        "preflight_digest_sha256",
+        "final_preregistration_digest_sha256",
+        "core_set_digest_sha256",
+        "core_set_package_digest_sha256",
+        "model_id",
+        "authorization",
+    }
     checks = {
         "preflight_valid": preflight.get("valid") is True,
         "runner_evidence_valid": bool(
@@ -433,9 +449,14 @@ def verify_confirmatory_run_authorization(
             "authorized_by_role"
         )
         == "project_owner",
+        "authorization_shape_exact": set(authorization) == expected_keys,
+        "authorization_timestamp_present": bool(
+            isinstance(authorization.get("authorized_at_utc"), str)
+            and len(authorization["authorized_at_utc"]) >= 20
+        ),
         "authorization_text_present": bool(
             isinstance(authorization.get("authorization_text"), str)
-            and authorization["authorization_text"].strip()
+            and len(authorization["authorization_text"].strip()) >= 20
         ),
         "preflight_digest_bound": authorization.get(
             "preflight_digest_sha256"

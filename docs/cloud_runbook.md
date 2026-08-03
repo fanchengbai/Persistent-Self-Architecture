@@ -904,6 +904,23 @@ cat results/development/impl5b_confirmatory_preflight/preflight.json
 新`preflight_digest_sha256`及失败检查项。即便全部通过，正式实验依然未授权；
 不要运行Core Set，也不要复用旧digest或旧Core Set生成授权。
 
+### 5.27 Impl-5b-c 正式执行锁更新后的最终预检
+
+正式执行锁代码合入后，前一次`d41d735c…74f5`会失效。拉取新提交后只重跑
+非推理预检；已有非Core runner证据仍可复用：
+
+```bash
+source .venv/bin/activate
+git status --short
+bash scripts/preflight_exp001_confirmatory_run.sh
+cat results/development/impl5b_confirmatory_preflight/preflight.json
+```
+
+把新`preflight_digest_sha256`、`status`、`route_decision`、
+`runner_development_evidence`和失败检查项回传。此时不要运行
+`scripts/run_exp001_confirmatory.sh`，也不要自行创建授权文件。只有项目负责人
+逐字确认新的完整digest并明确授权后，才会单独生成授权记录和正式运行命令。
+
 ## 6. 运行纯逻辑测试
 
 ```bash

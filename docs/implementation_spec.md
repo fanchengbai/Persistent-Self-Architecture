@@ -995,6 +995,20 @@ manifest只把完整组登记为完成；恢复时只补未完成组并校验已
 仍需云端真实2.9B模型开发门通过，再把该证据和当前runner源码digest纳入一次
 新的非推理preflight。runner开发前的preflight digest不得用于授权。
 
+Impl-5b-c正式入口采用两层启动锁。第一层在模型导入和显存分配之前现场重建
+preflight，要求持久化报告的digest和稳定计划与当前主机完全一致；第二层验证
+项目负责人授权对象的字段集合、时间、说明文本、preflight digest、最终预注册
+digest、Core Set两层digest、模型ID和精确权限范围。授权文件应放在已忽略的
+`results/authorizations/`或项目目录之外，避免提交授权文件改变Git commit并
+形成digest循环；正式原始输出固定放在已忽略的`results/confirmatory/`。
+
+正式入口不提供group范围或抽样参数，只接受冻结的320组Core Set并计划全部
+40,960个trial-condition单元。每组完成后原子写入原始分数和SHA-256账本；
+进程中断会标记`interrupted`，再次调用默认拒绝，只有显式`--resume`才能继续
+尚未完成的组。`confirmatory_raw_complete`后任何重跑都会被拒绝。runner本身
+不计算准确率、置信区间或研究决策；完整结束时只生成组payload digest与计数，
+之后必须先验证完整原始包，才能进入独立只读分析阶段。
+
 Impl-5a云端生成已完成：320组、1,280个语义案例、5,120条试题全部通过冻结
 检查。Core Set digest为`6ea2b6be15a7728c96d84dcc8e48da64e740438980f818e78c8ee8570a47eb9d`，
 包digest为`9659e286de4128b43226f2d6df27075eba60bd953c2330ee70c0ec3e677f1642`。

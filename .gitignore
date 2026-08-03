@@ -223,4 +223,6 @@ results/raw/
 results/derived/
 results/failures/
 results/development/
+results/confirmatory/
+results/authorizations/
 checkpoints/

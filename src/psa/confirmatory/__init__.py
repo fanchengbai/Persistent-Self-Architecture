@@ -7,6 +7,11 @@ from psa.confirmatory.preflight import (
 from psa.confirmatory.development import (
     run_confirmatory_runner_development_gate,
 )
+from psa.confirmatory.formal import (
+    prepare_exp001_confirmatory_launch,
+    run_exp001_confirmatory,
+    run_locked_confirmatory_groups,
+)
 from psa.confirmatory.runner import (
     CONDITIONS,
     DEVELOPMENT_FIXTURE_KIND,
@@ -40,4 +45,7 @@ __all__ = [
     "derive_random_state_seed",
     "disk_roundtrip_states",
     "run_confirmatory_runner_development_gate",
+    "prepare_exp001_confirmatory_launch",
+    "run_exp001_confirmatory",
+    "run_locked_confirmatory_groups",
 ]
