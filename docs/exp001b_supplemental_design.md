@@ -2,7 +2,7 @@
 
 版本：0.1 Draft  
 日期：2026-08-03  
-状态：设计中，未冻结、未生成测试集、未授权运行
+状态：B1–B7已由项目负责人确认；仅批准非Core开发门，未冻结、未生成测试集、未授权运行
 
 ## 1. 为什么需要 EXP-001B
 
@@ -111,7 +111,8 @@ Go要求：格式有效率至少99%，joint准确率95%下界至少80%，identit
 旧方案写下了99.9%开发分布警报，但没有把2.9B的逐组件数值阈值持久化。
 EXP-001B不得在正式数据中临时估门槛，因此先用64个非Core开发group、
 `amber/cobalt × orbit/prism`标签和相同长度协议，记录每个组件的RMS分布并冻结
-99.9%分位数。该门不读取Core Set，不计算EXP-001B行为结果。
+最近秩99.9%分位数（`ceil(q*n)`；64例时等于开发最大值）。该门不读取Core Set，
+不计算EXP-001B行为结果。
 
 ## 8. 统计与可解释范围
 
@@ -143,7 +144,7 @@ B-Dev1 非Core matched-context/token/norm校准
 
 ## 10. 当前需要确认的设计决定
 
-当前推荐将以下内容作为后续冻结候选：
+项目负责人已于2026-08-03确认以下内容，确认范围仅包括设计与B-Dev1/B-Dev2开发：
 
 - B1：EXP-001B只补控制，不复制E1–E3；
 - B2：matched-context使用4种明确无绑定模板并精确token配对；
@@ -153,3 +154,13 @@ B-Dev1 非Core matched-context/token/norm校准
 - B6：正式新增记录固定为11,008，不因EXP-001结果缩减；
 - B7：先完成两个非Core开发门，再进入checksum冻结，当前不生成测试集、不运行。
 
+该确认不是预注册候选checksum确认，不授权生成EXP-001B补充测试集，也不授权
+正式运行。两个开发门的固定云端顺序为：
+
+```bash
+bash scripts/run_exp001b_bdev1_gate.sh
+bash scripts/run_exp001b_bdev2_gate.sh
+```
+
+B-Dev1必须先得到`valid=true`，B-Dev2才会接受其summary、matched-context报告和
+96组件RMS阈值。两步都只使用`amber/cobalt × orbit/prism`非Core材料。

@@ -44,6 +44,7 @@ from psa.state import (
     run_state_operations_gate,
 )
 from psa.state.checkpoint import run_restore_probe
+from psa.supplemental import run_exp001b_bdev1_gate, run_exp001b_bdev2_gate
 from psa.tasks import generate_dataset
 from psa.validation import validate_dataset
 
@@ -637,6 +638,31 @@ def _confirmatory_runner_dev_gate(args: argparse.Namespace) -> int:
     return 0 if result["valid"] else 2
 
 
+def _exp001b_bdev1_gate(args: argparse.Namespace) -> int:
+    result = run_exp001b_bdev1_gate(
+        design_path=args.design,
+        model_config_path=args.model_config,
+        output_dir=args.output_dir,
+        project_root=args.project_root,
+    )
+    print(json.dumps(result, ensure_ascii=False, indent=2))
+    return 0 if result["valid"] else 2
+
+
+def _exp001b_bdev2_gate(args: argparse.Namespace) -> int:
+    result = run_exp001b_bdev2_gate(
+        design_path=args.design,
+        model_config_path=args.model_config,
+        bdev1_summary_path=args.bdev1_summary,
+        bdev1_thresholds_path=args.bdev1_thresholds,
+        bdev1_matched_report_path=args.bdev1_matched_report,
+        output_dir=args.output_dir,
+        project_root=args.project_root,
+    )
+    print(json.dumps(result, ensure_ascii=False, indent=2))
+    return 0 if result["valid"] else 2
+
+
 def _confirmatory_run(args: argparse.Namespace) -> int:
     result = run_exp001_confirmatory(
         project_root=args.project_root,
@@ -990,6 +1016,35 @@ def build_parser() -> argparse.ArgumentParser:
     confirmatory_runner_dev.add_argument("--output-dir", required=True)
     confirmatory_runner_dev.add_argument("--project-root", default=".")
     confirmatory_runner_dev.set_defaults(handler=_confirmatory_runner_dev_gate)
+
+    exp001b_bdev1 = subparsers.add_parser(
+        "exp001b-bdev1-gate",
+        help=(
+            "calibrate non-Core matched-context token pairing and state norms "
+            "without generating or scoring the EXP-001B supplemental set"
+        ),
+    )
+    exp001b_bdev1.add_argument("--design", required=True)
+    exp001b_bdev1.add_argument("--model-config", required=True)
+    exp001b_bdev1.add_argument("--output-dir", required=True)
+    exp001b_bdev1.add_argument("--project-root", default=".")
+    exp001b_bdev1.set_defaults(handler=_exp001b_bdev1_gate)
+
+    exp001b_bdev2 = subparsers.add_parser(
+        "exp001b-bdev2-gate",
+        help=(
+            "exercise the EXP-001B non-Core condition runner, matched-context "
+            "probe, generated-format probe, and state norm alert path"
+        ),
+    )
+    exp001b_bdev2.add_argument("--design", required=True)
+    exp001b_bdev2.add_argument("--model-config", required=True)
+    exp001b_bdev2.add_argument("--bdev1-summary", required=True)
+    exp001b_bdev2.add_argument("--bdev1-thresholds", required=True)
+    exp001b_bdev2.add_argument("--bdev1-matched-report", required=True)
+    exp001b_bdev2.add_argument("--output-dir", required=True)
+    exp001b_bdev2.add_argument("--project-root", default=".")
+    exp001b_bdev2.set_defaults(handler=_exp001b_bdev2_gate)
 
     confirmatory_run = subparsers.add_parser(
         "confirmatory-run",

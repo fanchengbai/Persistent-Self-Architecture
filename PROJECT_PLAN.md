@@ -4,7 +4,7 @@
 
 ## 1. 文档信息
 
-- 项目阶段：Phase 2 — EXP-001B 补充控制设计与冻结前审阅
+- 项目阶段：Phase 2 — EXP-001B 非Core开发门验证
 - 当前确认模型：RWKV-7 G1h 2.9B（`rwkv7-g1h-2.9b-20260710`）
 - 计划原则：小规模验证、因果优先、对照充分、结果可复现、允许否定结论
 - 更新方式：每完成一个阶段或发生关键技术决策后更新本文档
@@ -565,12 +565,11 @@ EXP-001已完成320组、40,960条记录的冻结确认性运行、独立完整�
 
 1. 持久化EXP-001的summary、完整报告、group contrasts及SHA-256；
 2. 以`docs/exp001_confirmatory_results.md`为结果解释基线，更新研究记录；
-3. 审阅`docs/exp001b_supplemental_design.md`中的B1–B7决定；当前草案固定补充
-   matched-context 5,120条、正式生成格式5,120条和96条控制×8条件768条，
-   合计11,008条新记录；
-4. 审阅通过后先实现B-Dev1非Core token/norm校准和B-Dev2非Core runner门，
-   不读取或生成正式EXP-001B测试集；
-5. 两个开发门通过后才生成独立预注册候选checksum；不得复用EXP-001的运行授权，
+3. B1–B7已由项目负责人确认：固定补充matched-context 5,120条、正式生成格式
+   5,120条和96条控制×8条件768条，合计11,008条新记录；
+4. B-Dev1与B-Dev2本地实现和148项回归测试已经通过；下一步依次在云端运行
+   `run_exp001b_bdev1_gate.sh`和`run_exp001b_bdev2_gate.sh`，只使用非Core数据；
+5. 两个云端开发门通过后才生成独立预注册候选checksum；不得复用EXP-001的运行授权，
    不重跑EXP-001主要条件，也不重估E1–E3；
 6. Phase 3可以继续框架和接口设计，但在Gate 4闭合前不启动显式Self Model的
    正式确认性实验；

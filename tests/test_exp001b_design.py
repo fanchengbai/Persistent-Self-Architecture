@@ -17,7 +17,14 @@ class Exp001BSupplementalDesignTests(unittest.TestCase):
 
     def test_draft_has_no_execution_authority(self) -> None:
         safety = self.config["safety_boundary"]
-        self.assertEqual(self.config["status"], "draft_unfrozen_not_authorized")
+        self.assertEqual(
+            self.config["status"],
+            "design_confirmed_development_only",
+        )
+        self.assertTrue(self.config["design_review"]["b1_b7_confirmed"])
+        self.assertTrue(
+            self.config["design_review"]["does_not_authorize_formal_run"]
+        )
         self.assertFalse(safety["supplemental_set_generated"])
         self.assertFalse(safety["supplemental_experiment_authorized"])
         self.assertFalse(safety["supplemental_experiment_run"])
@@ -79,6 +86,12 @@ class Exp001BSupplementalDesignTests(unittest.TestCase):
         self.assertEqual(thresholds["minimum_identity_accuracy_lower_bound"], 0.9)
         self.assertEqual(thresholds["minimum_goal_accuracy_lower_bound"], 0.9)
         self.assertEqual(thresholds["maximum_answer_position_accuracy_gap"], 0.25)
+
+    def test_state_norm_quantile_is_predeclared(self) -> None:
+        calibration = self.config["state_norm_development_calibration"]
+        self.assertEqual(calibration["group_count"], 64)
+        self.assertIn("nearest-rank", calibration["threshold"])
+        self.assertTrue(calibration["core_set_access_forbidden"])
 
     def test_named_seeds_match_public_derivation(self) -> None:
         seeds = self.config["seeds"]

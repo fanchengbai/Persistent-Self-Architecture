@@ -2,8 +2,16 @@
   "config_version": "0.1-draft",
   "experiment_id": "EXP-001B",
   "title": "Supplemental control closure for EXP-001",
-  "status": "draft_unfrozen_not_authorized",
+  "status": "design_confirmed_development_only",
   "role": "supplemental_confirmatory_gap_closure_not_primary_endpoint_replication",
+  "design_review": {
+    "b1_b7_confirmed": true,
+    "confirmed_at_local_date": "2026-08-03",
+    "confirmation_scope": "design and non-Core B-Dev1/B-Dev2 implementation only",
+    "does_not_authorize_candidate_freeze": true,
+    "does_not_authorize_supplemental_set_generation": true,
+    "does_not_authorize_formal_run": true
+  },
   "parent_evidence": {
     "experiment_id": "EXP-001",
     "model_id": "rwkv7-g1h-2.9b-20260710",
@@ -141,7 +149,7 @@
       "goal": ["orbit", "prism"]
     },
     "reference": "per-component RMS distribution from non-Core true histories",
-    "threshold": "per-component empirical 99.9 percentile",
+    "threshold": "per-component nearest-rank empirical 99.9 percentile; ceil(q*n)",
     "formal_alert": "any formal component RMS above its frozen development threshold",
     "thresholds_must_be_persisted_before_supplemental_set_generation": true
   },
