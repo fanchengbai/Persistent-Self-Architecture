@@ -1,8 +1,8 @@
 # Persistent Self Architecture 项目进度表
 
 > 最后更新：2026-08-03
-> 当前节点：EXP-001原始确认性运行320/320完整结束且尚未观察结果；等待云端执行只读完整性验证
-> 研究状态：尚未进入正式确认性实验，尚未实现显式 Self Model
+> 当前节点：EXP-001确认性实验、完整性验证和冻结分析均已完成；EXP-001B补充控制方案已形成未冻结草案
+> 研究状态：原生 recurrent state 取得强因果行为证据，但Gate 2/Gate 4仍缺正式控制；尚未实现显式 Self Model
 
 ## 1. 这张表怎么使用
 
@@ -33,7 +33,7 @@
 | 4. 设计总体架构 | ✅ 初版完成 | 设计 World Model、Memory、原生 state、Self Store、Encoder、注入和更新模块 | 先画清楚未来系统由什么组成，再决定先验证哪一块 | 显式 Self Model 已完成理论设计，但尚未写入模型 | Codex |
 | 4a. 评审内生驱动扩展 | ✅ 设计完成 | 评审“持续 Self + 世界模型 + 内生驱动”的闭环，并设计零新外部观察下的自主审议层 | 当前架构说明了 Self 如何影响一次决策，但还没有解释系统为什么会因内部冲突主动继续计算 | 已新增 Drive Signal、Deliberation Controller、预算与记忆回放的未来设计；明确 timer/random/外部反思基线和三道 ED 实验门。它属于显式 Self 与受约束更新通过后的阶段，不改变当前 Impl-3o | Codex |
 | 5. 设计 EXP-001 | ✅ 完成 | 设计“身份约束 × 当前目标”的四状态任务 | 用一个很小、可量化的任务测试状态是否真的影响选择 | 已形成四组合任务、swap/reset/random 对照和评价指标 | Codex |
-| 6. 建立代码与实验骨架 | ✅ 完成 | 实现任务生成、泄漏检查、统计方法、配置和报告格式 | 相当于先把实验室的记录表、评分器和质检流程搭好 | 本地纯逻辑测试目前达到 97 项全部通过 | Codex |
+| 6. 建立代码与实验骨架 | ✅ 完成 | 实现任务生成、泄漏检查、统计方法、配置和报告格式 | 相当于先把实验室的记录表、评分器和质检流程搭好 | 当前全项目141项本地测试全部通过 | Codex |
 | 7. 准备模型和数据下载 | ✅ 完成 | 提供脚本下载固定版本的 RWKV 模型和 tokenizer | 云服务器只需运行脚本，不用手动寻找文件 | 模型约 861 MB、tokenizer 约 1.1 MB，哈希验证通过 | Codex 编写；项目负责人云端执行 |
 | 8. 检查云端环境 | ✅ 通过 | 核对 GPU、CUDA、PyTorch、Python、RWKV 和磁盘 | 先确认实验机器不会因为版本问题产生假结果 | RTX 5090 32 GB、CUDA 13.2、PyTorch 2.12、RWKV 0.8.32，环境有效 | 项目负责人运行；Codex 分析 |
 | 9. Impl-1：模型接口 | ✅ 通过 | 加载模型、测试 tokenizer、读取 recurrent state | 确认我们真的能够观察和操作模型内部状态 | RWKV-7 0.4B 加载成功；24 层、每层 3 个组件，共 72 个 state tensors | 共同完成 |
@@ -88,8 +88,11 @@
 | 37j. Impl-5b-c：最终云端非推理预检 | ✅ 已通过 | 在正式执行锁源码固定后，再次核对主机、Git、模型、Tokenizer、冻结包、runner证据和全部执行源码 | 最终授权必须绑定不会再因补入口代码而变化的运行计划，不能复用任何开发阶段digest | `valid=true`、runner证据有效、失败检查为空；最终待授权digest=`9a22a0cf7fc89eed51caaed227211608b2e9492fc4db6c20fd2a89351389bd2f`。授权、运行和结果观察字段仍全部为false | 项目负责人云端运行；Codex核对 |
 | 37k. 项目负责人正式实验授权 | ✅ 已明确授权 | 负责人逐字确认最终preflight digest，并明确允许运行完整320组、只在全量完成后观察结果、禁止修改冻结设计和完成后自动重跑 | 这是首次允许模型读取冻结Core Set，属于不可由“继续”或旧授权推断的独立决策 | 已逐字确认`9a22a0cf7fc89eed51caaed227211608b2e9492fc4db6c20fd2a89351389bd2f`；授权范围固定320组、5,120试题、8条件、40,960单元，只允许全量完成并验证后观察结果 | 项目负责人 |
 | 37l. EXP-001完整确认性运行 | ✅ 原始包完整结束 | 在云端创建不进入Git的授权记录，通过启动锁后运行全部320组，并只监控完成组数 | 将授权文本转成机器可验证记录，同时避免授权文件改变Git commit和preflight digest | `status=confirmatory_raw_complete`、`valid=true`；320组和40,960条原始记录全部写入，payload digest=`db4ba70e…5ba7`，峰值显存6,391,454,720字节。没有派生准确率、中间决策或结果观察；禁止重跑 | 项目负责人云端运行；Codex核对完成摘要 |
-| 37m. 原始确认包只读完整性验证 | 🔵 等待云端验证 | 不计算研究指标，只核对Core Set与授权链、320个组文件、每组128条结构、SHA-256账本、总记录数和payload digest | `completion.json`是运行器自报完成；在首次观察分数前必须用独立入口重新遍历并证明原始包没有缺失、篡改或半写 | 验证器、缺失/篡改拒绝和无指标输出测试已实现，项目全套130项测试通过；云端拉取后只运行`verify_exp001_confirmatory_raw.sh`。通过前不得分析准确率或打开组级结果 | Codex实现；项目负责人云端运行 |
-| 38. Phase 2：正式原生 state 实验 | ⏳ 未开始 | 比较 original/reset/random/swap 等条件 | 这一步才真正测试 recurrent state 是否是跨时间因果载体 | 尚无研究结论 | 项目负责人运行；Codex 分析 |
+| 37m. 原始确认包只读完整性验证 | ✅ 已通过 | 不计算研究指标，只核对Core Set与授权链、320个组文件、每组128条结构、SHA-256账本、总记录数和payload digest | `completion.json`是运行器自报完成；首次观察分数前必须由独立入口证明原始包没有缺失、篡改或半写 | 320/320组、40,960条记录逐项有效，失败检查和失败组均为0；payload digest仍为`db4ba70e…5ba7`，状态为`raw_package_verified_unanalyzed` | 项目负责人云端运行；Codex核对 |
+| 37n. EXP-001冻结只读分析 | ✅ 已完成 | 按预注册统计方案分析E1/E2/E3、reset/random、restore、swap、特异性与联合绑定 | 把完整原始分数变成可审计的研究证据，同时禁止换指标、挑样本或自动重跑 | E1=4.5255、E2=3.7965、E3=1.2264，95%区间均超过0且明显超过0.5 SESOI，Holm p均约`3.0e-5`；continuous联合准确率93.83%，所有已测决定通过，Gate 3=`go` | Codex实现；项目负责人云端运行；共同解读 |
+| 37o. EXP-001结果报告与证据边界 | ✅ 已完成 | 用通俗和技术两层语言解释结果，并明确哪些门仍不能判断 | 强效结果不能掩盖冻结Core Set缺少matched-context、同步控制和自由生成格式读出的事实 | 结果支持原生recurrent state在本任务中具有强、特异、可恢复且可因果迁移的联合行为作用；Gate 2/Gate 4仍为`not_assessable_no_full_go`，不把它夸大为“模型已经拥有Self” | Codex |
+| 38. Phase 2：正式原生 state 实验 | 🟡 主实验完成，等待控制闭合 | EXP-001已完成；下一步只补齐原设计缺失的三类控制，不重跑主要终点 | 只有matched-context、每条件通用能力和正式生成格式也通过，才能完成原生state载体资格判定 | 已取得强正面信号；完整Go仍被控制缺项阻断 | 共同完成 |
+| 38a. EXP-001B补充控制设计 | 🟡 草案完成，未冻结 | 固定matched-context 5,120条、正式生成格式5,120条、96条控制×8条件=768条，共11,008条新记录 | 用最小补充实验闭合Gate 2/Gate 4，同时避免重跑EXP-001、修改E1–E3或追逐显著性 | 配置、详细说明和7项设计约束测试已完成；全项目141项测试通过。当前无测试集、无运行授权、无结果；等待B1–B7设计审阅 | Codex |
 | 39. Phase 3：显式 Self Model | ⏳ 未开始 | 实现 Self Store、Self Encoder 和 gated injection | 只有原生状态基线可靠后，才能判断显式 Self Model 是否带来额外价值 | 目前只有设计，没有加入模型 | 后续由 Codex 实现 |
 | 40. Self 更新与演化 | ⏳ 未开始 | 让 Self State 根据经历受控更新、回滚和分化 | 这是“持续自我”真正更深入的部分 | 尚未开始 | 后续阶段 |
 | 41. 内生调节与自主审议 | ⏳ 未开始 | 让 Self/冲突决定是否检索、回放、模拟或停止，并在零新外部观察条件下受控更新 | 检验系统是否不仅“有状态”，还会因内部状态选择继续计算；同时排除定时器和随机回放解释 | 设计说明已完成；必须等待显式 Self 因果价值和受约束更新两道前置门，不创建空壳代码 | 后续阶段 |
@@ -165,10 +168,14 @@ Batch 2 参数冻结
     ✅ 正式执行锁提交后的云端最终预检通过
     ✅ 项目负责人已逐字确认最终digest并单独授权
     ✅ 云端完整320组原始运行结束，40,960条记录齐全
-    🔵 等待独立只读完整性验证；尚未观察结果
-    ⏸️ 正式实验仍未授权
+    ✅ 独立只读完整性验证通过
+    ✅ 冻结分析和正式结果报告完成
+    ✅ E1–E3、特异性、reset/random、restore与swap均通过
+    ⚠️ Gate 2/Gate 4因三类正式控制缺失不可完整判断
+EXP-001B补充控制
+    🟡 B1–B7详细草案完成；未冻结、未生成、未授权、未运行
 正式 state 因果实验
-   ⏳
+   🟡 EXP-001主实验完成；等待EXP-001B控制闭合后作最终阶段决策
 显式 Self Model
    ⏳
 受约束 Self 更新
@@ -189,6 +196,18 @@ Batch 2 参数冻结
 - 不能在看到 two-field 87.5% 后事后放宽原门槛，必须先解释格式失败与 D 位置偏差。
 
 ## 4. 当前下一步
+
+截至2026-08-03，当前唯一的紧邻步骤是审阅EXP-001B设计草案中的B1–B7。
+草案已经把新增范围锁在11,008条控制记录，并明确不重跑EXP-001、不重估E1–E3、
+不复用旧授权。审阅通过后也不会直接做正式实验，而是依次实现：
+
+1. B-Dev1：用64个非Core group验证matched-context精确token配对，并冻结逐组件state norm阈值；
+2. B-Dev2：用非Core夹具验证8条件控制路由、greedy生成格式探针、原子写入和断点恢复；
+3. 只有两个开发门都通过，才形成新的预注册候选checksum供项目负责人独立确认；
+4. 当前没有生成EXP-001B测试集，也没有任何正式运行授权。
+
+完整设计见[`docs/exp001b_supplemental_design.md`](docs/exp001b_supplemental_design.md)。
+下面保留此前各步的诊断依据，作为不可删除的研究轨迹。
 
 Impl-3b 已完成：模型能 100% 照抄答案代码，说明 tokenizer、候选答案评分和
 A–D 接口有效；但单字段查表只有 25%，且逐答案位置准确率为
@@ -578,3 +597,4 @@ trial-condition单元；只允许全量完成且完整性验证后观察结果�
 | 2026-08-03 | 冻结EXP-001只读分析计划和唯一入口：主要终点固定为continuous条件的E1/E2/E3，先做四代码语义边缘化，再按320个group运行10,000次BCa、100,000次单侧符号翻转和Holm校正；同时固定reset/random、restore、swap、prompt上限、specificity与单变量0.50上限。分析配置digest=`d97e0132…b8ea`；4项非Core合成测试与全套134项回归测试通过，尚未读取真实分数。审计同时确认最终原始包没有matched-context、每条件同步通用控制和自由生成格式读出，三项必须标记不可评估，不能用开发数据代替或授予完整Gate 2/Gate 4 Go | `configs/analysis/exp001_confirmatory_v1.json`、`docs/exp001_confirmatory_analysis_plan.md`、`src/psa/confirmatory/analysis.py`、`scripts/analyze_exp001_confirmatory.sh` |
 | 2026-08-03 | EXP-001冻结只读分析在云端完整结束：320组、40,960条记录、配置与原始payload digest均吻合，分析包digest=`a0032f08…95ff`，正式结果现已观察。所有已测决定均通过：E1–E3、字段特异性、reset/random优势及联合绑定要求为true，Gate 3=`go`；但因正式Core Set未采集matched-context、每条件同步通用控制和自由生成格式读出，Gate 2与Gate 4依法标记`not_assessable_no_full_go`，不自动重跑。当前只确认门状态，下一步读取冻结完整报告中的点估计、区间与p值并形成结果解释 | 云端`results/confirmatory/exp001_v1_analysis/summary.json`，分析包digest `a0032f0813a3f1c524e0743c2a6feb0c7b2f71aa610782697a4a24614da495ff` |
 | 2026-08-03 | EXP-001完整数值结果审阅完成并形成正式结果文档：E1=4.5255、E2=3.7965、E3=1.2264，95%区间均远离0且显著超过0.5 SESOI，三项Holm p均约`3.0e-5`；continuous联合准确率93.83%，identity/goal特异性、reset/random优势、restore和三种swap迁移全部通过。结果支持“原生recurrent state在本任务中具有强、特异、可恢复且因果迁移的联合行为作用”，但不改变Gate 2/Gate 4因控制缺项不可完整评估的状态。项目计划更新到Phase 2结果报告与缺口闭合决策 | `docs/exp001_confirmatory_results.md`、云端`confirmatory_report.json` |
+| 2026-08-03 | 完成EXP-001B补充控制设计草案：只补matched-context、每条件同步通用能力和正式生成格式三类缺口，固定新增5,120+5,120+768=11,008条记录；原EXP-001仅作不可修改的配对参照，不重跑主要条件、不重估E1–E3、不声称独立复制。配置明确4个无绑定模板、原D5控制manifest、公开派生新seed、非Core norm校准、两级开发门和独立授权边界；7项专项测试及全项目141项测试通过。当前未冻结、未生成补充集、未授权、未运行 | `docs/exp001b_supplemental_design.md`、`configs/preregistration/exp001b_supplemental_controls.draft.json`、`tests/test_exp001b_design.py` |
