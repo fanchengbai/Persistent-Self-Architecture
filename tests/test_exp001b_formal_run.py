@@ -214,6 +214,17 @@ class Exp001BFormalRunTests(unittest.TestCase):
                 )
             prepare.assert_not_called()
 
+    def test_gpu_entry_scripts_freeze_runtime_flags(self) -> None:
+        for relative in (
+            "scripts/run_exp001b_runner_development_gate.sh",
+            "scripts/preflight_exp001b_supplemental_run.sh",
+            "scripts/run_exp001b_supplemental.sh",
+        ):
+            text = (ROOT / relative).read_text(encoding="utf-8")
+            self.assertIn("export RWKV_V7_ON=1", text)
+            self.assertIn("export RWKV_JIT_ON=0", text)
+            self.assertIn("export RWKV_CUDA_ON=0", text)
+
 
 if __name__ == "__main__":
     unittest.main()
