@@ -12,6 +12,7 @@ from psa.supplemental.development import (
     evaluate_state_norms,
     fit_matched_context_history,
 )
+from psa.preregistration.formal_freeze import _load_formal_config
 
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -125,6 +126,15 @@ class Exp001BDevelopmentTests(unittest.TestCase):
         )
         self.assertEqual(bdev1.command, "exp001b-bdev1-gate")
         self.assertEqual(bdev2.command, "exp001b-bdev2-gate")
+
+    def test_bdev1_source_overlay_resolves_filler_protocol(self) -> None:
+        design = _load_confirmed_design(DESIGN)
+        source = ROOT / design["general_capability_controls"]["source_config"]
+        raw = json.loads(source.read_text(encoding="utf-8"))
+        self.assertNotIn("filler_protocol", raw)
+        resolved = _load_formal_config(source, ROOT)
+        self.assertIn("filler_protocol", resolved)
+        self.assertEqual(resolved["filler_protocol"]["target_token_count"], 131)
 
 
 if __name__ == "__main__":

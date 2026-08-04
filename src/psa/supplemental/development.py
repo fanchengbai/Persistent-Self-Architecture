@@ -20,7 +20,11 @@ from psa.development.impl3 import (
 )
 from psa.model import RWKV7Adapter, load_model_config
 from psa.model.rwkv7 import _flatten_state
-from psa.preregistration.formal_freeze import _fit_filler, _render_history
+from psa.preregistration.formal_freeze import (
+    _fit_filler,
+    _load_formal_config,
+    _render_history,
+)
 
 
 BDEV1_GATE = "exp001b_bdev1_non_core_calibration"
@@ -381,7 +385,7 @@ def run_exp001b_bdev1_gate(
     started_at = datetime.now(timezone.utc)
     design = _load_confirmed_design(design_path)
     formal_path = root / design["general_capability_controls"]["source_config"]
-    formal_config = _load_object(formal_path, label="frozen formal config")
+    formal_config = _load_formal_config(formal_path, root)
     config = load_model_config(model_config_path, root, verify_files=True)
     torch = __import__("torch")
     if not torch.cuda.is_available():

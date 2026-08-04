@@ -1,7 +1,7 @@
 # Persistent Self Architecture 项目进度表
 
-> 最后更新：2026-08-03
-> 当前节点：EXP-001B的B1–B7设计已确认，两个非Core开发门已本地实现；等待云端B-Dev1验证
+> 最后更新：2026-08-04
+> 当前节点：EXP-001B B-Dev1首次云端运行暴露配置继承缺陷；修复已完成，等待重跑
 > 研究状态：原生 recurrent state 取得强因果行为证据，但Gate 2/Gate 4仍缺正式控制；尚未实现显式 Self Model
 
 ## 1. 这张表怎么使用
@@ -33,7 +33,7 @@
 | 4. 设计总体架构 | ✅ 初版完成 | 设计 World Model、Memory、原生 state、Self Store、Encoder、注入和更新模块 | 先画清楚未来系统由什么组成，再决定先验证哪一块 | 显式 Self Model 已完成理论设计，但尚未写入模型 | Codex |
 | 4a. 评审内生驱动扩展 | ✅ 设计完成 | 评审“持续 Self + 世界模型 + 内生驱动”的闭环，并设计零新外部观察下的自主审议层 | 当前架构说明了 Self 如何影响一次决策，但还没有解释系统为什么会因内部冲突主动继续计算 | 已新增 Drive Signal、Deliberation Controller、预算与记忆回放的未来设计；明确 timer/random/外部反思基线和三道 ED 实验门。它属于显式 Self 与受约束更新通过后的阶段，不改变当前 Impl-3o | Codex |
 | 5. 设计 EXP-001 | ✅ 完成 | 设计“身份约束 × 当前目标”的四状态任务 | 用一个很小、可量化的任务测试状态是否真的影响选择 | 已形成四组合任务、swap/reset/random 对照和评价指标 | Codex |
-| 6. 建立代码与实验骨架 | ✅ 完成 | 实现任务生成、泄漏检查、统计方法、配置和报告格式 | 相当于先把实验室的记录表、评分器和质检流程搭好 | 当前全项目148项本地测试全部通过 | Codex |
+| 6. 建立代码与实验骨架 | ✅ 完成 | 实现任务生成、泄漏检查、统计方法、配置和报告格式 | 相当于先把实验室的记录表、评分器和质检流程搭好 | 当前全项目149项本地测试全部通过 | Codex |
 | 7. 准备模型和数据下载 | ✅ 完成 | 提供脚本下载固定版本的 RWKV 模型和 tokenizer | 云服务器只需运行脚本，不用手动寻找文件 | 模型约 861 MB、tokenizer 约 1.1 MB，哈希验证通过 | Codex 编写；项目负责人云端执行 |
 | 8. 检查云端环境 | ✅ 通过 | 核对 GPU、CUDA、PyTorch、Python、RWKV 和磁盘 | 先确认实验机器不会因为版本问题产生假结果 | RTX 5090 32 GB、CUDA 13.2、PyTorch 2.12、RWKV 0.8.32，环境有效 | 项目负责人运行；Codex 分析 |
 | 9. Impl-1：模型接口 | ✅ 通过 | 加载模型、测试 tokenizer、读取 recurrent state | 确认我们真的能够观察和操作模型内部状态 | RWKV-7 0.4B 加载成功；24 层、每层 3 个组件，共 72 个 state tensors | 共同完成 |
@@ -93,7 +93,8 @@
 | 37o. EXP-001结果报告与证据边界 | ✅ 已完成 | 用通俗和技术两层语言解释结果，并明确哪些门仍不能判断 | 强效结果不能掩盖冻结Core Set缺少matched-context、同步控制和自由生成格式读出的事实 | 结果支持原生recurrent state在本任务中具有强、特异、可恢复且可因果迁移的联合行为作用；Gate 2/Gate 4仍为`not_assessable_no_full_go`，不把它夸大为“模型已经拥有Self” | Codex |
 | 38. Phase 2：正式原生 state 实验 | 🟡 主实验完成，等待控制闭合 | EXP-001已完成；下一步只补齐原设计缺失的三类控制，不重跑主要终点 | 只有matched-context、每条件通用能力和正式生成格式也通过，才能完成原生state载体资格判定 | 已取得强正面信号；完整Go仍被控制缺项阻断 | 共同完成 |
 | 38a. EXP-001B补充控制设计 | ✅ B1–B7已确认，未冻结 | 固定matched-context 5,120条、正式生成格式5,120条、96条控制×8条件=768条，共11,008条新记录 | 用最小补充实验闭合Gate 2/Gate 4，同时避免重跑EXP-001、修改E1–E3或追逐显著性 | 项目负责人已确认B1–B7；确认只覆盖设计和非Core开发，不是checksum确认，不授权生成补充集或正式运行 | 项目负责人确认；Codex记录 |
-| 38b. EXP-001B B-Dev1 | 🟡 本地实现，等待云端 | 用64个`amber/cobalt × orbit/prism`非Core案例验证4种无绑定历史能否与配对真实历史完全等token，并冻结96个state组件的99.9% RMS阈值 | matched-context必须真正等信息长度；state norm上限必须在正式数据生成前确定，不能看结果后临时设线 | 已实现真实tokenizer逐条拟合、绑定短语拒绝、同filler保留、形状预热、逐组件RMS和最近秩经验分位数报告；64例下99.9%阈值等于开发最大值，避免校准样本自超限。无Core入口；专项14项、全项目148项测试通过，等待云端结果 | Codex实现；项目负责人云端运行 |
+| 38b. EXP-001B B-Dev1 | 🟡 本地实现，等待云端重跑 | 用64个`amber/cobalt × orbit/prism`非Core案例验证4种无绑定历史能否与配对真实历史完全等token，并冻结96个state组件的99.9% RMS阈值 | matched-context必须真正等信息长度；state norm上限必须在正式数据生成前确定，不能看结果后临时设线 | 已实现真实tokenizer逐条拟合、绑定短语拒绝、同filler保留、形状预热、逐组件RMS和最近秩经验分位数报告；64例下99.9%阈值等于开发最大值，避免校准样本自超限。无Core入口；专项15项、全项目149项测试通过，等待修复版云端重跑 | Codex实现；项目负责人云端运行 |
+| 38b-a. B-Dev1首次云端启动诊断 | ⚠️ Revise后已修复 | 分析启动时报出的`'filler_protocol'`缺字段 | 必须区分主机/模型问题与配置解析缺陷，并保留首次失败，不能直接反复运行 | 原因是v3 holdout文件是继承v1的差异配置，B-Dev1错误地直接读取overlay，没有调用既有深度合并解析器；失败发生在模型推理和报告生成前，未读取Core、未生成补充集、无结果。现已改用`_load_formal_config`并增加回归测试，等待云端重跑 | 项目负责人回传；Codex修复 |
 | 38c. EXP-001B B-Dev2 | 🟡 本地实现，等待B-Dev1 | 在非Core夹具上运行8条件128条记录，再运行16条matched-context、16条greedy格式探针和4个state norm检查 | 在冻结候选前证明运行器不会串条件，格式探针和报警路径可用，输出可原子保存和恢复 | 已实现并强制验证`prompt_visible_reset→prompt_visible`语义别名、B-Dev1证据链、greedy `>\n`边界、超限报警及原runner完整性；只有B-Dev1 `valid=true`后才可云端运行 | Codex实现；项目负责人云端运行 |
 | 39. Phase 3：显式 Self Model | ⏳ 未开始 | 实现 Self Store、Self Encoder 和 gated injection | 只有原生状态基线可靠后，才能判断显式 Self Model 是否带来额外价值 | 目前只有设计，没有加入模型 | 后续由 Codex 实现 |
 | 40. Self 更新与演化 | ⏳ 未开始 | 让 Self State 根据经历受控更新、回滚和分化 | 这是“持续自我”真正更深入的部分 | 尚未开始 | 后续阶段 |
@@ -176,7 +177,8 @@ Batch 2 参数冻结
     ⚠️ Gate 2/Gate 4因三类正式控制缺失不可完整判断
 EXP-001B补充控制
     ✅ B1–B7已确认；确认不包含冻结或运行授权
-    🟡 B-Dev1/B-Dev2本地实现完成，等待依次云端验证
+    ⚠️ B-Dev1首次启动因overlay未合并失败；已修复，等待重跑
+    🟡 B-Dev2本地实现完成，仍等待B-Dev1通过
     ⏸️ 预注册候选、补充测试集和正式运行均未授权
 正式 state 因果实验
    🟡 EXP-001主实验完成；等待EXP-001B控制闭合后作最终阶段决策
@@ -602,4 +604,5 @@ trial-condition单元；只允许全量完成且完整性验证后观察结果�
 | 2026-08-03 | EXP-001冻结只读分析在云端完整结束：320组、40,960条记录、配置与原始payload digest均吻合，分析包digest=`a0032f08…95ff`，正式结果现已观察。所有已测决定均通过：E1–E3、字段特异性、reset/random优势及联合绑定要求为true，Gate 3=`go`；但因正式Core Set未采集matched-context、每条件同步通用控制和自由生成格式读出，Gate 2与Gate 4依法标记`not_assessable_no_full_go`，不自动重跑。当前只确认门状态，下一步读取冻结完整报告中的点估计、区间与p值并形成结果解释 | 云端`results/confirmatory/exp001_v1_analysis/summary.json`，分析包digest `a0032f0813a3f1c524e0743c2a6feb0c7b2f71aa610782697a4a24614da495ff` |
 | 2026-08-03 | EXP-001完整数值结果审阅完成并形成正式结果文档：E1=4.5255、E2=3.7965、E3=1.2264，95%区间均远离0且显著超过0.5 SESOI，三项Holm p均约`3.0e-5`；continuous联合准确率93.83%，identity/goal特异性、reset/random优势、restore和三种swap迁移全部通过。结果支持“原生recurrent state在本任务中具有强、特异、可恢复且因果迁移的联合行为作用”，但不改变Gate 2/Gate 4因控制缺项不可完整评估的状态。项目计划更新到Phase 2结果报告与缺口闭合决策 | `docs/exp001_confirmatory_results.md`、云端`confirmatory_report.json` |
 | 2026-08-03 | 完成EXP-001B补充控制设计草案：只补matched-context、每条件同步通用能力和正式生成格式三类缺口，固定新增5,120+5,120+768=11,008条记录；原EXP-001仅作不可修改的配对参照，不重跑主要条件、不重估E1–E3、不声称独立复制。配置明确4个无绑定模板、原D5控制manifest、公开派生新seed、非Core norm校准、两级开发门和独立授权边界；7项专项测试及全项目141项测试通过。当前未冻结、未生成补充集、未授权、未运行 | `docs/exp001b_supplemental_design.md`、`configs/preregistration/exp001b_supplemental_controls.draft.json`、`tests/test_exp001b_design.py` |
-| 2026-08-03 | 项目负责人确认EXP-001B的B1–B7，确认范围仅为设计及非Core开发门，不是预注册checksum确认，不授权生成补充测试集或正式运行。完成B-Dev1/B-Dev2本地实现：64案例精确token配对、96组件最近秩99.9% RMS开发阈值、8条件非Core runner、matched-context现场评分、greedy格式探针和state norm报警路径均已纳入；14项专项测试及全项目148项测试通过。下一步先云端运行B-Dev1，成功后才运行B-Dev2 | `src/psa/supplemental/development.py`、`scripts/run_exp001b_bdev1_gate.sh`、`scripts/run_exp001b_bdev2_gate.sh`、`tests/test_exp001b_development.py` |
+| 2026-08-03 | 项目负责人确认EXP-001B的B1–B7，确认范围仅为设计及非Core开发门，不是预注册checksum确认，不授权生成补充测试集或正式运行。完成B-Dev1/B-Dev2本地实现：64案例精确token配对、96组件最近秩99.9% RMS开发阈值、8条件非Core runner、matched-context现场评分、greedy格式探针和state norm报警路径均已纳入；随后含overlay修复回归在内累计15项专项测试及全项目149项测试通过。下一步先云端重跑B-Dev1，成功后才运行B-Dev2 | `src/psa/supplemental/development.py`、`scripts/run_exp001b_bdev1_gate.sh`、`scripts/run_exp001b_bdev2_gate.sh`、`tests/test_exp001b_development.py` |
+| 2026-08-04 | B-Dev1首次云端启动在读取`filler_protocol`时失败。诊断确认正式v3 holdout是继承v1的overlay，开发门误把差异文件当完整配置读取；失败早于模型推理和任何报告生成，未接触Core或正式补充数据。修复为复用既有`_load_formal_config`深度合并解析器，并新增“原文件无filler、解析后必须有131-token filler协议”的回归测试；保留本次Revise记录，更新后重跑同一B-Dev1入口 | 云端错误`'filler_protocol'`、`src/psa/supplemental/development.py`、`tests/test_exp001b_development.py` |
