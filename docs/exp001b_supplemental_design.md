@@ -217,3 +217,8 @@ EXP-001B最终预注册包已经冻结，最终digest为
 set digest为`7c3606be819d4e6cc5420f0bf36efd1906f8954d362d83e912785cc943565d33`，
 package digest为`68e9a9a79fe4e493a0c64ba8c0278c300cc832d940ab902feaceb4ad7f9d5954`。
 包状态为`supplemental_set_frozen_unrun`，正式实验授权、运行和结果观察仍全部为false。
+
+冻结包随后由Git提交`62dd8b2`持久化，提交范围严格只有5个包文件。本机从远程
+快进同步后再次运行独立验证器，11,008条记录、锁定文件、内容结构以及set/package
+digest全部一致。该里程碑不扩大权限；下一步只能开发正式运行预检、runner、原始包
+验证和独立运行授权锁，不能直接运行补充实验。
