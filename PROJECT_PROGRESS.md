@@ -1,7 +1,7 @@
 # Persistent Self Architecture 项目进度表
 
 > 最后更新：2026-08-04
-> 当前节点：EXP-001B未确认预注册候选已生成；等待完整技术校验后由项目负责人审阅checksum
+> 当前节点：EXP-001B预注册候选技术校验全部通过；等待项目负责人确认完整checksum
 > 研究状态：原生 recurrent state 取得强因果行为证据，但Gate 2/Gate 4仍缺正式控制；尚未实现显式 Self Model
 
 ## 1. 这张表怎么使用
@@ -98,7 +98,7 @@
 | 38c. EXP-001B B-Dev2 | ⚠️ 有效Revise | 在非Core夹具上运行8条件128条记录，再运行16条matched-context、16条greedy格式探针和4个state norm检查 | 在冻结候选前证明运行器不会串条件，格式探针和报警路径可用，输出可原子保存和恢复 | 运行完整但`valid=false`：B-Dev1证据、条件别名、128条8条件runner、16条matched-context及`>\n`前缀率1.0均通过；生成格式仅14/16=0.875，state norm探针也失败。峰值显存6,435,030,016字节；未访问Core，未生成/授权/运行补充实验。进入只读错误明细审计，不重跑 | 项目负责人云端运行；Codex诊断 |
 | 38c-a. B-Dev2失败只读审计 | ✅ 完成 | 检查两条生成失败和四个state的逐组件越界比例 | 判断是模型/接口真实失败，还是开发夹具与冻结阈值比较对象不一致 | 两条格式失败均在正确`>\n`后生成`<tool_call`；四个state各有66–67/96组件越界，最高约1.209倍，说明不是偶发数值毛刺。审计确认通用runner短历史不属于B-Dev1的131-token正式history校准族，norm资格判定输入错配；16条通用生成题也不能代表四正式模板族 | 项目负责人回传；Codex审计 |
 | 38d. B-Dev2 v0.2正式形状非Core复验 | ✅ 云端通过 | 保持8条件runner和matched探针不变，改用64条与正式history/query/filler结构一致的非Core题运行生成与norm探针，并写入新目录 | 修复错误的开发比较对象，同时保留v0.1失败；不放宽0.99格式阈值或state norm阈值 | `valid=true`：条件runner、别名、16条matched、64条正式形状生成和64个norm检查全部通过；前缀与格式率均1.0，清单digest=`4a4a2700…34acf`。加载约5.42秒、总耗时约133.57秒、峰值显存6,435,030,016字节；安全边界全为false | Codex实现；项目负责人云端运行 |
-| 38e. EXP-001B未确认预注册候选 | 🟡 云端已生成，等待技术审阅 | 锁定B1–B7设计、B-Dev1、B-Dev2 v0.1失败与v0.2成功证据，复制证据快照并生成自校验checksum | 预注册必须先把规则和开发证据封死，不能只保留成功结果，也不能在看到正式结果后改设计 | `valid=true`、`candidate_ready_for_human_review=true`；12个源码与22个证据文件已锁定，candidate digest=`c7a69971…a3eb`，payload root=`a99c054d…98a4`。候选仍未确认，Core未访问，补充集生成及正式实验均未授权/未运行/未观察 | Codex实现；项目负责人云端生成 |
+| 38e. EXP-001B未确认预注册候选 | ✅ 技术审阅通过，等待负责人确认 | 锁定B1–B7设计、B-Dev1、B-Dev2 v0.1失败与v0.2成功证据，复制证据快照并生成自校验checksum | 预注册必须先把规则和开发证据封死，不能只保留成功结果，也不能在看到正式结果后改设计 | self digest、payload root、安全边界、12个源码和22个证据检查全部通过，失败项为0；candidate digest=`c7a69971…a3eb`。候选仍未确认，补充集生成及正式实验均未授权/未运行/未观察 | Codex实现与审阅；项目负责人云端生成 |
 | 39. Phase 3：显式 Self Model | ⏳ 未开始 | 实现 Self Store、Self Encoder 和 gated injection | 只有原生状态基线可靠后，才能判断显式 Self Model 是否带来额外价值 | 目前只有设计，没有加入模型 | 后续由 Codex 实现 |
 | 40. Self 更新与演化 | ⏳ 未开始 | 让 Self State 根据经历受控更新、回滚和分化 | 这是“持续自我”真正更深入的部分 | 尚未开始 | 后续阶段 |
 | 41. 内生调节与自主审议 | ⏳ 未开始 | 让 Self/冲突决定是否检索、回放、模拟或停止，并在零新外部观察条件下受控更新 | 检验系统是否不仅“有状态”，还会因内部状态选择继续计算；同时排除定时器和随机回放解释 | 设计说明已完成；必须等待显式 Self 因果价值和受约束更新两道前置门，不创建空壳代码 | 后续阶段 |
@@ -186,7 +186,8 @@ EXP-001B补充控制
     ✅ 只读审计确认通用夹具与正式形状阈值分布错配
     ✅ B-Dev2 v0.2正式形状非Core复验云端通过
     ✅ 未确认预注册候选已在云端生成：12个源码、22个证据文件
-    🟡 下一步核对self digest、payload root及34项文件检查
+    ✅ self digest、payload root、安全边界及34项文件检查全部通过
+    🟡 下一步由项目负责人确认完整checksum；确认只升级最终预注册包
     ⏸️ 候选尚未确认；补充测试集和正式运行均未授权
 正式 state 因果实验
    🟡 EXP-001主实验完成；等待EXP-001B控制闭合后作最终阶段决策
@@ -219,9 +220,9 @@ EXP-001B补充控制
 2. B-Dev2 v0.1失败已审计：通用runner夹具不属于正式history形状族，不能用于norm资格判定；
 3. B-Dev2 v0.2已按原阈值通过，旧v0.1失败仍保留；
 4. 未确认候选已在云端生成，digest=`c7a6997179072db22bb518289cd1ab0e2428f8a9eb6ea4dcc50983bbe212a3eb`；
-5. 下一步只读检查`preregistration_verification.json`中的self digest、payload root、12个源码和22个证据文件；
-6. 所有检查通过后，才请项目负责人逐字确认完整checksum并决定是否升级为最终预注册包；
-7. 当前仍不生成EXP-001B测试集，测试集生成和正式运行分别需要后续独立授权。
+5. `preregistration_verification.json`已核对：self digest、payload root、安全边界、12个源码和22个证据文件全部通过，失败列表为空；
+6. 当前只等待项目负责人逐字确认完整checksum，并授权把候选升级为最终预注册包；
+7. 本次确认不得包含EXP-001B测试集生成或正式运行；两者分别需要后续独立授权。
 
 完整设计见[`docs/exp001b_supplemental_design.md`](docs/exp001b_supplemental_design.md)。
 下面保留此前各步的诊断依据，作为不可删除的研究轨迹。
@@ -623,3 +624,4 @@ trial-condition单元；只允许全量完成且完整性验证后观察结果�
 | 2026-08-04 | B-Dev2 v0.2云端完整通过：B-Dev1三类证据哈希、条件别名、128条8条件runner、16条matched-context、64条正式形状生成和64个state norm检查全部有效；强制前缀率和格式率均为1.0，formal probe manifest digest=`4a4a2700…34acf`。加载约5.42秒、总耗时约133.57秒、峰值显存6,435,030,016字节；Core未访问，补充集未生成，实验授权/运行/结果观察均为false。进入未确认预注册候选构建，不直接生成正式数据 | 云端`results/development/exp001b_bdev2_non_core_runner_v02/summary.json` |
 | 2026-08-04 | EXP-001B未确认预注册候选构建器完成：候选同时锁定B1–B7设计、B-Dev1、B-Dev2 v0.1失败和v0.2成功证据，复制自包含证据快照并计算source/evidence payload root与candidate checksum；验证器会拒绝源码、证据和安全字段篡改。候选安全状态固定为未确认、未生成补充集、未授权/未运行/未观察，不能借此启动正式实验；新增4项专项测试后全项目154项通过 | `src/psa/supplemental/freeze.py`、`scripts/build_exp001b_preregistration_candidate.sh`、`tests/test_exp001b_freeze.py` |
 | 2026-08-04 | EXP-001B未确认预注册候选已在云端生成：`valid=true`且可进入人工审阅，固定模型2.9B、设计digest=`f6a35d7f…f159b`；锁定12个源码与22个开发证据文件，candidate digest=`c7a69971…a3eb`、payload root=`a99c054d…98a4`。安全边界保持候选未确认、Core未访问、补充集未生成且未获生成授权、正式实验未授权/未运行/未观察。下一步只读核对完整verification，不直接请求确认或生成数据 | 云端`results/development/exp001b_preregistration_candidate_v1/summary.json` |
+| 2026-08-04 | EXP-001B候选完整技术审阅通过：candidate self digest、payload root与安全边界均有效，12/12源码和22/22开发证据文件校验通过，失败列表为空；完整candidate digest=`c7a6997179072db22bb518289cd1ab0e2428f8a9eb6ea4dcc50983bbe212a3eb`。候选仍未确认，补充集未生成且未获生成授权，正式实验未授权/未运行/未观察。现可请求项目负责人确认checksum，但确认范围仅限升级最终预注册包 | 云端`preregistration_verification.json` |
