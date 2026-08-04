@@ -44,7 +44,11 @@ from psa.state import (
     run_state_operations_gate,
 )
 from psa.state.checkpoint import run_restore_probe
-from psa.supplemental import run_exp001b_bdev1_gate, run_exp001b_bdev2_gate
+from psa.supplemental import (
+    build_exp001b_preregistration_candidate,
+    run_exp001b_bdev1_gate,
+    run_exp001b_bdev2_gate,
+)
 from psa.tasks import generate_dataset
 from psa.validation import validate_dataset
 
@@ -663,6 +667,19 @@ def _exp001b_bdev2_gate(args: argparse.Namespace) -> int:
     return 0 if result["valid"] else 2
 
 
+def _exp001b_candidate_build(args: argparse.Namespace) -> int:
+    result = build_exp001b_preregistration_candidate(
+        design_path=args.design,
+        bdev1_dir=args.bdev1_dir,
+        bdev2_v01_dir=args.bdev2_v01_dir,
+        bdev2_v02_dir=args.bdev2_v02_dir,
+        output_dir=args.output_dir,
+        project_root=args.project_root,
+    )
+    print(json.dumps(result, ensure_ascii=False, indent=2))
+    return 0 if result["valid"] else 2
+
+
 def _confirmatory_run(args: argparse.Namespace) -> int:
     result = run_exp001_confirmatory(
         project_root=args.project_root,
@@ -1045,6 +1062,21 @@ def build_parser() -> argparse.ArgumentParser:
     exp001b_bdev2.add_argument("--output-dir", required=True)
     exp001b_bdev2.add_argument("--project-root", default=".")
     exp001b_bdev2.set_defaults(handler=_exp001b_bdev2_gate)
+
+    exp001b_candidate = subparsers.add_parser(
+        "exp001b-candidate-build",
+        help=(
+            "build an unconfirmed EXP-001B preregistration checksum candidate "
+            "without reading Core Set data or authorizing a formal run"
+        ),
+    )
+    exp001b_candidate.add_argument("--design", required=True)
+    exp001b_candidate.add_argument("--bdev1-dir", required=True)
+    exp001b_candidate.add_argument("--bdev2-v01-dir", required=True)
+    exp001b_candidate.add_argument("--bdev2-v02-dir", required=True)
+    exp001b_candidate.add_argument("--output-dir", required=True)
+    exp001b_candidate.add_argument("--project-root", default=".")
+    exp001b_candidate.set_defaults(handler=_exp001b_candidate_build)
 
     confirmatory_run = subparsers.add_parser(
         "confirmatory-run",
