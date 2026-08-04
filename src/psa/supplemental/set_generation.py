@@ -56,6 +56,20 @@ CONDITIONS = (
     "prompt_visible_reset",
 )
 SOURCE_COMBOS = ((0, 0), (0, 1), (1, 0), (1, 1))
+GENERATION_SOURCE_FILES = (
+    "src/psa/cli.py",
+    "src/psa/artifacts/integrity.py",
+    "src/psa/preregistration/core_set.py",
+    "src/psa/preregistration/formal_freeze.py",
+    "src/psa/supplemental/development.py",
+    "src/psa/supplemental/finalize.py",
+    "src/psa/supplemental/set_generation.py",
+    "configs/preregistration/exp001_track_s.formal_v1.json",
+    "configs/preregistration/exp001_track_s.formal_v3_holdout.json",
+    "configs/models/rwkv7_g1h_2.9b.candidate.json",
+    "schemas/exp001b_supplemental_set_authorization.schema.json",
+    "scripts/generate_exp001b_supplemental_set.sh",
+)
 
 
 def _load_object(path: str | Path, label: str) -> dict[str, Any]:
@@ -123,10 +137,17 @@ def build_exp001b_set_preflight(
     project_root: str | Path = ".",
 ) -> dict[str, Any]:
     """Read-only package readiness check. It neither loads a model nor generates data."""
+    root = Path(project_root).resolve()
     final_report = verify_exp001b_final_preregistration_package(
-        final_package_dir, project_root=project_root
+        final_package_dir, project_root=root
     )
     core_report = verify_core_set_package(core_set_package_dir)
+    source_paths = {name: root / name for name in GENERATION_SOURCE_FILES}
+    source_digests = {
+        name: sha256_file(path)
+        for name, path in source_paths.items()
+        if path.is_file()
+    }
     checks = {
         "final_preregistration_package_valid": bool(final_report["valid"]),
         "final_preregistration_digest_pinned": (
@@ -137,9 +158,16 @@ def build_exp001b_set_preflight(
         "parent_core_set_digest_pinned": (
             core_report.get("core_set_digest_sha256") == PARENT_CORE_SET_DIGEST
         ),
-        "parent_core_set_unrun_boundary_intact": bool(
+        "parent_core_set_frozen_manifest_boundary_intact": bool(
             core_report.get("confirmatory_experiment_run") is False
             and core_report.get("confirmatory_results_observed") is False
+        ),
+        "generation_source_inventory_complete": bool(
+            set(source_digests) == set(GENERATION_SOURCE_FILES)
+            and all(
+                re.fullmatch(r"[0-9a-f]{64}", digest)
+                for digest in source_digests.values()
+            )
         ),
         "record_budget_locked": sum(
             EXPECTED_COUNTS[key]
@@ -158,6 +186,7 @@ def build_exp001b_set_preflight(
         "status": "set_preflight_valid_authorization_required" if valid else "invalid",
         "checks": checks,
         "expected_counts": dict(EXPECTED_COUNTS),
+        "generation_source_digests": source_digests,
         "final_preregistration_digest_sha256": FINAL_PREREGISTRATION_DIGEST,
         "parent_core_set_digest_sha256": PARENT_CORE_SET_DIGEST,
         "model_loaded": False,

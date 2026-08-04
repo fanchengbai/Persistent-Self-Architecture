@@ -16,6 +16,7 @@ from psa.supplemental.set_generation import (
     CONTROL_MANIFEST_DIGEST,
     EXPECTED_COUNTS,
     FINAL_PREREGISTRATION_DIGEST,
+    GENERATION_SOURCE_FILES,
     PARENT_CORE_SET_DIGEST,
     PARENT_CORE_SET_PACKAGE_DIGEST,
     SET_STATUS,
@@ -23,6 +24,7 @@ from psa.supplemental.set_generation import (
     _control_source_combo,
     _validate_authorization,
     _validate_payload,
+    build_exp001b_set_preflight,
     expected_set_authorization_text,
     generate_and_freeze_exp001b_supplemental_set,
     verify_exp001b_supplemental_set_package,
@@ -139,6 +141,43 @@ class Exp001BSetGenerationTests(unittest.TestCase):
             properties["authorization"]["const"],
             self._authorization()["authorization"],
         )
+
+    def test_preflight_digest_binds_complete_generation_source_inventory(self) -> None:
+        final_report = {
+            "valid": True,
+            "final_preregistration_digest_sha256": FINAL_PREREGISTRATION_DIGEST,
+        }
+        core_report = {
+            "valid": True,
+            "core_set_digest_sha256": PARENT_CORE_SET_DIGEST,
+            "confirmatory_experiment_run": False,
+            "confirmatory_results_observed": False,
+        }
+        with mock.patch(
+            "psa.supplemental.set_generation.verify_exp001b_final_preregistration_package",
+            return_value=final_report,
+        ), mock.patch(
+            "psa.supplemental.set_generation.verify_core_set_package",
+            return_value=core_report,
+        ):
+            report = build_exp001b_set_preflight(
+                final_package_dir="not-read-final",
+                core_set_package_dir="not-read-core",
+                project_root=ROOT,
+            )
+        self.assertTrue(report["valid"])
+        self.assertTrue(report["checks"]["generation_source_inventory_complete"])
+        self.assertEqual(
+            set(report["generation_source_digests"]), set(GENERATION_SOURCE_FILES)
+        )
+        changed = dict(report)
+        changed["generation_source_digests"] = dict(
+            report["generation_source_digests"]
+        )
+        first = GENERATION_SOURCE_FILES[0]
+        changed["generation_source_digests"][first] = "0" * 64
+        changed.pop("preflight_digest_sha256")
+        self.assertNotEqual(sha256_json(changed), report["preflight_digest_sha256"])
 
     def test_execution_lock_fails_before_any_package_is_read(self) -> None:
         with self.assertRaisesRegex(PermissionError, "execution lock"):
