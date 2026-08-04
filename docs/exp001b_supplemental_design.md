@@ -164,3 +164,13 @@ bash scripts/run_exp001b_bdev2_gate.sh
 
 B-Dev1必须先得到`valid=true`，B-Dev2才会接受其summary、matched-context报告和
 96组件RMS阈值。两步都只使用`amber/cobalt × orbit/prism`非Core材料。
+
+首次B-Dev2使用通用runner夹具同时承担格式与norm资格检查，暴露了输入分布错配：
+通用夹具历史不是131-token正式history族，导致四个state均有66–67/96组件超过
+正式形状阈值；16条通用生成题中两条进入`<tool_call`。该失败保留为v0.1 Revise。
+
+B-Dev2 v0.2不改8条件runner、matched-context、阈值或正式设计，只把资格探针换成
+64条与正式history/query/filler结构相同的非Core材料。四个query、四个history、
+四个filler、四个答案位置各自平衡为16条；正式格式阈值仍为0.99，因此64条中必须
+64条全部格式有效。State norm也只比较同一正式形状族，避免把任意短prompt误当成
+正式state异常。v0.2写入新目录，不覆盖v0.1失败报告。

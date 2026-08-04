@@ -1,7 +1,7 @@
 # Persistent Self Architecture 项目进度表
 
 > 最后更新：2026-08-04
-> 当前节点：EXP-001B B-Dev2有效运行但格式与state norm门失败；进入只读诊断
+> 当前节点：EXP-001B B-Dev2只读诊断完成；v0.2正式形状非Core探针已实现，等待云端验证
 > 研究状态：原生 recurrent state 取得强因果行为证据，但Gate 2/Gate 4仍缺正式控制；尚未实现显式 Self Model
 
 ## 1. 这张表怎么使用
@@ -33,7 +33,7 @@
 | 4. 设计总体架构 | ✅ 初版完成 | 设计 World Model、Memory、原生 state、Self Store、Encoder、注入和更新模块 | 先画清楚未来系统由什么组成，再决定先验证哪一块 | 显式 Self Model 已完成理论设计，但尚未写入模型 | Codex |
 | 4a. 评审内生驱动扩展 | ✅ 设计完成 | 评审“持续 Self + 世界模型 + 内生驱动”的闭环，并设计零新外部观察下的自主审议层 | 当前架构说明了 Self 如何影响一次决策，但还没有解释系统为什么会因内部冲突主动继续计算 | 已新增 Drive Signal、Deliberation Controller、预算与记忆回放的未来设计；明确 timer/random/外部反思基线和三道 ED 实验门。它属于显式 Self 与受约束更新通过后的阶段，不改变当前 Impl-3o | Codex |
 | 5. 设计 EXP-001 | ✅ 完成 | 设计“身份约束 × 当前目标”的四状态任务 | 用一个很小、可量化的任务测试状态是否真的影响选择 | 已形成四组合任务、swap/reset/random 对照和评价指标 | Codex |
-| 6. 建立代码与实验骨架 | ✅ 完成 | 实现任务生成、泄漏检查、统计方法、配置和报告格式 | 相当于先把实验室的记录表、评分器和质检流程搭好 | 当前全项目149项本地测试全部通过 | Codex |
+| 6. 建立代码与实验骨架 | ✅ 完成 | 实现任务生成、泄漏检查、统计方法、配置和报告格式 | 相当于先把实验室的记录表、评分器和质检流程搭好 | 当前全项目150项本地测试全部通过 | Codex |
 | 7. 准备模型和数据下载 | ✅ 完成 | 提供脚本下载固定版本的 RWKV 模型和 tokenizer | 云服务器只需运行脚本，不用手动寻找文件 | 模型约 861 MB、tokenizer 约 1.1 MB，哈希验证通过 | Codex 编写；项目负责人云端执行 |
 | 8. 检查云端环境 | ✅ 通过 | 核对 GPU、CUDA、PyTorch、Python、RWKV 和磁盘 | 先确认实验机器不会因为版本问题产生假结果 | RTX 5090 32 GB、CUDA 13.2、PyTorch 2.12、RWKV 0.8.32，环境有效 | 项目负责人运行；Codex 分析 |
 | 9. Impl-1：模型接口 | ✅ 通过 | 加载模型、测试 tokenizer、读取 recurrent state | 确认我们真的能够观察和操作模型内部状态 | RWKV-7 0.4B 加载成功；24 层、每层 3 个组件，共 72 个 state tensors | 共同完成 |
@@ -96,6 +96,8 @@
 | 38b. EXP-001B B-Dev1 | ✅ 云端通过 | 用64个`amber/cobalt × orbit/prism`非Core案例验证4种无绑定历史能否与配对真实历史完全等token，并冻结96个state组件的99.9% RMS阈值 | matched-context必须真正等信息长度；state norm上限必须在正式数据生成前确定，不能看结果后临时设线 | `valid=true`；64/64 matched-context案例有效，64个state校准案例与96个组件阈值全部有效。加载约5.40秒、总运行约43.68秒、峰值显存6,232,199,168字节；Core未访问，补充集未生成，实验未授权/未运行/未观察 | Codex实现；项目负责人云端运行 |
 | 38b-a. B-Dev1首次云端启动诊断 | ⚠️ Revise后已修复 | 分析启动时报出的`'filler_protocol'`缺字段 | 必须区分主机/模型问题与配置解析缺陷，并保留首次失败，不能直接反复运行 | 原因是v3 holdout文件是继承v1的差异配置，B-Dev1错误地直接读取overlay，没有调用既有深度合并解析器；失败发生在模型推理和报告生成前，未读取Core、未生成补充集、无结果。现已改用`_load_formal_config`并增加回归测试，等待云端重跑 | 项目负责人回传；Codex修复 |
 | 38c. EXP-001B B-Dev2 | ⚠️ 有效Revise | 在非Core夹具上运行8条件128条记录，再运行16条matched-context、16条greedy格式探针和4个state norm检查 | 在冻结候选前证明运行器不会串条件，格式探针和报警路径可用，输出可原子保存和恢复 | 运行完整但`valid=false`：B-Dev1证据、条件别名、128条8条件runner、16条matched-context及`>\n`前缀率1.0均通过；生成格式仅14/16=0.875，state norm探针也失败。峰值显存6,435,030,016字节；未访问Core，未生成/授权/运行补充实验。进入只读错误明细审计，不重跑 | 项目负责人云端运行；Codex诊断 |
+| 38c-a. B-Dev2失败只读审计 | ✅ 完成 | 检查两条生成失败和四个state的逐组件越界比例 | 判断是模型/接口真实失败，还是开发夹具与冻结阈值比较对象不一致 | 两条格式失败均在正确`>\n`后生成`<tool_call`；四个state各有66–67/96组件越界，最高约1.209倍，说明不是偶发数值毛刺。审计确认通用runner短历史不属于B-Dev1的131-token正式history校准族，norm资格判定输入错配；16条通用生成题也不能代表四正式模板族 | 项目负责人回传；Codex审计 |
+| 38d. B-Dev2 v0.2正式形状非Core复验 | 🟡 本地完成，等待云端 | 保持8条件runner和matched探针不变，改用64条与正式history/query/filler结构一致的非Core题运行生成与norm探针，并写入新目录 | 修复错误的开发比较对象，同时保留v0.1失败；不放宽0.99格式阈值或state norm阈值 | 4 history×4 filler×4状态形成64条；4个query、4个rotation和A–D目标各16条，预热全部真实token形状。格式率仍需至少0.99，等价于64/64；norm需64个state全部不报警。新gate为`exp001b_bdev2_non_core_runner_v02`，清单及B-Dev1三类哈希持久化，专项16项/全项目150项测试通过，不覆盖v0.1 | Codex实现；项目负责人云端运行 |
 | 39. Phase 3：显式 Self Model | ⏳ 未开始 | 实现 Self Store、Self Encoder 和 gated injection | 只有原生状态基线可靠后，才能判断显式 Self Model 是否带来额外价值 | 目前只有设计，没有加入模型 | 后续由 Codex 实现 |
 | 40. Self 更新与演化 | ⏳ 未开始 | 让 Self State 根据经历受控更新、回滚和分化 | 这是“持续自我”真正更深入的部分 | 尚未开始 | 后续阶段 |
 | 41. 内生调节与自主审议 | ⏳ 未开始 | 让 Self/冲突决定是否检索、回放、模拟或停止，并在零新外部观察条件下受控更新 | 检验系统是否不仅“有状态”，还会因内部状态选择继续计算；同时排除定时器和随机回放解释 | 设计说明已完成；必须等待显式 Self 因果价值和受约束更新两道前置门，不创建空壳代码 | 后续阶段 |
@@ -180,7 +182,8 @@ EXP-001B补充控制
     ⚠️ B-Dev1首次启动因overlay未合并失败；失败保留，修复后已通过
     ✅ B-Dev1修复后云端通过：64案例、96组件均有效
     ⚠️ B-Dev2有效Revise：runner/matched通过，生成格式与norm失败
-    🔎 当前只读审计失败记录，不改阈值、不重跑
+    ✅ 只读审计确认通用夹具与正式形状阈值分布错配
+    🟡 B-Dev2 v0.2正式形状非Core复验已实现，等待云端
     ⏸️ 预注册候选、补充测试集和正式运行均未授权
 正式 state 因果实验
    🟡 EXP-001主实验完成；等待EXP-001B控制闭合后作最终阶段决策
@@ -210,9 +213,9 @@ EXP-001B补充控制
 不复用旧授权。两个非Core开发门已经本地实现，当前依次执行：
 
 1. B-Dev1已经通过：64个非Core案例全部精确token配对，96组件state norm阈值有效；
-2. B-Dev2运行完整但综合门失败：生成格式14/16，state norm检查触发报警；
-3. 当前只读取`generation_probe.json`和`state_norm_probe.json`的失败明细，区分回答接口问题与阈值/分布问题；
-4. 只有诊断支持且受控修复后的B-Dev2通过，才形成新的预注册候选checksum；
+2. B-Dev2 v0.1失败已审计：通用runner夹具不属于正式history形状族，不能用于norm资格判定；
+3. 当前运行B-Dev2 v0.2：使用64条正式形状非Core题复验生成格式与norm，旧结果不覆盖；
+4. 只有v0.2按原阈值通过，才形成新的预注册候选checksum；
 5. 当前没有生成EXP-001B测试集，也没有任何正式运行授权。
 
 完整设计见[`docs/exp001b_supplemental_design.md`](docs/exp001b_supplemental_design.md)。
@@ -611,3 +614,4 @@ trial-condition单元；只允许全量完成且完整性验证后观察结果�
 | 2026-08-04 | B-Dev1首次云端启动在读取`filler_protocol`时失败。诊断确认正式v3 holdout是继承v1的overlay，开发门误把差异文件当完整配置读取；失败早于模型推理和任何报告生成，未接触Core或正式补充数据。修复为复用既有`_load_formal_config`深度合并解析器，并新增“原文件无filler、解析后必须有131-token filler协议”的回归测试；保留本次Revise记录，更新后重跑同一B-Dev1入口 | 云端错误`'filler_protocol'`、`src/psa/supplemental/development.py`、`tests/test_exp001b_development.py` |
 | 2026-08-04 | B-Dev1修复版云端完整通过：64个非Core matched-context案例全部通过精确token、filler保留和无绑定校验；64个真实非Core state形成96组件最近秩99.9% RMS阈值且全部有效。加载约5.40秒，总耗时约43.68秒，峰值显存6,232,199,168字节；`core_set_accessed=false`，补充集生成、实验授权、运行和结果观察均为false。路线进入B-Dev2非Core runner | 云端`results/development/exp001b_bdev1_non_core_calibration/summary.json`，design SHA-256 `f6a35d7f…f159b` |
 | 2026-08-04 | B-Dev2非Core运行完整但综合门`valid=false`：B-Dev1证据链、`prompt_visible_reset→prompt_visible`别名、8条件128条runner、16条matched-context和强制前缀率1.0均通过；生成格式率只有0.875（14/16），state norm探针失败。峰值显存6,435,030,016字节；安全字段全部为false且Core未访问。保留Revise结果，不进入预注册候选、不修改阈值、不自动重跑，先只读审计两个失败报告 | 云端`results/development/exp001b_bdev2_non_core_runner/summary.json` |
+| 2026-08-04 | B-Dev2失败明细审计完成：两条格式失败均生成`<tool_call`；四个state分别有66/67/66/67个组件越界，最大约1.209倍，是系统性分布差异而非FP16毛刺。代码审计确认norm阈值由131-token正式history族校准，v0.1却拿通用runner短历史比较；格式探针也未覆盖正式四模板族。新增独立v0.2：保留runner/matched不变，以64条正式形状非Core题平衡4 history、4 query、4 filler和A–D，原0.99格式及norm阈值不变，写入新目录保留v0.1失败；探针清单和B-Dev1证据哈希均持久化，专项16项/全项目150项测试通过 | 云端`generation_probe.json`、`state_norm_probe.json`；`src/psa/supplemental/development.py` |

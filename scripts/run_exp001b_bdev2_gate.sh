@@ -8,7 +8,7 @@ MODEL_CONFIG="${PROJECT_ROOT}/configs/models/rwkv7_g1h_2.9b.candidate.json"
 ASSET_MANIFEST="${PROJECT_ROOT}/configs/assets/exp001_rwkv7_g1h_2.9b_candidate.json"
 DESIGN="${PROJECT_ROOT}/configs/preregistration/exp001b_supplemental_controls.draft.json"
 BDEV1_DIR="${PSA_EXP001B_BDEV1_OUTPUT:-${PROJECT_ROOT}/results/development/exp001b_bdev1_non_core_calibration}"
-OUTPUT_DIR="${PSA_EXP001B_BDEV2_OUTPUT:-${PROJECT_ROOT}/results/development/exp001b_bdev2_non_core_runner}"
+OUTPUT_DIR="${PSA_EXP001B_BDEV2_OUTPUT:-${PROJECT_ROOT}/results/development/exp001b_bdev2_non_core_runner_v02}"
 
 if [[ -z "${VIRTUAL_ENV:-}" ]]; then
   echo "error: activate the project virtual environment before running this script" >&2

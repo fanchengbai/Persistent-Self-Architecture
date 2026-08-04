@@ -24,11 +24,12 @@ from psa.preregistration.formal_freeze import (
     _fit_filler,
     _load_formal_config,
     _render_history,
+    _render_query,
 )
 
 
 BDEV1_GATE = "exp001b_bdev1_non_core_calibration"
-BDEV2_GATE = "exp001b_bdev2_non_core_runner"
+BDEV2_GATE = "exp001b_bdev2_non_core_runner_v02"
 NON_CORE_LABELS = (("amber", "cobalt"), ("orbit", "prism"))
 
 
@@ -560,9 +561,99 @@ def _run_matched_context_probe(
     }
 
 
-def _run_generation_probe(adapter: Any, fixture: Mapping[str, Any]) -> dict[str, Any]:
+def build_non_core_formal_probe_trials(
+    formal_config: Mapping[str, Any],
+    matched_report: Mapping[str, Any],
+) -> list[dict[str, Any]]:
+    """Build 64 balanced non-Core trials with the exact formal prompt families."""
+    cases = matched_report.get("cases")
+    queries = formal_config["query_protocol"]["templates"]
+    if not isinstance(cases, list) or len(cases) != 64:
+        raise ValueError("formal probe requires all 64 B-Dev1 cases")
+    if not isinstance(queries, list) or len(queries) != 4:
+        raise ValueError("formal probe requires four query templates")
+    combos = ((0, 0), (0, 1), (1, 0), (1, 1))
+    labels = {
+        (identity, goal): {
+            "domain": NON_CORE_LABELS[0][identity],
+            "operation": NON_CORE_LABELS[1][goal],
+        }
+        for identity, goal in combos
+    }
+    codes = tuple("ABCD")
+    trials = []
+    for index, case in enumerate(cases):
+        block_index = index // 4
+        history_index = block_index // 4
+        filler_index = block_index % 4
+        rotation_index = (history_index + filler_index) % 4
+        query_index = (history_index + 2 * filler_index) % 4
+        rotated_codes = codes[rotation_index:] + codes[:rotation_index]
+        option_mapping = [
+            {
+                "code": code,
+                "identity": combo[0],
+                "goal": combo[1],
+                **labels[combo],
+            }
+            for combo, code in zip(combos, rotated_codes, strict=True)
+        ]
+        combo = int(case["identity"]), int(case["goal"])
+        target_code = next(
+            item["code"]
+            for item in option_mapping
+            if (item["identity"], item["goal"]) == combo
+        )
+        query_prompt = _render_query(
+            queries[query_index],
+            option_mapping=option_mapping,
+            assistant_prefix="<think></think",
+        )
+        trials.append(
+            {
+                "trial_id": "bdev2-formal-" + sha256_json(
+                    {
+                        "case_id": case["case_id"],
+                        "query_index": query_index,
+                        "rotation_index": rotation_index,
+                    }
+                )[:20],
+                "case_id": case["case_id"],
+                "history_template_id": case["history_template_id"],
+                "filler_variant_id": case["filler_variant_id"],
+                "query_template_id": queries[query_index]["id"],
+                "rotation_index": rotation_index,
+                "target_code": target_code,
+                "target_combo": list(combo),
+                "history_prompt": case["original_history"],
+                "query_prompt": query_prompt,
+                "option_mapping": option_mapping,
+            }
+        )
+    return trials
+
+
+def _prewarm_probe_shapes(adapter: Any, trials: Sequence[Mapping[str, Any]]) -> list[int]:
+    lengths = set()
+    for trial in trials:
+        history = trial["history_prompt"]
+        query = trial["query_prompt"]
+        lengths.add(len(adapter.encode(history)))
+        lengths.add(len(adapter.encode(history + "\n\n" + query)))
+    neutral_token = adapter.encode(" neutral")[0]
+    for length in sorted(lengths):
+        adapter.forward([neutral_token] * length, None)
+    return sorted(lengths)
+
+
+def _run_generation_probe(
+    adapter: Any,
+    trials: Sequence[Mapping[str, Any]],
+    *,
+    minimum_format_valid_rate: float,
+) -> dict[str, Any]:
     records = []
-    for trial in fixture["groups"][0]["trials"]:
+    for trial in trials:
         prompt = trial["history_prompt"] + "\n\n" + trial["query_prompt"]
         scores, logits, state, token_count, prefix = score_continuations_after_prefix(
             adapter,
@@ -580,6 +671,12 @@ def _run_generation_probe(adapter: Any, fixture: Mapping[str, Any]) -> dict[str,
         records.append(
             {
                 "trial_id": trial["trial_id"],
+                "case_id": trial["case_id"],
+                "target_code": trial["target_code"],
+                "history_template_id": trial["history_template_id"],
+                "query_template_id": trial["query_template_id"],
+                "filler_variant_id": trial["filler_variant_id"],
+                "rotation_index": trial["rotation_index"],
                 "prompt_token_count": token_count,
                 "option_scores": scores,
                 "forced_prefix": prefix,
@@ -592,37 +689,45 @@ def _run_generation_probe(adapter: Any, fixture: Mapping[str, Any]) -> dict[str,
         "report_version": "0.1-development",
         "development_only": True,
         "core_set_accessed": False,
+        "fixture_kind": "non_core_formal_prompt_family_v1",
         "record_count": len(records),
         "forced_prefix_greedy_exact_rate": prefix_rate,
         "format_valid_rate": format_rate,
+        "minimum_format_valid_rate": minimum_format_valid_rate,
         "records": records,
-        "valid": bool(len(records) == 16 and prefix_rate == 1.0 and format_rate == 1.0),
+        "valid": bool(
+            len(records) == 64
+            and prefix_rate == 1.0
+            and format_rate >= minimum_format_valid_rate
+        ),
     }
 
 
-def _run_fixture_state_norm_probe(
+def _run_formal_state_norm_probe(
     adapter: Any,
-    fixture: Mapping[str, Any],
+    trials: Sequence[Mapping[str, Any]],
     thresholds: Mapping[str, Any],
 ) -> dict[str, Any]:
-    representatives: dict[tuple[int, int], Mapping[str, Any]] = {}
-    for trial in fixture["groups"][0]["trials"]:
-        target = trial["target_fields"]
-        combo = int(target["identity"]), int(target["goal"])
-        representatives.setdefault(combo, trial)
     checks = []
-    for combo in sorted(representatives):
-        trial = representatives[combo]
+    for trial in trials:
         _, state = adapter.forward(adapter.encode(trial["history_prompt"]), None)
         result = evaluate_state_norms(_state_rms(state, adapter.torch), thresholds)
-        checks.append({"combo": list(combo), **result})
+        checks.append(
+            {
+                "trial_id": trial["trial_id"],
+                "case_id": trial["case_id"],
+                "combo": trial["target_combo"],
+                **result,
+            }
+        )
     return {
         "report_version": "0.1-development",
         "development_only": True,
         "core_set_accessed": False,
+        "fixture_kind": "non_core_formal_history_family_v1",
         "state_count": len(checks),
         "checks": checks,
-        "valid": bool(len(checks) == 4 and all(item["valid"] for item in checks)),
+        "valid": bool(len(checks) == 64 and all(item["valid"] for item in checks)),
     }
 
 
@@ -640,6 +745,8 @@ def run_exp001b_bdev2_gate(
     destination = Path(output_dir).resolve()
     started_at = datetime.now(timezone.utc)
     design = _load_confirmed_design(design_path)
+    formal_path = root / design["general_capability_controls"]["source_config"]
+    formal_config = _load_formal_config(formal_path, root)
     bdev1, thresholds = _verify_bdev1_evidence(
         bdev1_summary_path,
         bdev1_thresholds_path,
@@ -695,8 +802,29 @@ def run_exp001b_bdev2_gate(
         output_dir=destination / "condition_runner",
     )
     matched_probe = _run_matched_context_probe(adapter, fixture, matched_report)
-    generation_probe = _run_generation_probe(adapter, fixture)
-    norm_probe = _run_fixture_state_norm_probe(adapter, fixture, thresholds)
+    formal_trials = build_non_core_formal_probe_trials(formal_config, matched_report)
+    formal_probe_manifest = {
+        "manifest_version": "0.2-development",
+        "fixture_kind": "non_core_formal_prompt_family_v1",
+        "development_only": True,
+        "core_set_accessed": False,
+        "trial_count": len(formal_trials),
+        "trial_digest_sha256": sha256_json(formal_trials),
+        "trials": formal_trials,
+        "valid": len(formal_trials) == 64,
+    }
+    _write_json(destination / "formal_probe_manifest.json", formal_probe_manifest)
+    shape_warmup_token_lengths = _prewarm_probe_shapes(adapter, formal_trials)
+    generation_probe = _run_generation_probe(
+        adapter,
+        formal_trials,
+        minimum_format_valid_rate=float(
+            design["formal_generation_readout"]["thresholds"][
+                "minimum_format_valid_rate"
+            ]
+        ),
+    )
+    norm_probe = _run_formal_state_norm_probe(adapter, formal_trials, thresholds)
     design_conditions = design["general_capability_controls"]["conditions"]
     condition_alias_report = {
         "report_version": "0.1-development",
@@ -729,6 +857,7 @@ def run_exp001b_bdev2_gate(
     summary = {
         "summary_version": "0.1-development",
         "gate": BDEV2_GATE,
+        "revision_id": "formal-shaped-non-core-probes-v0.2",
         "started_at_utc": started_at.isoformat(),
         "finished_at_utc": datetime.now(timezone.utc).isoformat(),
         "development_only": True,
@@ -741,7 +870,13 @@ def run_exp001b_bdev2_gate(
         "load_seconds": load_seconds,
         "cuda_peak_memory_bytes": int(torch.cuda.max_memory_allocated()),
         "bdev1_summary_sha256": sha256_file(bdev1_summary_path),
+        "bdev1_thresholds_sha256": sha256_file(bdev1_thresholds_path),
+        "bdev1_matched_report_sha256": sha256_file(bdev1_matched_report_path),
         "bdev1_valid": bdev1["valid"],
+        "formal_probe_manifest_valid": formal_probe_manifest["valid"],
+        "formal_probe_manifest_digest_sha256": formal_probe_manifest[
+            "trial_digest_sha256"
+        ],
         "condition_runner_valid": runner_manifest.get("valid") is True,
         "condition_alias_valid": condition_alias_report["valid"],
         "condition_record_count": 128,
@@ -754,10 +889,14 @@ def run_exp001b_bdev2_gate(
         ],
         "format_valid_rate": generation_probe["format_valid_rate"],
         "state_norm_probe_valid": norm_probe["valid"],
+        "state_norm_record_count": norm_probe["state_count"],
+        "formal_probe_shape_warmup_token_lengths": shape_warmup_token_lengths,
+        "formal_probe_shape_warmup_excluded_from_scoring": True,
         "design_sha256": sha256_file(design_path),
         "reports": [
             "development_fixture.json",
             "condition_alias_report.json",
+            "formal_probe_manifest.json",
             "condition_runner/development_fixture.json",
             "condition_runner/manifest.json",
             "condition_runner/groups/devgrp-impl5b-noncore-v1.json",
@@ -769,6 +908,7 @@ def run_exp001b_bdev2_gate(
         "valid": bool(
             runner_manifest.get("valid") is True
             and condition_alias_report["valid"]
+            and formal_probe_manifest["valid"]
             and matched_probe["valid"]
             and generation_probe["valid"]
             and norm_probe["valid"]

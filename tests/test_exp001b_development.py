@@ -8,6 +8,7 @@ import unittest
 from psa.cli import build_parser
 from psa.supplemental.development import (
     _load_confirmed_design,
+    build_non_core_formal_probe_trials,
     empirical_quantile,
     evaluate_state_norms,
     fit_matched_context_history,
@@ -135,6 +136,57 @@ class Exp001BDevelopmentTests(unittest.TestCase):
         resolved = _load_formal_config(source, ROOT)
         self.assertIn("filler_protocol", resolved)
         self.assertEqual(resolved["filler_protocol"]["target_token_count"], 131)
+
+    def test_formal_shaped_probe_is_balanced_and_non_core(self) -> None:
+        design = _load_confirmed_design(DESIGN)
+        source = ROOT / design["general_capability_controls"]["source_config"]
+        formal = _load_formal_config(source, ROOT)
+        cases = []
+        for history_index in range(4):
+            for filler_index in range(4):
+                for identity in range(2):
+                    for goal in range(2):
+                        cases.append(
+                            {
+                                "case_id": (
+                                    f"case-h{history_index}-f{filler_index}-"
+                                    f"i{identity}-g{goal}"
+                                ),
+                                "history_template_id": (
+                                    f"formal-history-v3-0{history_index + 1}"
+                                ),
+                                "filler_variant_id": (
+                                    f"formal-filler-0{filler_index + 1}"
+                                ),
+                                "identity": identity,
+                                "goal": goal,
+                                "original_history": "NON CORE HISTORY",
+                            }
+                        )
+        trials = build_non_core_formal_probe_trials(
+            formal,
+            {"cases": cases},
+        )
+        self.assertEqual(len(trials), 64)
+        self.assertEqual(
+            {item["query_template_id"]: sum(
+                trial["query_template_id"] == item["query_template_id"]
+                for trial in trials
+            ) for item in trials},
+            {template["id"]: 16 for template in formal["query_protocol"]["templates"]},
+        )
+        self.assertEqual(
+            {rotation: sum(item["rotation_index"] == rotation for item in trials)
+             for rotation in range(4)},
+            {rotation: 16 for rotation in range(4)},
+        )
+        self.assertEqual(
+            {code: sum(item["target_code"] == code for item in trials)
+             for code in "ABCD"},
+            {code: 16 for code in "ABCD"},
+        )
+        self.assertTrue(all("amber" in item["query_prompt"] for item in trials))
+        self.assertTrue(all("cobalt" in item["query_prompt"] for item in trials))
 
 
 if __name__ == "__main__":
