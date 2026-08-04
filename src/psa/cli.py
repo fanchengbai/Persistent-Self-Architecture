@@ -46,8 +46,10 @@ from psa.state import (
 from psa.state.checkpoint import run_restore_probe
 from psa.supplemental import (
     build_exp001b_preregistration_candidate,
+    finalize_exp001b_preregistration_package,
     run_exp001b_bdev1_gate,
     run_exp001b_bdev2_gate,
+    verify_exp001b_final_preregistration_package,
 )
 from psa.tasks import generate_dataset
 from psa.validation import validate_dataset
@@ -680,6 +682,26 @@ def _exp001b_candidate_build(args: argparse.Namespace) -> int:
     return 0 if result["valid"] else 2
 
 
+def _exp001b_preregistration_finalize(args: argparse.Namespace) -> int:
+    result = finalize_exp001b_preregistration_package(
+        candidate_dir=args.candidate_dir,
+        confirmation_text=args.confirmation_text,
+        output_dir=args.output_dir,
+        project_root=args.project_root,
+    )
+    print(json.dumps(result, ensure_ascii=False, indent=2))
+    return 0 if result["valid"] else 2
+
+
+def _exp001b_preregistration_verify(args: argparse.Namespace) -> int:
+    result = verify_exp001b_final_preregistration_package(
+        args.package_dir,
+        project_root=args.project_root,
+    )
+    print(json.dumps(result, ensure_ascii=False, indent=2))
+    return 0 if result["valid"] else 2
+
+
 def _confirmatory_run(args: argparse.Namespace) -> int:
     result = run_exp001_confirmatory(
         project_root=args.project_root,
@@ -1077,6 +1099,27 @@ def build_parser() -> argparse.ArgumentParser:
     exp001b_candidate.add_argument("--output-dir", required=True)
     exp001b_candidate.add_argument("--project-root", default=".")
     exp001b_candidate.set_defaults(handler=_exp001b_candidate_build)
+
+    exp001b_finalize = subparsers.add_parser(
+        "exp001b-preregistration-finalize",
+        help=(
+            "upgrade the exactly confirmed EXP-001B checksum candidate to a "
+            "final preregistration package without generating a supplemental set"
+        ),
+    )
+    exp001b_finalize.add_argument("--candidate-dir", required=True)
+    exp001b_finalize.add_argument("--confirmation-text", required=True)
+    exp001b_finalize.add_argument("--output-dir", required=True)
+    exp001b_finalize.add_argument("--project-root", default=".")
+    exp001b_finalize.set_defaults(handler=_exp001b_preregistration_finalize)
+
+    exp001b_final_verify = subparsers.add_parser(
+        "exp001b-preregistration-final-verify",
+        help="independently verify the frozen EXP-001B preregistration package",
+    )
+    exp001b_final_verify.add_argument("--package-dir", required=True)
+    exp001b_final_verify.add_argument("--project-root", default=".")
+    exp001b_final_verify.set_defaults(handler=_exp001b_preregistration_verify)
 
     confirmatory_run = subparsers.add_parser(
         "confirmatory-run",
