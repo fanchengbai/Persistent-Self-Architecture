@@ -212,3 +212,8 @@ EXP-001B最终预注册包已经冻结，最终digest为
 项目负责人随后逐字确认该加固版digest与最终预注册digest，授权生成并冻结固定
 11,008条补充记录，并明确不授权运行正式补充实验。当前权限因此只推进到数据包
 生成与独立完整性验证；生成完成后状态仍必须是`supplemental_set_frozen_unrun`。
+
+补充集已在云端按该权限生成并通过独立验证：总计11,008条，4个锁定文件零失败，
+set digest为`7c3606be819d4e6cc5420f0bf36efd1906f8954d362d83e912785cc943565d33`，
+package digest为`68e9a9a79fe4e493a0c64ba8c0278c300cc832d940ab902feaceb4ad7f9d5954`。
+包状态为`supplemental_set_frozen_unrun`，正式实验授权、运行和结果观察仍全部为false。
