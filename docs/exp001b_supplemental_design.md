@@ -174,3 +174,25 @@ B-Dev2 v0.2不改8条件runner、matched-context、阈值或正式设计，只�
 四个filler、四个答案位置各自平衡为16条；正式格式阈值仍为0.99，因此64条中必须
 64条全部格式有效。State norm也只比较同一正式形状族，避免把任意短prompt误当成
 正式state异常。v0.2写入新目录，不覆盖v0.1失败报告。
+
+## 11. 生成基础设施状态（2026-08-04）
+
+EXP-001B最终预注册包已经冻结，最终digest为
+`976cce8c9e3b53bca2d21ae43f273228c45dfc4607f5b652a3d5b5cdc5d823be`。
+当前已实现下一阶段所需工具，但没有借此扩大授权：
+
+- `exp001b-set-preflight`只核对最终包、父Core Set包、固定digest和记录预算，
+  不加载模型、不评分试题、不生成数据；
+- `exp001b-set-generate`固定生成5,120条matched-context、5,120条生成读出和
+  768条控制条件记录；
+- 生成入口同时要求项目负责人授权文件与
+  `PSA_EXP001B_SET_GENERATE=AUTHORIZED_EXP001B_SET_GENERATION`执行锁；
+- 授权原文必须同时绑定云端实时预检digest和最终预注册digest；源码、主机或包状态
+  改变后，旧预检对应的授权不能复用；
+- `exp001b-set-verify`独立检查记录数量、唯一ID、文件SHA-256、payload root、
+  set digest、package digest和“实验仍未授权/未运行/未观察”边界；
+- 生成成功只会把状态推进到`supplemental_set_frozen_unrun`，不会运行模型。
+
+因此当前准确状态是“工具完成、等待补充集生成授权”。在项目负责人给出新的、
+精确绑定最终预注册digest和11,008条记录预算的授权前，不得运行正式生成脚本。
+即使以后补充集获准生成并冻结，正式补充实验仍需要另一次独立授权。

@@ -3,6 +3,7 @@ from __future__ import annotations
 import argparse
 from datetime import datetime, timezone
 import json
+import os
 from pathlib import Path
 import sys
 from typing import Any
@@ -37,6 +38,7 @@ from psa.preregistration import (
     verify_core_set_package,
     verify_preregistration_candidate,
 )
+from psa.preregistration.core_set import _load_token_counter
 from psa.state import (
     run_checkpoint_roundtrip_gate,
     run_random_state_gate,
@@ -45,11 +47,14 @@ from psa.state import (
 )
 from psa.state.checkpoint import run_restore_probe
 from psa.supplemental import (
+    build_exp001b_set_preflight,
     build_exp001b_preregistration_candidate,
     finalize_exp001b_preregistration_package,
+    generate_and_freeze_exp001b_supplemental_set,
     run_exp001b_bdev1_gate,
     run_exp001b_bdev2_gate,
     verify_exp001b_final_preregistration_package,
+    verify_exp001b_supplemental_set_package,
 )
 from psa.tasks import generate_dataset
 from psa.validation import validate_dataset
@@ -702,6 +707,46 @@ def _exp001b_preregistration_verify(args: argparse.Namespace) -> int:
     return 0 if result["valid"] else 2
 
 
+def _exp001b_set_preflight(args: argparse.Namespace) -> int:
+    result = build_exp001b_set_preflight(
+        final_package_dir=args.final_package,
+        core_set_package_dir=args.core_set_package,
+        project_root=args.project_root,
+    )
+    _write_json(Path(args.output), result)
+    print(json.dumps(result, ensure_ascii=False, indent=2))
+    return 0 if result["valid"] else 2
+
+
+def _exp001b_set_generate(args: argparse.Namespace) -> int:
+    execution_lock = os.environ.get("PSA_EXP001B_SET_GENERATE", "")
+    if execution_lock != "AUTHORIZED_EXP001B_SET_GENERATION":
+        raise PermissionError("EXP-001B supplemental-set execution lock is absent")
+    root = Path(args.project_root).resolve()
+    counter, provenance = _load_token_counter(
+        {"model_config": str(Path(args.model_config).resolve())}, root
+    )
+    result = generate_and_freeze_exp001b_supplemental_set(
+        final_package_dir=args.final_package,
+        core_set_package_dir=args.core_set_package,
+        authorization_path=args.authorization,
+        formal_config_path=args.formal_config,
+        output_dir=args.output_dir,
+        token_counter=counter,
+        tokenizer_provenance=provenance,
+        execution_lock=execution_lock,
+        project_root=root,
+    )
+    print(json.dumps(result, ensure_ascii=False, indent=2))
+    return 0 if result["valid"] else 2
+
+
+def _exp001b_set_verify(args: argparse.Namespace) -> int:
+    result = verify_exp001b_supplemental_set_package(args.package_dir)
+    print(json.dumps(result, ensure_ascii=False, indent=2))
+    return 0 if result["valid"] else 2
+
+
 def _confirmatory_run(args: argparse.Namespace) -> int:
     result = run_exp001_confirmatory(
         project_root=args.project_root,
@@ -1120,6 +1165,42 @@ def build_parser() -> argparse.ArgumentParser:
     exp001b_final_verify.add_argument("--package-dir", required=True)
     exp001b_final_verify.add_argument("--project-root", default=".")
     exp001b_final_verify.set_defaults(handler=_exp001b_preregistration_verify)
+
+    exp001b_set_preflight = subparsers.add_parser(
+        "exp001b-set-preflight",
+        help=(
+            "verify the frozen EXP-001B and parent Core Set packages without "
+            "loading a model, generating a supplemental set, or scoring a trial"
+        ),
+    )
+    exp001b_set_preflight.add_argument("--final-package", required=True)
+    exp001b_set_preflight.add_argument("--core-set-package", required=True)
+    exp001b_set_preflight.add_argument("--output", required=True)
+    exp001b_set_preflight.add_argument("--project-root", default=".")
+    exp001b_set_preflight.set_defaults(handler=_exp001b_set_preflight)
+
+    exp001b_set_generate = subparsers.add_parser(
+        "exp001b-set-generate",
+        help=(
+            "deterministically generate and freeze the 11,008-record EXP-001B "
+            "supplemental set only with exact owner authorization and execution lock"
+        ),
+    )
+    exp001b_set_generate.add_argument("--final-package", required=True)
+    exp001b_set_generate.add_argument("--core-set-package", required=True)
+    exp001b_set_generate.add_argument("--authorization", required=True)
+    exp001b_set_generate.add_argument("--formal-config", required=True)
+    exp001b_set_generate.add_argument("--model-config", required=True)
+    exp001b_set_generate.add_argument("--output-dir", required=True)
+    exp001b_set_generate.add_argument("--project-root", default=".")
+    exp001b_set_generate.set_defaults(handler=_exp001b_set_generate)
+
+    exp001b_set_verify = subparsers.add_parser(
+        "exp001b-set-verify",
+        help="independently verify a frozen, unrun EXP-001B supplemental-set package",
+    )
+    exp001b_set_verify.add_argument("--package-dir", required=True)
+    exp001b_set_verify.set_defaults(handler=_exp001b_set_verify)
 
     confirmatory_run = subparsers.add_parser(
         "confirmatory-run",

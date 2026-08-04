@@ -14,6 +14,12 @@ from psa.supplemental.finalize import (
     finalize_exp001b_preregistration_package,
     verify_exp001b_final_preregistration_package,
 )
+from psa.supplemental.set_generation import (
+    build_exp001b_set_preflight,
+    expected_set_authorization_text,
+    generate_and_freeze_exp001b_supplemental_set,
+    verify_exp001b_supplemental_set_package,
+)
 
 __all__ = [
     "build_non_core_calibration_cases",
@@ -26,4 +32,8 @@ __all__ = [
     "verify_exp001b_preregistration_candidate",
     "finalize_exp001b_preregistration_package",
     "verify_exp001b_final_preregistration_package",
+    "build_exp001b_set_preflight",
+    "expected_set_authorization_text",
+    "generate_and_freeze_exp001b_supplemental_set",
+    "verify_exp001b_supplemental_set_package",
 ]

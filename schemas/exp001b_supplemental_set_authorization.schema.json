@@ -1,0 +1,43 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://persistent-self-architecture.local/exp001b_supplemental_set_authorization.schema.json",
+  "title": "EXP-001B Supplemental Set Generation Authorization",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "authorization_version",
+    "experiment_id",
+    "final_preregistration_digest_sha256",
+    "parent_core_set_digest_sha256",
+    "set_preflight_digest_sha256",
+    "authorized_by_role",
+    "authorized_at_utc",
+    "authorization_text",
+    "authorization",
+    "total_record_count"
+  ],
+  "properties": {
+    "authorization_version": {"const": "0.1"},
+    "experiment_id": {"const": "EXP-001B"},
+    "final_preregistration_digest_sha256": {
+      "const": "976cce8c9e3b53bca2d21ae43f273228c45dfc4607f5b652a3d5b5cdc5d823be"
+    },
+    "parent_core_set_digest_sha256": {
+      "const": "6ea2b6be15a7728c96d84dcc8e48da64e740438980f818e78c8ee8570a47eb9d"
+    },
+    "set_preflight_digest_sha256": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{64}$"
+    },
+    "authorized_by_role": {"const": "project_owner"},
+    "authorized_at_utc": {"type": "string", "format": "date-time"},
+    "authorization_text": {"type": "string", "minLength": 200},
+    "authorization": {
+      "const": {
+        "generate_and_freeze_supplemental_set": true,
+        "run_supplemental_experiment": false
+      }
+    },
+    "total_record_count": {"const": 11008}
+  }
+}
