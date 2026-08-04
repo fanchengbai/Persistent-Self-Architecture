@@ -1,0 +1,53 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "EXP-001B Supplemental Run Authorization",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "authorization_version",
+    "experiment_id",
+    "authorized_by_role",
+    "authorized_at_utc",
+    "authorization_text",
+    "preflight_digest_sha256",
+    "final_preregistration_digest_sha256",
+    "parent_core_set_digest_sha256",
+    "parent_core_set_package_digest_sha256",
+    "supplemental_set_digest_sha256",
+    "supplemental_set_package_digest_sha256",
+    "model_id",
+    "authorization"
+  ],
+  "properties": {
+    "authorization_version": {"const": "1.0"},
+    "experiment_id": {"const": "EXP-001B"},
+    "authorized_by_role": {"const": "project_owner"},
+    "authorized_at_utc": {"type": "string", "minLength": 20},
+    "authorization_text": {"type": "string", "minLength": 20},
+    "preflight_digest_sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+    "final_preregistration_digest_sha256": {"const": "976cce8c9e3b53bca2d21ae43f273228c45dfc4607f5b652a3d5b5cdc5d823be"},
+    "parent_core_set_digest_sha256": {"const": "6ea2b6be15a7728c96d84dcc8e48da64e740438980f818e78c8ee8570a47eb9d"},
+    "parent_core_set_package_digest_sha256": {"const": "9659e286de4128b43226f2d6df27075eba60bd953c2330ee70c0ec3e677f1642"},
+    "supplemental_set_digest_sha256": {"const": "7c3606be819d4e6cc5420f0bf36efd1906f8954d362d83e912785cc943565d33"},
+    "supplemental_set_package_digest_sha256": {"const": "68e9a9a79fe4e493a0c64ba8c0278c300cc832d940ab902feaceb4ad7f9d5954"},
+    "model_id": {"const": "rwkv7-g1h-2.9b-20260710"},
+    "authorization": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "run_supplemental_experiment",
+        "observe_results_after_full_completion",
+        "modify_frozen_design",
+        "automatic_rerun_after_results",
+        "rerun_exp001_primary_experiment"
+      ],
+      "properties": {
+        "run_supplemental_experiment": {"const": true},
+        "observe_results_after_full_completion": {"const": true},
+        "modify_frozen_design": {"const": false},
+        "automatic_rerun_after_results": {"const": false},
+        "rerun_exp001_primary_experiment": {"const": false}
+      }
+    }
+  }
+}

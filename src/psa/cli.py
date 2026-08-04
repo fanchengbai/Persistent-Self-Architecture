@@ -47,14 +47,18 @@ from psa.state import (
 )
 from psa.state.checkpoint import run_restore_probe
 from psa.supplemental import (
+    build_exp001b_run_preflight,
     build_exp001b_set_preflight,
     build_exp001b_preregistration_candidate,
     finalize_exp001b_preregistration_package,
     generate_and_freeze_exp001b_supplemental_set,
     run_exp001b_bdev1_gate,
     run_exp001b_bdev2_gate,
+    run_exp001b_runner_development_gate,
+    run_exp001b_supplemental,
     verify_exp001b_final_preregistration_package,
     verify_exp001b_supplemental_set_package,
+    verify_exp001b_supplemental_raw_package,
 )
 from psa.tasks import generate_dataset
 from psa.validation import validate_dataset
@@ -747,6 +751,68 @@ def _exp001b_set_verify(args: argparse.Namespace) -> int:
     return 0 if result["valid"] else 2
 
 
+def _exp001b_runner_dev_gate(args: argparse.Namespace) -> int:
+    result = run_exp001b_runner_development_gate(
+        model_config_path=args.model_config,
+        bdev1_thresholds_path=args.bdev1_thresholds,
+        output_dir=args.output_dir,
+        project_root=args.project_root,
+    )
+    print(json.dumps(result, ensure_ascii=False, indent=2))
+    return 0 if result["valid"] else 2
+
+
+def _exp001b_run_preflight(args: argparse.Namespace) -> int:
+    result = build_exp001b_run_preflight(
+        project_root=args.project_root,
+        final_package_dir=args.final_package,
+        core_set_package_dir=args.core_set_package,
+        supplemental_set_package_dir=args.supplemental_set_package,
+        model_config_path=args.model_config,
+        asset_manifest_path=args.asset_manifest,
+        asset_root=args.asset_root,
+        runner_evidence_path=args.runner_evidence,
+    )
+    _write_json(Path(args.output), result)
+    print(json.dumps(result, ensure_ascii=False, indent=2))
+    return 0 if result["valid"] else 2
+
+
+def _exp001b_run(args: argparse.Namespace) -> int:
+    if os.environ.get("PSA_EXP001B_RUN", "") != "AUTHORIZED_EXP001B_SUPPLEMENTAL_RUN":
+        raise PermissionError("EXP-001B supplemental run execution lock is absent")
+    result = run_exp001b_supplemental(
+        project_root=args.project_root,
+        final_package_dir=args.final_package,
+        core_set_package_dir=args.core_set_package,
+        supplemental_set_package_dir=args.supplemental_set_package,
+        model_config_path=args.model_config,
+        asset_manifest_path=args.asset_manifest,
+        asset_root=args.asset_root,
+        runner_evidence_path=args.runner_evidence,
+        preflight_path=args.preflight,
+        authorization_path=args.authorization,
+        output_dir=args.output_dir,
+        resume=args.resume,
+        execution_lock=os.environ.get("PSA_EXP001B_RUN", ""),
+    )
+    print(json.dumps(result, ensure_ascii=False, indent=2))
+    return 0 if result["valid"] else 2
+
+
+def _exp001b_raw_verify(args: argparse.Namespace) -> int:
+    result = verify_exp001b_supplemental_raw_package(
+        output_dir=args.output_dir,
+        core_set_package_dir=args.core_set_package,
+        supplemental_set_package_dir=args.supplemental_set_package,
+        preflight_path=args.preflight,
+        authorization_path=args.authorization,
+    )
+    _write_json(Path(args.output), result)
+    print(json.dumps(result, ensure_ascii=False, indent=2))
+    return 0 if result["valid"] else 2
+
+
 def _confirmatory_run(args: argparse.Namespace) -> int:
     result = run_exp001_confirmatory(
         project_root=args.project_root,
@@ -1201,6 +1267,73 @@ def build_parser() -> argparse.ArgumentParser:
     )
     exp001b_set_verify.add_argument("--package-dir", required=True)
     exp001b_set_verify.set_defaults(handler=_exp001b_set_verify)
+
+    exp001b_runner_dev = subparsers.add_parser(
+        "exp001b-runner-dev-gate",
+        help=(
+            "exercise the exact EXP-001B formal record router with an explicit "
+            "non-Core fixture and without reading the frozen supplemental set"
+        ),
+    )
+    exp001b_runner_dev.add_argument("--model-config", required=True)
+    exp001b_runner_dev.add_argument("--bdev1-thresholds", required=True)
+    exp001b_runner_dev.add_argument("--output-dir", required=True)
+    exp001b_runner_dev.add_argument("--project-root", default=".")
+    exp001b_runner_dev.set_defaults(handler=_exp001b_runner_dev_gate)
+
+    exp001b_run_preflight = subparsers.add_parser(
+        "exp001b-run-preflight",
+        help=(
+            "verify the frozen EXP-001B packages, runner evidence, assets, "
+            "environment, and source digests without loading the model"
+        ),
+    )
+    exp001b_run_preflight.add_argument("--final-package", required=True)
+    exp001b_run_preflight.add_argument("--core-set-package", required=True)
+    exp001b_run_preflight.add_argument("--supplemental-set-package", required=True)
+    exp001b_run_preflight.add_argument("--model-config", required=True)
+    exp001b_run_preflight.add_argument("--asset-manifest", required=True)
+    exp001b_run_preflight.add_argument("--asset-root", default=".psa-assets")
+    exp001b_run_preflight.add_argument("--runner-evidence")
+    exp001b_run_preflight.add_argument("--output", required=True)
+    exp001b_run_preflight.add_argument("--project-root", default=".")
+    exp001b_run_preflight.set_defaults(handler=_exp001b_run_preflight)
+
+    exp001b_run = subparsers.add_parser(
+        "exp001b-run",
+        help=(
+            "run the complete frozen EXP-001B supplemental experiment only "
+            "after exact project-owner authorization"
+        ),
+    )
+    exp001b_run.add_argument("--final-package", required=True)
+    exp001b_run.add_argument("--core-set-package", required=True)
+    exp001b_run.add_argument("--supplemental-set-package", required=True)
+    exp001b_run.add_argument("--model-config", required=True)
+    exp001b_run.add_argument("--asset-manifest", required=True)
+    exp001b_run.add_argument("--asset-root", default=".psa-assets")
+    exp001b_run.add_argument("--runner-evidence", required=True)
+    exp001b_run.add_argument("--preflight", required=True)
+    exp001b_run.add_argument("--authorization", required=True)
+    exp001b_run.add_argument("--output-dir", required=True)
+    exp001b_run.add_argument("--resume", action="store_true")
+    exp001b_run.add_argument("--project-root", default=".")
+    exp001b_run.set_defaults(handler=_exp001b_run)
+
+    exp001b_raw_verify = subparsers.add_parser(
+        "exp001b-raw-verify",
+        help=(
+            "verify the complete EXP-001B raw package without deriving or "
+            "reporting research metrics"
+        ),
+    )
+    exp001b_raw_verify.add_argument("--output-dir", required=True)
+    exp001b_raw_verify.add_argument("--core-set-package", required=True)
+    exp001b_raw_verify.add_argument("--supplemental-set-package", required=True)
+    exp001b_raw_verify.add_argument("--preflight", required=True)
+    exp001b_raw_verify.add_argument("--authorization", required=True)
+    exp001b_raw_verify.add_argument("--output", required=True)
+    exp001b_raw_verify.set_defaults(handler=_exp001b_raw_verify)
 
     confirmatory_run = subparsers.add_parser(
         "confirmatory-run",

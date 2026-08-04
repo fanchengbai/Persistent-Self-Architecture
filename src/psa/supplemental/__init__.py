@@ -20,6 +20,19 @@ from psa.supplemental.set_generation import (
     generate_and_freeze_exp001b_supplemental_set,
     verify_exp001b_supplemental_set_package,
 )
+from psa.supplemental.formal_run import (
+    build_exp001b_run_preflight,
+    build_supplemental_group_plan,
+    execute_supplemental_group,
+    prepare_exp001b_launch,
+    run_exp001b_supplemental,
+    run_locked_exp001b_groups,
+    verify_exp001b_run_authorization,
+    verify_exp001b_supplemental_raw_package,
+)
+from psa.supplemental.run_development import (
+    run_exp001b_runner_development_gate,
+)
 
 __all__ = [
     "build_non_core_calibration_cases",
@@ -36,4 +49,13 @@ __all__ = [
     "expected_set_authorization_text",
     "generate_and_freeze_exp001b_supplemental_set",
     "verify_exp001b_supplemental_set_package",
+    "build_exp001b_run_preflight",
+    "build_supplemental_group_plan",
+    "execute_supplemental_group",
+    "prepare_exp001b_launch",
+    "run_exp001b_supplemental",
+    "run_locked_exp001b_groups",
+    "verify_exp001b_run_authorization",
+    "verify_exp001b_supplemental_raw_package",
+    "run_exp001b_runner_development_gate",
 ]

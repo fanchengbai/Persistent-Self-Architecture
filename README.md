@@ -330,6 +330,23 @@ Phase 0 → Phase 1 — Research Design / State Infrastructure
     仍标记为未观察。下一步先用独立验证器复核每个组文件、SHA-256账本、授权链
     和总payload digest；验证通过前不进入统计分析。
 
+## EXP-001B 正式运行边界
+
+EXP-001B 的11,008条补充记录已经冻结，但“数据已经准备好”并不等于“实验已经获准运行”。
+正式运行基础设施把它们按父Core Set的320组组织为224个32条组和96个40条组，逐组原子保存；
+中断后只能显式续跑，完整结束后不能自动重跑。运行期间只记录原始A–D分数、生成文本和必要诊断，
+不计算准确率、不产生中间研究结论。
+
+正式运行前必须依次通过：
+
+1. `scripts/run_exp001b_runner_development_gate.sh`：只用非Core文本和真实2.9B模型覆盖三类记录路由；
+2. `scripts/preflight_exp001b_supplemental_run.sh`：不加载模型，绑定冻结包、源码、资产和主机环境并产生新checksum；
+3. 项目负责人对该完整checksum和运行范围作出新的逐字授权；此前任何授权都不能复用。
+
+当前仍未授权、未运行EXP-001B正式补充实验，也未观察补充实验结果。
+
+详细说明见[EXP-001B正式运行准备](docs/exp001b_formal_run.md)。
+
 ## 项目文档
 
 - [项目简介](PROJECT_OVERVIEW.md)
