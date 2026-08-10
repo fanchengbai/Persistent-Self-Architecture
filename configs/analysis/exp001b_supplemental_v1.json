@@ -1,12 +1,17 @@
 {
   "analysis_id": "EXP-001B-supplemental-v1",
-  "analysis_version": "1.0",
+  "analysis_version": "1.1-pre-observation-contingency",
   "experiment_id": "EXP-001B",
   "parent_experiment_id": "EXP-001",
   "expected_parent_raw_payload_digest_sha256": "db4ba70ed521b55f23c4fc0ddafd2fb09af3cbe0132c0f065358a96f858b5ba7",
   "expected_supplemental_raw_payload_digest_sha256": "6926a932220f34b37c6b4e86fa65edc230e414726bd2d4d308bf471d1af290f6",
   "expected_group_count": 320,
   "expected_supplemental_record_count": 11008,
+  "parent_reference_policy": {
+    "required_for_matched_context_decision": true,
+    "if_unavailable": "analyze_supplemental_only_and_mark_matched_context_not_assessable",
+    "surrogate_or_rerun_forbidden": true
+  },
   "bootstrap": {
     "unit": "factorial_group",
     "replicates": 10000,

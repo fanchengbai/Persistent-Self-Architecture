@@ -26,7 +26,7 @@ from psa.supplemental.set_generation import (
 EXPECTED_GROUP_COUNT = 320
 EXPECTED_SUPPLEMENTAL_RECORD_COUNT = 11_008
 EXPECTED_PARENT_RAW_RECORD_COUNT = 40_960
-EXPECTED_ANALYSIS_CONFIG_SHA256 = "2c49170f01e79a721fe93bb49856187c4b397ff51dc80bf0631eb88dd283d26a"
+EXPECTED_ANALYSIS_CONFIG_SHA256 = "e7b1aff62004f545636905c399ca3c48f1d31f56a2c59b51d7c4ac66c0120d31"
 COMBOS = ((0, 0), (0, 1), (1, 0), (1, 1))
 CONTROL_CONDITIONS = (
     "continuous",
@@ -149,7 +149,7 @@ def _prefix_valid(output: Mapping[str, Any]) -> bool:
 def analyze_supplemental_group(
     *,
     core_group: Mapping[str, Any],
-    parent_payload: Mapping[str, Any],
+    parent_payload: Mapping[str, Any] | None,
     supplemental_payload: Mapping[str, Any],
     frozen_matched: Sequence[Mapping[str, Any]],
     frozen_generation: Sequence[Mapping[str, Any]],
@@ -164,12 +164,16 @@ def analyze_supplemental_group(
     }
     if len(outputs_by_id) != len(records):
         raise ValueError("supplemental group contains duplicate record IDs")
-    continuous = _semantic_condition_scores(core_group, parent_payload)["continuous"]
     matched = _semantic_rotated_scores(frozen_matched, outputs_by_id)
-    matched_delta = mean(
-        joint_margin(continuous[combo], combo) - joint_margin(matched[combo], combo)
-        for combo in COMBOS
-    )
+    matched_margin = mean(joint_margin(matched[combo], combo) for combo in COMBOS)
+    matched_delta = None
+    if parent_payload is not None:
+        continuous = _semantic_condition_scores(core_group, parent_payload)["continuous"]
+        matched_delta = mean(
+            joint_margin(continuous[combo], combo)
+            - joint_margin(matched[combo], combo)
+            for combo in COMBOS
+        )
     matched_outputs = [outputs_by_id[str(item["record_id"])] for item in frozen_matched]
     norm_alert_count = sum(
         int(item.get("metadata", {}).get("state_norm_alert_count", 0))
@@ -218,6 +222,7 @@ def analyze_supplemental_group(
     return {
         "factorial_group_id": core_group["factorial_group_id"],
         "matched_context": {
+            "matched_joint_margin": matched_margin,
             "continuous_minus_matched_joint_margin": matched_delta,
             "state_norm_alert_count": norm_alert_count,
             "state_norm_max_alert_ratio": max_alert_ratio,
@@ -319,29 +324,44 @@ def summarize_supplemental_analysis(
     config: Mapping[str, Any],
 ) -> dict[str, Any]:
     bootstrap = config["bootstrap"]
-    matched_values = [
-        float(group["matched_context"]["continuous_minus_matched_joint_margin"])
+    matched_deltas = [
+        group["matched_context"].get("continuous_minus_matched_joint_margin")
         for group in groups
     ]
-    matched = _describe(
-        matched_values,
+    matched_assessable = all(value is not None for value in matched_deltas)
+    matched_descriptive = _describe(
+        [float(group["matched_context"]["matched_joint_margin"]) for group in groups],
         bootstrap=bootstrap,
-        permutation=config["permutation"],
     )
     matched_alerts = sum(
         int(group["matched_context"]["state_norm_alert_count"]) for group in groups
     )
     matched_cfg = config["matched_context"]
-    matched_go = bool(
-        matched["mean"] >= float(matched_cfg["mean_joint_margin_advantage_sesoi"])
-        and matched["confidence_interval"][0]
-        > float(matched_cfg["confidence_interval_lower_must_exceed"])
-        and matched["raw_p_value"] < float(matched_cfg["one_sided_p_below"])
-        and (
-            not matched_cfg.get("require_zero_state_norm_alerts", False)
-            or matched_alerts == 0
+    if matched_assessable:
+        matched = _describe(
+            [float(value) for value in matched_deltas],
+            bootstrap=bootstrap,
+            permutation=config["permutation"],
         )
-    )
+        matched_go = bool(
+            matched["mean"]
+            >= float(matched_cfg["mean_joint_margin_advantage_sesoi"])
+            and matched["confidence_interval"][0]
+            > float(matched_cfg["confidence_interval_lower_must_exceed"])
+            and matched["raw_p_value"] < float(matched_cfg["one_sided_p_below"])
+            and (
+                not matched_cfg.get("require_zero_state_norm_alerts", False)
+                or matched_alerts == 0
+            )
+        )
+        matched["status"] = "assessed"
+    else:
+        matched = {
+            "status": "not_assessable_missing_parent_reference",
+            "factorial_group_count": len(groups),
+            "descriptive_matched_context_joint_margin": matched_descriptive,
+        }
+        matched_go = False
     matched["state_norm_alert_count"] = matched_alerts
     matched["go"] = matched_go
 
@@ -394,7 +414,11 @@ def summarize_supplemental_analysis(
     measured_controls_go = controls.get("measured_alerts_pass") is True
     diagnostics_complete = controls.get("required_diagnostics_complete") is True
     measured_package_go = matched_go and generation_go and measured_controls_go
-    if not measured_package_go:
+    if not matched_assessable:
+        gate_status = "not_assessable_no_full_go"
+        route = "hold_phase_2_missing_parent_reference"
+        allowed = "supplemental_only_metrics_reported_without_matched_context_decision"
+    elif not measured_package_go:
         gate_status = "revise_or_stop_measured_supplemental_control_failure"
         route = "review_frozen_failures_without_rerun"
         allowed = "supplemental_measured_controls_do_not_close_phase_2"
@@ -408,6 +432,7 @@ def summarize_supplemental_analysis(
         allowed = "exp001_and_exp001b_close_phase_2_behavioral_control_package"
     return {
         "matched_context": matched,
+        "matched_context_assessable": matched_assessable,
         "controls": dict(controls),
         "generation": generation,
         "measured_supplemental_package_go": measured_package_go,
@@ -421,8 +446,8 @@ def summarize_supplemental_analysis(
 
 def run_exp001b_supplemental_analysis(
     *,
-    parent_raw_output_dir: str | Path,
-    parent_raw_verification_path: str | Path,
+    parent_raw_output_dir: str | Path | None,
+    parent_raw_verification_path: str | Path | None,
     supplemental_raw_output_dir: str | Path,
     supplemental_raw_verification_path: str | Path,
     core_set_package_dir: str | Path,
@@ -432,7 +457,12 @@ def run_exp001b_supplemental_analysis(
     project_root: str | Path,
 ) -> dict[str, Any]:
     root = Path(project_root).resolve()
-    parent_raw = Path(parent_raw_output_dir).resolve()
+    if (parent_raw_output_dir is None) != (parent_raw_verification_path is None):
+        raise ValueError("parent raw directory and verification must be provided together")
+    parent_reference_available = parent_raw_output_dir is not None
+    parent_raw = (
+        Path(parent_raw_output_dir).resolve() if parent_raw_output_dir is not None else None
+    )
     supplemental_raw = Path(supplemental_raw_output_dir).resolve()
     core_root = Path(core_set_package_dir).resolve()
     set_root = Path(supplemental_set_package_dir).resolve()
@@ -443,15 +473,27 @@ def run_exp001b_supplemental_analysis(
     if sha256_file(config_path) != EXPECTED_ANALYSIS_CONFIG_SHA256:
         raise ValueError("analysis config differs from the pinned pre-observation plan")
     config = _load_object(config_path, "EXP-001B analysis config")
-    parent_verification = _load_object(parent_raw_verification_path, "parent raw verification")
+    parent_verification = (
+        _load_object(parent_raw_verification_path, "parent raw verification")
+        if parent_raw_verification_path is not None
+        else None
+    )
     supplemental_verification = _load_object(
         supplemental_raw_verification_path, "supplemental raw verification"
     )
-    parent_completion = _load_object(parent_raw / "completion.json", "parent completion")
+    parent_completion = (
+        _load_object(parent_raw / "completion.json", "parent completion")
+        if parent_raw is not None
+        else None
+    )
     supplemental_completion = _load_object(
         supplemental_raw / "completion.json", "supplemental completion"
     )
-    parent_manifest = _load_object(parent_raw / "manifest.json", "parent manifest")
+    parent_manifest = (
+        _load_object(parent_raw / "manifest.json", "parent manifest")
+        if parent_raw is not None
+        else None
+    )
     supplemental_manifest = _load_object(
         supplemental_raw / "manifest.json", "supplemental manifest"
     )
@@ -469,11 +511,15 @@ def run_exp001b_supplemental_analysis(
     ]
     prerequisites = {
         "parent_raw_verification_valid": (
-            parent_verification.get("valid") is True
-            and parent_verification.get("failed_checks") == []
-            and parent_verification.get("failed_group_count") == 0
-            and parent_verification.get("verified_record_count")
-            == EXPECTED_PARENT_RAW_RECORD_COUNT
+            not parent_reference_available
+            or (
+                parent_verification is not None
+                and parent_verification.get("valid") is True
+                and parent_verification.get("failed_checks") == []
+                and parent_verification.get("failed_group_count") == 0
+                and parent_verification.get("verified_record_count")
+                == EXPECTED_PARENT_RAW_RECORD_COUNT
+            )
         ),
         "supplemental_raw_verification_valid": (
             supplemental_verification.get("valid") is True
@@ -485,10 +531,16 @@ def run_exp001b_supplemental_analysis(
             == EXPECTED_SUPPLEMENTAL_RECORD_COUNT
         ),
         "parent_raw_payload_bound": (
-            parent_verification.get("group_payload_digest_sha256")
-            == parent_completion.get("group_payload_digest_sha256")
-            == parent_manifest.get("group_payload_digest_sha256")
-            == expected_parent_digest
+            not parent_reference_available
+            or (
+                parent_verification is not None
+                and parent_completion is not None
+                and parent_manifest is not None
+                and parent_verification.get("group_payload_digest_sha256")
+                == parent_completion.get("group_payload_digest_sha256")
+                == parent_manifest.get("group_payload_digest_sha256")
+                == expected_parent_digest
+            )
         ),
         "supplemental_raw_payload_bound": (
             supplemental_verification.get("group_payload_digest_sha256")
@@ -541,7 +593,11 @@ def run_exp001b_supplemental_analysis(
     group_reports = []
     control_rows = []
     for group_id in supplemental_manifest["expected_group_ids"]:
-        parent_payload = _load_object(parent_raw / "groups" / f"{group_id}.json", group_id)
+        parent_payload = (
+            _load_object(parent_raw / "groups" / f"{group_id}.json", group_id)
+            if parent_raw is not None
+            else None
+        )
         supplemental_payload = _load_object(
             supplemental_raw / "groups" / f"{group_id}.json", group_id
         )
@@ -569,6 +625,7 @@ def run_exp001b_supplemental_analysis(
         "experiment_id": "EXP-001B",
         "factorial_group_count": len(group_reports),
         "supplemental_results_observed": True,
+        "parent_reference_available": parent_reference_available,
         "groups": group_reports,
     }
     report_payload = {
@@ -580,6 +637,7 @@ def run_exp001b_supplemental_analysis(
         "parent_raw_payload_digest_sha256": expected_parent_digest,
         "supplemental_raw_payload_digest_sha256": expected_supplemental_digest,
         "supplemental_results_observed": True,
+        "parent_reference_available": parent_reference_available,
         "analysis_read_only": True,
         "prerequisite_checks": prerequisites,
         **aggregate,
@@ -591,9 +649,14 @@ def run_exp001b_supplemental_analysis(
     summary = {
         "summary_version": "1.0",
         "experiment_id": "EXP-001B",
-        "status": "supplemental_analysis_complete",
+        "status": (
+            "supplemental_analysis_complete"
+            if parent_reference_available
+            else "supplemental_analysis_complete_partial_parent_unavailable"
+        ),
         "valid": True,
         "supplemental_results_observed": True,
+        "parent_reference_available": parent_reference_available,
         "analysis_read_only": True,
         "analysis_config_sha256": EXPECTED_ANALYSIS_CONFIG_SHA256,
         "parent_raw_payload_digest_sha256": expected_parent_digest,
@@ -603,6 +666,7 @@ def run_exp001b_supplemental_analysis(
         "analysis_source_digests": source_digests,
         "gate_2_status": aggregate["gate_2_single_variable_causal_transfer"]["status"],
         "gate_4_status": aggregate["gate_4_native_state_carrier_qualification"]["status"],
+        "matched_context_assessable": aggregate["matched_context_assessable"],
         "allowed_conclusion": aggregate["allowed_conclusion"],
         "route_decision": aggregate["route_decision"],
         "reports": ["group_level_metrics.json", "supplemental_report.json"],

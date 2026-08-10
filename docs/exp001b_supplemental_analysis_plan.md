@@ -12,7 +12,12 @@ EXP-001，不重新估计 E1–E3，不修改冻结阈值，也不写回任何�
 - EXP-001B 原始 payload：`6926a932…90f6`；
 - 320 个 factorial group；
 - 11,008 条补充记录；
-- EXP-001 与 EXP-001B 原始包都必须先通过独立验证。
+- 完整 matched-context 判定要求 EXP-001 与 EXP-001B 原始包都先通过独立验证。
+
+若执行主机缺少已验证的父 EXP-001 原始包或逐组分析包，不得重跑父实验、用聚合
+均值替代逐组配对值或选择其他代理。分析器仍可只读分析现有 EXP-001B 数据，但
+必须把 matched-context 主判定、Gate 2 和 Gate 4 标记为
+`not_assessable_no_full_go`，并在输出中记录父引用缺失。
 
 ## Matched-context
 

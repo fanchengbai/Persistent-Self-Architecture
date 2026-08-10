@@ -1359,8 +1359,8 @@ def build_parser() -> argparse.ArgumentParser:
             "raw-package verification"
         ),
     )
-    exp001b_analyze.add_argument("--parent-raw-output-dir", required=True)
-    exp001b_analyze.add_argument("--parent-raw-verification", required=True)
+    exp001b_analyze.add_argument("--parent-raw-output-dir")
+    exp001b_analyze.add_argument("--parent-raw-verification")
     exp001b_analyze.add_argument("--supplemental-raw-output-dir", required=True)
     exp001b_analyze.add_argument("--supplemental-raw-verification", required=True)
     exp001b_analyze.add_argument("--core-set-package", required=True)

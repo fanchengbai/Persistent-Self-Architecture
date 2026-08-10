@@ -113,6 +113,7 @@ class Exp001BSupplementalAnalysisTests(unittest.TestCase):
             groups.append(
                 {
                     "matched_context": {
+                        "matched_joint_margin": 0.0,
                         "continuous_minus_matched_joint_margin": 1.0 + index / 100,
                         "state_norm_alert_count": 0,
                     },
@@ -146,12 +147,57 @@ class Exp001BSupplementalAnalysisTests(unittest.TestCase):
             "hold_phase_2_missing_frozen_control_diagnostics",
         )
 
+    def test_missing_parent_reference_reports_partial_analysis(self) -> None:
+        groups = []
+        for index in range(12):
+            groups.append(
+                {
+                    "matched_context": {
+                        "matched_joint_margin": -0.5 + index / 100,
+                        "continuous_minus_matched_joint_margin": None,
+                        "state_norm_alert_count": 0,
+                    },
+                    "generation": {
+                        "format_valid": 1.0,
+                        "prefix_valid": 1.0,
+                        "joint_correct": 1.0,
+                        "identity_correct": 1.0,
+                        "goal_correct": 1.0,
+                    },
+                    "generation_position": {
+                        code: {"count": 4, "accuracy": 1.0} for code in "ABCD"
+                    },
+                }
+            )
+        report = summarize_supplemental_analysis(
+            groups,
+            {
+                "measured_alerts_pass": True,
+                "required_diagnostics_complete": False,
+            },
+            _config(),
+        )
+        self.assertFalse(report["matched_context_assessable"])
+        self.assertFalse(report["measured_supplemental_package_go"])
+        self.assertEqual(
+            report["matched_context"]["status"],
+            "not_assessable_missing_parent_reference",
+        )
+        self.assertEqual(
+            report["route_decision"], "hold_phase_2_missing_parent_reference"
+        )
+        self.assertEqual(
+            report["gate_2_single_variable_causal_transfer"]["status"],
+            "not_assessable_no_full_go",
+        )
+
     def test_measured_generation_failure_routes_to_review(self) -> None:
         groups = []
         for index in range(12):
             groups.append(
                 {
                     "matched_context": {
+                        "matched_joint_margin": 0.0,
                         "continuous_minus_matched_joint_margin": 1.0 + index / 100,
                         "state_norm_alert_count": 0,
                     },

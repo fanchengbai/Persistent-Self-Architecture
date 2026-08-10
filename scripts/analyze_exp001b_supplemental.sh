@@ -12,8 +12,6 @@ fi
 export PYTHONPATH="${PROJECT_ROOT}/src${PYTHONPATH:+:${PYTHONPATH}}"
 
 "${PYTHON_BIN}" -m psa exp001b-analyze \
-  --parent-raw-output-dir results/confirmatory/exp001_v1 \
-  --parent-raw-verification results/confirmatory/exp001_v1.raw_verification.json \
   --supplemental-raw-output-dir results/confirmatory/exp001b_v1 \
   --supplemental-raw-verification results/confirmatory/exp001b_v1.raw_verification.json \
   --core-set-package preregistration/exp001/core_set_v1 \
