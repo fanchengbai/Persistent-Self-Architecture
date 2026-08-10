@@ -56,6 +56,7 @@ from psa.supplemental import (
     run_exp001b_bdev2_gate,
     run_exp001b_runner_development_gate,
     run_exp001b_supplemental,
+    run_exp001b_supplemental_analysis,
     verify_exp001b_final_preregistration_package,
     verify_exp001b_supplemental_set_package,
     verify_exp001b_supplemental_raw_package,
@@ -813,6 +814,22 @@ def _exp001b_raw_verify(args: argparse.Namespace) -> int:
     return 0 if result["valid"] else 2
 
 
+def _exp001b_analyze(args: argparse.Namespace) -> int:
+    result = run_exp001b_supplemental_analysis(
+        parent_raw_output_dir=args.parent_raw_output_dir,
+        parent_raw_verification_path=args.parent_raw_verification,
+        supplemental_raw_output_dir=args.supplemental_raw_output_dir,
+        supplemental_raw_verification_path=args.supplemental_raw_verification,
+        core_set_package_dir=args.core_set_package,
+        supplemental_set_package_dir=args.supplemental_set_package,
+        analysis_config_path=args.analysis_config,
+        analysis_output_dir=args.analysis_output_dir,
+        project_root=args.project_root,
+    )
+    print(json.dumps(result, ensure_ascii=False, indent=2))
+    return 0 if result["valid"] else 2
+
+
 def _confirmatory_run(args: argparse.Namespace) -> int:
     result = run_exp001_confirmatory(
         project_root=args.project_root,
@@ -1334,6 +1351,24 @@ def build_parser() -> argparse.ArgumentParser:
     exp001b_raw_verify.add_argument("--authorization", required=True)
     exp001b_raw_verify.add_argument("--output", required=True)
     exp001b_raw_verify.set_defaults(handler=_exp001b_raw_verify)
+
+    exp001b_analyze = subparsers.add_parser(
+        "exp001b-analyze",
+        help=(
+            "run the pinned read-only EXP-001B supplemental analysis after exact "
+            "raw-package verification"
+        ),
+    )
+    exp001b_analyze.add_argument("--parent-raw-output-dir", required=True)
+    exp001b_analyze.add_argument("--parent-raw-verification", required=True)
+    exp001b_analyze.add_argument("--supplemental-raw-output-dir", required=True)
+    exp001b_analyze.add_argument("--supplemental-raw-verification", required=True)
+    exp001b_analyze.add_argument("--core-set-package", required=True)
+    exp001b_analyze.add_argument("--supplemental-set-package", required=True)
+    exp001b_analyze.add_argument("--analysis-config", required=True)
+    exp001b_analyze.add_argument("--analysis-output-dir", required=True)
+    exp001b_analyze.add_argument("--project-root", default=".")
+    exp001b_analyze.set_defaults(handler=_exp001b_analyze)
 
     confirmatory_run = subparsers.add_parser(
         "confirmatory-run",

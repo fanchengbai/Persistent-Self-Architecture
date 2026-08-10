@@ -33,6 +33,7 @@ from psa.supplemental.formal_run import (
 from psa.supplemental.run_development import (
     run_exp001b_runner_development_gate,
 )
+from psa.supplemental.analysis import run_exp001b_supplemental_analysis
 
 __all__ = [
     "build_non_core_calibration_cases",
@@ -58,4 +59,5 @@ __all__ = [
     "verify_exp001b_run_authorization",
     "verify_exp001b_supplemental_raw_package",
     "run_exp001b_runner_development_gate",
+    "run_exp001b_supplemental_analysis",
 ]

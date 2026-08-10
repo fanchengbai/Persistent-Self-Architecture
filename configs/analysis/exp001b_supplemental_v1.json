@@ -1,0 +1,55 @@
+{
+  "analysis_id": "EXP-001B-supplemental-v1",
+  "analysis_version": "1.0",
+  "experiment_id": "EXP-001B",
+  "parent_experiment_id": "EXP-001",
+  "expected_parent_raw_payload_digest_sha256": "db4ba70ed521b55f23c4fc0ddafd2fb09af3cbe0132c0f065358a96f858b5ba7",
+  "expected_supplemental_raw_payload_digest_sha256": "6926a932220f34b37c6b4e86fa65edc230e414726bd2d4d308bf471d1af290f6",
+  "expected_group_count": 320,
+  "expected_supplemental_record_count": 11008,
+  "bootstrap": {
+    "unit": "factorial_group",
+    "replicates": 10000,
+    "confidence": 0.95,
+    "method": "BCa_with_percentile_fallback",
+    "seed": 1388088795
+  },
+  "permutation": {
+    "method": "sign_flip",
+    "alternative": "greater",
+    "replicates": 100000,
+    "seed": 4175014787,
+    "unit": "paired_factorial_group"
+  },
+  "matched_context": {
+    "mean_joint_margin_advantage_sesoi": 0.5,
+    "confidence_interval_lower_must_exceed": 0.0,
+    "one_sided_p_below": 0.05,
+    "require_zero_state_norm_alerts": true
+  },
+  "controls": {
+    "baseline_condition": "prompt_visible_reset",
+    "maximum_accuracy_drop": 0.05,
+    "maximum_prefix_format_drop": 0.02,
+    "maximum_target_log_probability_drop": 0.25,
+    "require_state_norm_diagnostic": true,
+    "require_source_invariance_diagnostic": true
+  },
+  "generation": {
+    "minimum_format_valid_rate": 0.99,
+    "minimum_joint_accuracy_ci_lower": 0.8,
+    "minimum_identity_accuracy_ci_lower": 0.9,
+    "minimum_goal_accuracy_ci_lower": 0.9,
+    "maximum_answer_position_accuracy_gap": 0.25,
+    "require_forced_prefix_greedy_exact_rate": 1.0
+  },
+  "decision_policy": {
+    "do_not_reestimate_parent_endpoints": [
+      "E1_identity_transfer",
+      "E2_goal_transfer",
+      "E3_joint_binding"
+    ],
+    "full_phase_2_go_requires_all_frozen_controls": true,
+    "missing_required_diagnostic_status": "not_assessable_no_full_go"
+  }
+}
