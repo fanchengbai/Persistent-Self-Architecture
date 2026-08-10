@@ -10,6 +10,7 @@ from psa.supplemental.diagnostics import (
     summarize_control_concordance,
     summarize_control_greedy_tokens,
     summarize_nonrandom_failure_samples,
+    summarize_semantic_shadow_metric,
     summarize_matched_norms,
     summarize_prefix_cells,
 )
@@ -28,6 +29,58 @@ def _output(*, greedy: bool, roundtrip: bool = True) -> dict:
 
 
 class Exp001BPosthocDiagnosticsTests(unittest.TestCase):
+    def test_semantic_shadow_metric_recovers_only_correct_immediate_answer(self) -> None:
+        cases = (
+            ([0, 0], "A", [63, 65]),
+            ([0, 1], "B", [63, 65]),
+            ([1, 0], "C", [42, 11]),
+            ([1, 1], "D", [63, 11]),
+        )
+        decoded = {
+            (63, 11): ">\n",
+            (63, 65): ">A",
+            (42, 11): "x\n",
+        }
+        rows = []
+        for index, (combo, target, greedy_ids) in enumerate(cases):
+            valid = greedy_ids == [63, 11]
+            output = _output(greedy=valid)
+            output["metadata"]["forced_prefix"]["token_ids"] = [63, 11]
+            output["metadata"]["forced_prefix"]["greedy_token_ids"] = greedy_ids
+            rows.append(
+                (
+                    {
+                        "record_id": f"shadow-record-{index}",
+                        "source_control_sample_id": f"shadow-sample-{index}",
+                        "condition": "continuous",
+                        "task_type": "copy",
+                        "target_code": target,
+                        "assigned_source_combo": combo,
+                        "assigned_factorial_group_id": f"group-{index}",
+                    },
+                    output,
+                )
+            )
+        classification = classify_control_prefix_failures(
+            rows, lambda ids: decoded[tuple(ids)]
+        )
+        report = summarize_semantic_shadow_metric(rows, classification)
+        self.assertEqual(report["overall"]["strict_success_count"], 1)
+        self.assertEqual(report["overall"]["format_only_recovery_count"], 1)
+        self.assertEqual(report["overall"]["shadow_semantic_success_count"], 2)
+        self.assertEqual(report["overall"]["unrecovered_failure_count"], 2)
+        self.assertTrue(report["confirmatory_gate_unchanged"])
+        self.assertEqual(
+            report["sample_level_by_assigned_source_combo"][0][
+                "source_samples_with_nonrandom_format_only_failure"
+            ],
+            1,
+        )
+        self.assertAlmostEqual(
+            report["exploratory_source_factor_interaction_risk_difference"],
+            1.0,
+        )
+
     def test_classify_control_prefix_failures_covers_four_categories(self) -> None:
         cases = (
             ("A", [63, 65], "correct_answer_emitted_immediately"),

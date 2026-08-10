@@ -401,6 +401,215 @@ def classify_control_prefix_failures(
     }
 
 
+def summarize_semantic_shadow_metric(
+    rows: Sequence[tuple[Mapping[str, Any], Mapping[str, Any]]],
+    classification_report: Mapping[str, Any],
+) -> dict[str, Any]:
+    classified_records = classification_report.get("records")
+    if not isinstance(classified_records, list):
+        raise ValueError("prefix-failure classification records are missing")
+    category_by_record = {
+        str(item["record_id"]): str(item["category"])
+        for item in classified_records
+        if isinstance(item, Mapping)
+    }
+    if len(category_by_record) != len(classified_records):
+        raise ValueError("prefix-failure classification record IDs are inconsistent")
+
+    def empty_counts() -> Counter[str]:
+        return Counter(
+            {
+                "record_count": 0,
+                "strict_success_count": 0,
+                "shadow_semantic_success_count": 0,
+                "format_only_recovery_count": 0,
+            }
+        )
+
+    overall = empty_counts()
+    nonrandom = empty_counts()
+    random_matched = empty_counts()
+    by_condition: dict[str, Counter[str]] = defaultdict(empty_counts)
+    by_task: dict[str, Counter[str]] = defaultdict(empty_counts)
+    by_cell: dict[tuple[str, str], Counter[str]] = defaultdict(empty_counts)
+    samples: dict[str, dict[str, Any]] = {}
+
+    def update(counter: Counter[str], strict: bool, recovered: bool) -> None:
+        counter["record_count"] += 1
+        counter["strict_success_count"] += int(strict)
+        counter["format_only_recovery_count"] += int(recovered)
+        counter["shadow_semantic_success_count"] += int(strict or recovered)
+
+    for frozen, output in rows:
+        record_id = str(frozen["record_id"])
+        flags = prefix_failure_flags(output)
+        strict_success = flags["valid"]
+        category = category_by_record.get(record_id)
+        recovered = category == "correct_answer_emitted_immediately"
+        if strict_success and category is not None:
+            raise ValueError("strictly valid record cannot have a failure category")
+        if not strict_success and category is None:
+            raise ValueError("strict prefix failure is missing from classification")
+        condition = str(frozen["condition"])
+        task_type = str(frozen["task_type"])
+        update(overall, strict_success, recovered)
+        update(by_condition[condition], strict_success, recovered)
+        update(by_task[task_type], strict_success, recovered)
+        update(by_cell[(condition, task_type)], strict_success, recovered)
+        if condition == "random_matched":
+            update(random_matched, strict_success, recovered)
+        else:
+            update(nonrandom, strict_success, recovered)
+
+        sample_id = str(frozen["source_control_sample_id"])
+        source_combo = frozen.get("assigned_source_combo")
+        if (
+            not isinstance(source_combo, list)
+            or len(source_combo) != 2
+            or any(value not in (0, 1) for value in source_combo)
+        ):
+            raise ValueError("assigned source combo must contain two binary factors")
+        sample = samples.setdefault(
+            sample_id,
+            {
+                "source_combo": tuple(int(value) for value in source_combo),
+                "task_type": task_type,
+                "nonrandom_format_only_failure": False,
+            },
+        )
+        if (
+            sample["source_combo"] != tuple(source_combo)
+            or sample["task_type"] != task_type
+        ):
+            raise ValueError("source sample shadow-metric fields are inconsistent")
+        if condition != "random_matched" and recovered:
+            sample["nonrandom_format_only_failure"] = True
+
+    strict_failure_count = int(
+        overall["record_count"] - overall["strict_success_count"]
+    )
+    if len(category_by_record) != strict_failure_count:
+        raise ValueError("shadow metric does not cover every strict prefix failure")
+
+    def summarize(counter: Mapping[str, int]) -> dict[str, Any]:
+        count = int(counter["record_count"])
+        strict = int(counter["strict_success_count"])
+        shadow = int(counter["shadow_semantic_success_count"])
+        recovered = int(counter["format_only_recovery_count"])
+        return {
+            "record_count": count,
+            "strict_success_count": strict,
+            "strict_success_rate": strict / count if count else None,
+            "strict_failure_count": count - strict,
+            "format_only_recovery_count": recovered,
+            "shadow_semantic_success_count": shadow,
+            "shadow_semantic_success_rate": shadow / count if count else None,
+            "unrecovered_failure_count": count - shadow,
+        }
+
+    def labeled_counts(counts: Mapping[str, Counter[str]]) -> list[dict[str, Any]]:
+        return [
+            {"label": label, **summarize(counter)}
+            for label, counter in sorted(counts.items())
+        ]
+
+    combo_samples: dict[tuple[int, int], list[dict[str, Any]]] = defaultdict(list)
+    task_samples: dict[str, list[dict[str, Any]]] = defaultdict(list)
+    for sample in samples.values():
+        combo_samples[sample["source_combo"]].append(sample)
+        task_samples[sample["task_type"]].append(sample)
+
+    def sample_summary(sample_rows: Sequence[Mapping[str, Any]]) -> dict[str, Any]:
+        count = len(sample_rows)
+        failures = sum(
+            int(bool(sample["nonrandom_format_only_failure"]))
+            for sample in sample_rows
+        )
+        return {
+            "source_sample_count": count,
+            "source_samples_with_nonrandom_format_only_failure": failures,
+            "sample_failure_rate": failures / count if count else None,
+        }
+
+    combo_reports = [
+        {
+            "assigned_source_combo": list(combo),
+            **sample_summary(sample_rows),
+        }
+        for combo, sample_rows in sorted(combo_samples.items())
+    ]
+    combo_rates = {
+        combo: sample_summary(sample_rows)["sample_failure_rate"]
+        for combo, sample_rows in combo_samples.items()
+    }
+    factor_effects = []
+    for factor_index in range(2):
+        levels = {}
+        for level in (0, 1):
+            selected = [
+                sample
+                for sample in samples.values()
+                if sample["source_combo"][factor_index] == level
+            ]
+            levels[level] = sample_summary(selected)
+        rate_zero = float(levels[0]["sample_failure_rate"])
+        rate_one = float(levels[1]["sample_failure_rate"])
+        factor_effects.append(
+            {
+                "factor_index": factor_index,
+                "level_0": levels[0],
+                "level_1": levels[1],
+                "risk_difference_level_1_minus_0": rate_one - rate_zero,
+                "risk_ratio_level_1_over_0": (
+                    rate_one / rate_zero if rate_zero > 0 else None
+                ),
+            }
+        )
+    required_combos = {(0, 0), (0, 1), (1, 0), (1, 1)}
+    interaction = None
+    if required_combos == set(combo_rates):
+        interaction = (
+            float(combo_rates[(1, 1)])
+            - float(combo_rates[(1, 0)])
+            - float(combo_rates[(0, 1)])
+            + float(combo_rates[(0, 0)])
+        )
+
+    return {
+        "metric_status": "exploratory_posthoc_shadow",
+        "confirmatory_gate_unchanged": True,
+        "strict_success_definition": "forced prefix is fully valid",
+        "shadow_semantic_success_definition": (
+            "strict success or the correct target answer code was emitted immediately "
+            "after the initial greater-than token"
+        ),
+        "overall": summarize(overall),
+        "nonrandom_conditions": summarize(nonrandom),
+        "random_matched_condition": summarize(random_matched),
+        "by_condition": labeled_counts(by_condition),
+        "by_task_type": labeled_counts(by_task),
+        "by_condition_and_task_type": [
+            {
+                "condition": condition,
+                "task_type": task_type,
+                **summarize(counter),
+            }
+            for (condition, task_type), counter in sorted(by_cell.items())
+        ],
+        "sample_level_by_assigned_source_combo": combo_reports,
+        "sample_level_by_task_type": [
+            {"task_type": task_type, **sample_summary(sample_rows)}
+            for task_type, sample_rows in sorted(task_samples.items())
+        ],
+        "exploratory_source_factor_effects": factor_effects,
+        "exploratory_source_factor_interaction_risk_difference": interaction,
+        "interpretation_limits": [
+            "This shadow metric is post hoc and cannot change the frozen gate decision.",
+            "Source-factor estimates are descriptive because only seven source samples have nonrandom format-only failures.",
+        ],
+    }
+
+
 def summarize_nonrandom_failure_samples(
     rows: Sequence[tuple[Mapping[str, Any], Mapping[str, Any]]],
     token_counter: Callable[[str], int],
@@ -628,8 +837,13 @@ def run_exp001b_posthoc_diagnostics(
     token_diagnostics = decode_control_greedy_tokens(
         summarize_control_greedy_tokens(control_rows), decode
     )
+    failure_classification = classify_control_prefix_failures(control_rows, decode)
+    semantic_shadow_metric = summarize_semantic_shadow_metric(
+        control_rows,
+        failure_classification,
+    )
     report = {
-        "report_version": "1.3-posthoc",
+        "report_version": "1.4-posthoc",
         "created_at_utc": datetime.now(timezone.utc).isoformat(),
         "experiment_id": "EXP-001B",
         "exploratory_posthoc": True,
@@ -644,10 +858,8 @@ def run_exp001b_posthoc_diagnostics(
         "control_prefix_diagnostics": summarize_prefix_cells(control_rows),
         "control_failure_concordance": summarize_control_concordance(control_rows),
         "control_greedy_token_diagnostics": token_diagnostics,
-        "control_prefix_failure_classification": classify_control_prefix_failures(
-            control_rows,
-            decode,
-        ),
+        "control_prefix_failure_classification": failure_classification,
+        "control_semantic_shadow_metric": semantic_shadow_metric,
         "nonrandom_failure_sample_diagnostics": summarize_nonrandom_failure_samples(
             control_rows,
             token_count,
@@ -662,7 +874,7 @@ def run_exp001b_posthoc_diagnostics(
     report_path = destination / "diagnostic_report.json"
     report_path.write_bytes(canonical_json_bytes(report))
     summary = {
-        "summary_version": "1.3-posthoc",
+        "summary_version": "1.4-posthoc",
         "experiment_id": "EXP-001B",
         "status": "posthoc_failure_diagnostics_complete",
         "valid": True,
@@ -688,6 +900,18 @@ def run_exp001b_posthoc_diagnostics(
         "control_semantic_preserving_format_only_count": report[
             "control_prefix_failure_classification"
         ]["semantic_preserving_format_only_count"],
+        "control_shadow_semantic_success_count": semantic_shadow_metric["overall"][
+            "shadow_semantic_success_count"
+        ],
+        "control_shadow_semantic_success_rate": semantic_shadow_metric["overall"][
+            "shadow_semantic_success_rate"
+        ],
+        "control_nonrandom_shadow_semantic_success_count": semantic_shadow_metric[
+            "nonrandom_conditions"
+        ]["shadow_semantic_success_count"],
+        "control_nonrandom_shadow_semantic_success_rate": semantic_shadow_metric[
+            "nonrandom_conditions"
+        ]["shadow_semantic_success_rate"],
         "matched_records_with_state_norm_alerts": report[
             "matched_state_norm_diagnostics"
         ]["records_with_alerts"],
