@@ -1,0 +1,149 @@
+{
+  "design_id": "EXP-001C-prefix-semantics-draft-v0.1",
+  "design_version": "0.1-draft",
+  "experiment_id": "EXP-001C",
+  "parent_evidence": [
+    "EXP-001B",
+    "EXP-001B-posthoc-diagnostics-v01-v06"
+  ],
+  "status": "design_only_unfrozen_unapproved",
+  "authority": {
+    "development_implementation_authorized": false,
+    "pilot_run_authorized": false,
+    "test_set_generation_authorized": false,
+    "formal_run_authorized": false,
+    "result_observation_authorized": false,
+    "automatic_rerun_authorized": false
+  },
+  "scope": {
+    "objective": "Separate semantic answer preservation from strict prefix formatting while preserving a sensitive random-state corruption control.",
+    "changes_exp001b_decision": false,
+    "reuses_exp001b_confirmatory_items": false,
+    "reuses_exp001b_results_as_confirmatory_evidence": false,
+    "requires_new_blinded_items": true,
+    "requires_independent_preregistration_freeze": true
+  },
+  "conditions": {
+    "natural_state_no_harm": [
+      "continuous",
+      "restored",
+      "swapped_I",
+      "swapped_G",
+      "swapped_both"
+    ],
+    "clean_baselines": [
+      "reset",
+      "prompt_visible_reset"
+    ],
+    "assay_sensitivity_controls": [
+      "random_matched"
+    ]
+  },
+  "endpoints": {
+    "primary_semantic": {
+      "name": "target_answer_semantic_preservation",
+      "measures": [
+        "target_answer_correct",
+        "target_answer_log_probability",
+        "target_answer_margin_over_best_incorrect"
+      ],
+      "applies_to": "natural_state_no_harm versus prompt_visible_reset",
+      "thresholds": "must be frozen after non-confirmatory development and before formal item generation"
+    },
+    "secondary_format": {
+      "name": "strict_prefix_protocol_conformance",
+      "measures": [
+        "forced_prefix_greedy_exact",
+        "forced_prefix_roundtrip_exact",
+        "final_answer_parseable"
+      ],
+      "independent_from_primary_semantic": true,
+      "cannot_override_semantic_endpoint": true
+    },
+    "assay_sensitivity": {
+      "name": "random_state_corruption_detectability",
+      "expected_direction": "random_matched degrades semantic or token-level stability relative to clean baselines",
+      "not_a_natural_state_no_harm_cell": true
+    },
+    "state_norm": {
+      "name": "formal_shape_state_norm_monitor",
+      "threshold_source": "new formal-shape non-confirmatory calibration package",
+      "requires_component_level_thresholds": true,
+      "zero_alert_gate_requires_prevalidated_threshold_coverage": true
+    }
+  },
+  "prefix_instrumentation": {
+    "positions": [
+      "greater_than_token",
+      "newline_token"
+    ],
+    "required_per_position_fields": [
+      "expected_token_id",
+      "greedy_token_id",
+      "expected_token_logit_float32",
+      "expected_token_log_probability_float32",
+      "expected_token_rank",
+      "greedy_token_logit_float32",
+      "greedy_token_log_probability_float32",
+      "logit_margin_greedy_minus_expected_float32",
+      "top_k_token_ids",
+      "top_k_logits_float32",
+      "top_k_log_probabilities_float32"
+    ],
+    "top_k": 10,
+    "required_answer_boundary_fields": [
+      "target_answer_token_ids",
+      "target_answer_log_probability",
+      "best_incorrect_answer_log_probability",
+      "target_margin_over_best_incorrect"
+    ],
+    "missing_required_field_policy": "formal_record_invalid_no_imputation"
+  },
+  "sampling": {
+    "formal_sample_count": "not_yet_frozen",
+    "power_analysis_required": true,
+    "power_unit": "source_control_sample",
+    "balanced_across_source_combos": true,
+    "balanced_across_task_types": true,
+    "minimum_detectable_effect_or_equivalence_margin": "must be selected before item generation",
+    "exp001b_items_for_power_planning_only": true,
+    "exp001b_items_excluded_from_formal_test_set": true
+  },
+  "analysis": {
+    "primary_unit": "source_control_sample",
+    "semantic_and_format_decisions_reported_separately": true,
+    "cluster_by_factorial_group": true,
+    "confidence_intervals_required": true,
+    "multiplicity_policy": "must be frozen before formal item generation",
+    "missing_data_policy": "no silent exclusion; invalidate affected cell and route to review",
+    "posthoc_shadow_metrics_can_change_confirmatory_decision": false
+  },
+  "required_development_gates": [
+    "instrumentation_schema_and_roundtrip_tests",
+    "synthetic_token_logit_fixture_tests",
+    "formal-shape_noncore_prefix_probe",
+    "formal-shape_noncore_state_norm_calibration",
+    "power_and_equivalence_design_review",
+    "source_inventory_digest_review",
+    "independent_preregistration_checksum_confirmation"
+  ],
+  "authorization_sequence": [
+    "approve_development_implementation",
+    "complete_non-confirmatory_development_gates",
+    "freeze_preregistration_candidate",
+    "human_confirm_exact_preregistration_checksum",
+    "separately_authorize_blinded_test_set_generation",
+    "verify_frozen_unrun_test_set",
+    "separately_authorize_formal_run",
+    "verify_raw_unanalyzed_package",
+    "separately_authorize_result_observation"
+  ],
+  "prohibited_actions": [
+    "automatic_rerun_of_exp001b",
+    "reinterpret_exp001b_gate_as_pass",
+    "reuse_exp001b_confirmatory_items_as_exp001c_formal_items",
+    "choose_thresholds_after_observing_exp001c_formal_results",
+    "merge_semantic_and_format_endpoints_after_observation",
+    "treat_random_matched_as_a_natural_state_no_harm_condition"
+  ]
+}
