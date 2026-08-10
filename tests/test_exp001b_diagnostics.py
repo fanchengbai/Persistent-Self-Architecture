@@ -3,16 +3,20 @@ from __future__ import annotations
 import unittest
 
 from psa.supplemental.diagnostics import (
+    audit_prefix_margin_evidence,
     classify_control_prefix_failures,
+    fisher_exact_two_sided,
     prefix_failure_flags,
     prefix_token_divergence,
     decode_control_greedy_tokens,
     summarize_control_concordance,
     summarize_control_greedy_tokens,
     summarize_nonrandom_failure_samples,
+    summarize_small_sample_uncertainty,
     summarize_semantic_shadow_metric,
     summarize_matched_norms,
     summarize_prefix_cells,
+    wilson_score_interval,
 )
 
 
@@ -29,6 +33,55 @@ def _output(*, greedy: bool, roundtrip: bool = True) -> dict:
 
 
 class Exp001BPosthocDiagnosticsTests(unittest.TestCase):
+    def test_prefix_margin_evidence_audit_reports_missing_scores(self) -> None:
+        output = _output(greedy=False)
+        output["metadata"]["forced_prefix"].update(
+            {"token_ids": [63, 11], "greedy_token_ids": [63, 65]}
+        )
+        report = audit_prefix_margin_evidence([({}, output)])
+        self.assertEqual(report["control_record_count"], 1)
+        self.assertFalse(report["newline_vs_answer_margin_quantification_available"])
+        self.assertEqual(report["quantitative_token_evidence_paths"], {})
+        self.assertFalse(report["automatic_rerun_authorized"])
+
+    def test_exact_uncertainty_helpers_cover_zero_event_cells(self) -> None:
+        interval = wilson_score_interval(0, 32)
+        self.assertEqual(interval["wilson_lower"], 0.0)
+        self.assertGreater(interval["wilson_upper"], 0.10)
+        self.assertAlmostEqual(fisher_exact_two_sided(1, 2, 1, 2), 1.0)
+
+    def test_small_sample_uncertainty_reports_factor_and_task_tests(self) -> None:
+        shadow = {
+            "sample_level_by_assigned_source_combo": [
+                {
+                    "assigned_source_combo": list(combo),
+                    "source_sample_count": 24,
+                    "source_samples_with_nonrandom_format_only_failure": count,
+                }
+                for combo, count in (
+                    ((0, 0), 3),
+                    ((0, 1), 2),
+                    ((1, 0), 1),
+                    ((1, 1), 1),
+                )
+            ],
+            "sample_level_by_task_type": [
+                {
+                    "task_type": task,
+                    "source_sample_count": 32,
+                    "source_samples_with_nonrandom_format_only_failure": count,
+                }
+                for task, count in (("copy", 0), ("lexical", 4), ("two_field", 3))
+            ],
+        }
+        report = summarize_small_sample_uncertainty(shadow)
+        self.assertEqual(len(report["source_factor_exact_tests"]), 2)
+        self.assertEqual(len(report["task_type_pairwise_fisher_tests"]), 3)
+        self.assertTrue(
+            0.0 <= report["source_combo_global_conditional_exact_p_value"] <= 1.0
+        )
+        self.assertFalse(report["confirmatory_decision_changed"])
+
     def test_semantic_shadow_metric_recovers_only_correct_immediate_answer(self) -> None:
         cases = (
             ([0, 0], "A", [63, 65]),

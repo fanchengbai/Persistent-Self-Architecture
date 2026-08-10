@@ -604,8 +604,307 @@ def summarize_semantic_shadow_metric(
         "exploratory_source_factor_effects": factor_effects,
         "exploratory_source_factor_interaction_risk_difference": interaction,
         "interpretation_limits": [
-            "This shadow metric is post hoc and cannot change the frozen gate decision.",
-            "Source-factor estimates are descriptive because only seven source samples have nonrandom format-only failures.",
+            "This shadow metric is post hoc and cannot change the frozen gate "
+            "decision.",
+            "Source-factor estimates are descriptive because only seven source "
+            "samples have nonrandom format-only failures.",
+        ],
+    }
+
+
+def audit_prefix_margin_evidence(
+    rows: Sequence[tuple[Mapping[str, Any], Mapping[str, Any]]],
+) -> dict[str, Any]:
+    key_sets: Counter[tuple[str, ...]] = Counter()
+    quantitative_paths: Counter[str] = Counter()
+    quantitative_terms = ("logit", "prob", "rank", "top", "margin", "candidate")
+
+    def walk(value: Any, path: str = "forced_prefix") -> None:
+        if isinstance(value, Mapping):
+            for key, child in value.items():
+                child_path = f"{path}.{key}"
+                if any(term in str(key).lower() for term in quantitative_terms):
+                    quantitative_paths[child_path] += 1
+                walk(child, child_path)
+        elif isinstance(value, list):
+            for child in value:
+                walk(child, f"{path}[]")
+
+    for _, output in rows:
+        metadata = output.get("metadata")
+        prefix = (
+            metadata.get("forced_prefix")
+            if isinstance(metadata, Mapping)
+            else None
+        )
+        if not isinstance(prefix, Mapping):
+            raise ValueError("forced-prefix evidence audit requires prefix metadata")
+        key_sets[tuple(sorted(str(key) for key in prefix))] += 1
+        walk(prefix)
+
+    count = len(rows)
+    return {
+        "audit_status": "frozen_raw_evidence_audited",
+        "control_record_count": count,
+        "forced_prefix_schema_variants": [
+            {"fields": list(fields), "record_count": record_count}
+            for fields, record_count in sorted(key_sets.items())
+        ],
+        "quantitative_token_evidence_paths": dict(sorted(quantitative_paths.items())),
+        "records_with_quantitative_token_evidence": (
+            max(quantitative_paths.values()) if quantitative_paths else 0
+        ),
+        "newline_vs_answer_margin_quantification_available": bool(quantitative_paths),
+        "missing_evidence": [
+            "per-token logits or log probabilities",
+            "expected newline token rank",
+            "greedy answer token rank or score",
+            "top-k token candidates at each forced-prefix position",
+        ],
+        "conclusion": (
+            "The frozen raw package preserves token identities but no quantitative "
+            "token scores, so the newline-versus-answer score margin cannot be "
+            "reconstructed without a new model execution."
+        ),
+        "automatic_rerun_authorized": False,
+    }
+
+
+def wilson_score_interval(
+    event_count: int,
+    sample_count: int,
+    *,
+    z: float = 1.959963984540054,
+) -> dict[str, float]:
+    if sample_count <= 0 or event_count < 0 or event_count > sample_count:
+        raise ValueError("Wilson interval counts are invalid")
+    rate = event_count / sample_count
+    z2 = z * z
+    denominator = 1.0 + z2 / sample_count
+    center = (rate + z2 / (2.0 * sample_count)) / denominator
+    half_width = (
+        z
+        * math.sqrt(
+            rate * (1.0 - rate) / sample_count
+            + z2 / (4.0 * sample_count * sample_count)
+        )
+        / denominator
+    )
+    return {
+        "event_count": event_count,
+        "sample_count": sample_count,
+        "rate": rate,
+        "confidence_level": 0.95,
+        "wilson_lower": max(0.0, center - half_width),
+        "wilson_upper": min(1.0, center + half_width),
+    }
+
+
+def fisher_exact_two_sided(
+    left_events: int,
+    left_total: int,
+    right_events: int,
+    right_total: int,
+) -> float:
+    if (
+        min(left_events, right_events) < 0
+        or left_total <= 0
+        or right_total <= 0
+        or left_events > left_total
+        or right_events > right_total
+    ):
+        raise ValueError("Fisher exact-test counts are invalid")
+    total_events = left_events + right_events
+    total = left_total + right_total
+    denominator = math.comb(total, total_events)
+
+    def probability(events_left: int) -> float:
+        events_right = total_events - events_left
+        if not (0 <= events_left <= left_total and 0 <= events_right <= right_total):
+            return 0.0
+        return (
+            math.comb(left_total, events_left)
+            * math.comb(right_total, events_right)
+            / denominator
+        )
+
+    observed = probability(left_events)
+    lower = max(0, total_events - right_total)
+    upper = min(left_total, total_events)
+    return min(
+        1.0,
+        sum(
+            value
+            for events_left in range(lower, upper + 1)
+            if (value := probability(events_left)) <= observed + 1e-15
+        ),
+    )
+
+
+def _balanced_conditional_exact_p_value(
+    event_counts: Sequence[int],
+    cell_size: int,
+    statistic: Callable[[Sequence[int]], float],
+) -> float:
+    if (
+        len(event_counts) < 2
+        or cell_size <= 0
+        or any(count < 0 or count > cell_size for count in event_counts)
+    ):
+        raise ValueError("balanced exact-test counts are invalid")
+    total_events = sum(event_counts)
+    denominator = math.comb(cell_size * len(event_counts), total_events)
+    observed = float(statistic(event_counts))
+    tail_weight = 0
+
+    def visit(prefix: list[int], remaining: int) -> None:
+        nonlocal tail_weight
+        if len(prefix) + 1 == len(event_counts):
+            if 0 <= remaining <= cell_size:
+                candidate = [*prefix, remaining]
+                if float(statistic(candidate)) >= observed - 1e-12:
+                    weight = 1
+                    for count in candidate:
+                        weight *= math.comb(cell_size, count)
+                    tail_weight += weight
+            return
+        for count in range(min(cell_size, remaining) + 1):
+            visit([*prefix, count], remaining - count)
+
+    visit([], total_events)
+    return min(1.0, tail_weight / denominator)
+
+
+def summarize_small_sample_uncertainty(
+    semantic_shadow_metric: Mapping[str, Any],
+) -> dict[str, Any]:
+    combo_rows = semantic_shadow_metric.get("sample_level_by_assigned_source_combo")
+    task_rows = semantic_shadow_metric.get("sample_level_by_task_type")
+    if not isinstance(combo_rows, list) or not isinstance(task_rows, list):
+        raise ValueError("shadow metric sample-level summaries are missing")
+
+    def event_counts(row: Mapping[str, Any]) -> tuple[int, int]:
+        return (
+            int(row["source_samples_with_nonrandom_format_only_failure"]),
+            int(row["source_sample_count"]),
+        )
+
+    combo_intervals = []
+    combo_events: dict[tuple[int, int], int] = {}
+    combo_total = None
+    for row in combo_rows:
+        combo = tuple(int(value) for value in row["assigned_source_combo"])
+        events, total = event_counts(row)
+        combo_events[combo] = events
+        combo_total = total if combo_total is None else combo_total
+        if total != combo_total:
+            raise ValueError("source-combo cells must have equal sample counts")
+        combo_intervals.append(
+            {
+                "assigned_source_combo": list(combo),
+                **wilson_score_interval(events, total),
+            }
+        )
+    required_combos = ((0, 0), (0, 1), (1, 0), (1, 1))
+    if set(combo_events) != set(required_combos) or combo_total is None:
+        raise ValueError("source-combo uncertainty requires four complete cells")
+
+    factor_tests = []
+    for factor_index in range(2):
+        level_events = {
+            level: sum(
+                combo_events[combo]
+                for combo in required_combos
+                if combo[factor_index] == level
+            )
+            for level in (0, 1)
+        }
+        level_total = 2 * combo_total
+        factor_tests.append(
+            {
+                "factor_index": factor_index,
+                "level_0": wilson_score_interval(level_events[0], level_total),
+                "level_1": wilson_score_interval(level_events[1], level_total),
+                "fisher_exact_two_sided_p_value": fisher_exact_two_sided(
+                    level_events[0],
+                    level_total,
+                    level_events[1],
+                    level_total,
+                ),
+            }
+        )
+
+    ordered_combo_events = [combo_events[combo] for combo in required_combos]
+    mean_events = sum(ordered_combo_events) / len(ordered_combo_events)
+    combo_heterogeneity_p = _balanced_conditional_exact_p_value(
+        ordered_combo_events,
+        combo_total,
+        lambda values: sum((value - mean_events) ** 2 for value in values),
+    )
+    interaction_p = _balanced_conditional_exact_p_value(
+        ordered_combo_events,
+        combo_total,
+        lambda values: abs(values[3] - values[2] - values[1] + values[0]),
+    )
+
+    task_intervals = []
+    task_counts = {}
+    task_total = None
+    for row in task_rows:
+        task = str(row["task_type"])
+        events, total = event_counts(row)
+        task_counts[task] = events
+        task_total = total if task_total is None else task_total
+        if total != task_total:
+            raise ValueError("task cells must have equal sample counts")
+        task_intervals.append(
+            {"task_type": task, **wilson_score_interval(events, total)}
+        )
+    if task_total is None:
+        raise ValueError("task uncertainty requires sample summaries")
+    task_names = sorted(task_counts)
+    task_mean = sum(task_counts.values()) / len(task_counts)
+    task_global_p = _balanced_conditional_exact_p_value(
+        [task_counts[name] for name in task_names],
+        task_total,
+        lambda values: sum((value - task_mean) ** 2 for value in values),
+    )
+    task_pairwise = []
+    for index, left in enumerate(task_names):
+        for right in task_names[index + 1 :]:
+            task_pairwise.append(
+                {
+                    "left": left,
+                    "right": right,
+                    "fisher_exact_two_sided_p_value": fisher_exact_two_sided(
+                        task_counts[left],
+                        task_total,
+                        task_counts[right],
+                        task_total,
+                    ),
+                }
+            )
+
+    return {
+        "analysis_status": "exploratory_posthoc_small_sample_uncertainty",
+        "event_definition": (
+            "source sample has at least one nonrandom correct-answer-immediate "
+            "strict-prefix failure"
+        ),
+        "source_combo_wilson_intervals": combo_intervals,
+        "source_factor_exact_tests": factor_tests,
+        "source_combo_global_conditional_exact_p_value": combo_heterogeneity_p,
+        "source_factor_interaction_conditional_exact_p_value": interaction_p,
+        "task_type_wilson_intervals": task_intervals,
+        "task_type_global_conditional_exact_p_value": task_global_p,
+        "task_type_pairwise_fisher_tests": task_pairwise,
+        "confirmatory_decision_changed": False,
+        "multiplicity_adjustment_applied": False,
+        "interpretation_limits": [
+            "Only seven source-sample events are available, so intervals are wide "
+            "and exact tests have low power.",
+            "All tests are exploratory and post hoc; p-values are descriptive and "
+            "unadjusted for multiple comparisons.",
         ],
     }
 
@@ -842,8 +1141,12 @@ def run_exp001b_posthoc_diagnostics(
         control_rows,
         failure_classification,
     )
+    prefix_margin_evidence = audit_prefix_margin_evidence(control_rows)
+    small_sample_uncertainty = summarize_small_sample_uncertainty(
+        semantic_shadow_metric
+    )
     report = {
-        "report_version": "1.4-posthoc",
+        "report_version": "1.5-posthoc",
         "created_at_utc": datetime.now(timezone.utc).isoformat(),
         "experiment_id": "EXP-001B",
         "exploratory_posthoc": True,
@@ -860,6 +1163,8 @@ def run_exp001b_posthoc_diagnostics(
         "control_greedy_token_diagnostics": token_diagnostics,
         "control_prefix_failure_classification": failure_classification,
         "control_semantic_shadow_metric": semantic_shadow_metric,
+        "control_prefix_margin_evidence_audit": prefix_margin_evidence,
+        "control_small_sample_uncertainty": small_sample_uncertainty,
         "nonrandom_failure_sample_diagnostics": summarize_nonrandom_failure_samples(
             control_rows,
             token_count,
@@ -874,7 +1179,7 @@ def run_exp001b_posthoc_diagnostics(
     report_path = destination / "diagnostic_report.json"
     report_path.write_bytes(canonical_json_bytes(report))
     summary = {
-        "summary_version": "1.4-posthoc",
+        "summary_version": "1.5-posthoc",
         "experiment_id": "EXP-001B",
         "status": "posthoc_failure_diagnostics_complete",
         "valid": True,
@@ -912,6 +1217,18 @@ def run_exp001b_posthoc_diagnostics(
         "control_nonrandom_shadow_semantic_success_rate": semantic_shadow_metric[
             "nonrandom_conditions"
         ]["shadow_semantic_success_rate"],
+        "control_prefix_margin_quantification_available": prefix_margin_evidence[
+            "newline_vs_answer_margin_quantification_available"
+        ],
+        "control_source_combo_global_exact_p_value": small_sample_uncertainty[
+            "source_combo_global_conditional_exact_p_value"
+        ],
+        "control_source_interaction_exact_p_value": small_sample_uncertainty[
+            "source_factor_interaction_conditional_exact_p_value"
+        ],
+        "control_task_type_global_exact_p_value": small_sample_uncertainty[
+            "task_type_global_conditional_exact_p_value"
+        ],
         "matched_records_with_state_norm_alerts": report[
             "matched_state_norm_diagnostics"
         ]["records_with_alerts"],
