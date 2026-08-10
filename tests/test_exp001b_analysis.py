@@ -224,6 +224,46 @@ class Exp001BSupplementalAnalysisTests(unittest.TestCase):
         self.assertFalse(report["measured_supplemental_package_go"])
         self.assertEqual(report["route_decision"], "review_frozen_failures_without_rerun")
 
+    def test_observed_failure_precedes_missing_parent_reference(self) -> None:
+        groups = []
+        for index in range(12):
+            groups.append(
+                {
+                    "matched_context": {
+                        "matched_joint_margin": -0.5 + index / 100,
+                        "continuous_minus_matched_joint_margin": None,
+                        "state_norm_alert_count": 1 if index == 0 else 0,
+                    },
+                    "generation": {
+                        "format_valid": 1.0,
+                        "prefix_valid": 1.0,
+                        "joint_correct": 1.0,
+                        "identity_correct": 1.0,
+                        "goal_correct": 1.0,
+                    },
+                    "generation_position": {
+                        code: {"count": 4, "accuracy": 1.0} for code in "ABCD"
+                    },
+                }
+            )
+        report = summarize_supplemental_analysis(
+            groups,
+            {
+                "measured_alerts_pass": True,
+                "required_diagnostics_complete": False,
+            },
+            _config(),
+        )
+        self.assertFalse(report["matched_context_assessable"])
+        self.assertFalse(report["measured_observed_components_go"])
+        self.assertEqual(
+            report["route_decision"], "review_frozen_failures_without_rerun"
+        )
+        self.assertEqual(
+            report["gate_2_single_variable_causal_transfer"]["status"],
+            "revise_or_stop_measured_supplemental_control_failure",
+        )
+
 
 if __name__ == "__main__":
     unittest.main()

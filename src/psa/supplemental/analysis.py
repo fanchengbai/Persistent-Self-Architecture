@@ -363,6 +363,7 @@ def summarize_supplemental_analysis(
         }
         matched_go = False
     matched["state_norm_alert_count"] = matched_alerts
+    matched["state_norm_gate_pass"] = matched_alerts == 0
     matched["go"] = matched_go
 
     generation_reports = {
@@ -413,8 +414,15 @@ def summarize_supplemental_analysis(
     }
     measured_controls_go = controls.get("measured_alerts_pass") is True
     diagnostics_complete = controls.get("required_diagnostics_complete") is True
+    measured_observed_components_go = bool(
+        generation_go and measured_controls_go and matched_alerts == 0
+    )
     measured_package_go = matched_go and generation_go and measured_controls_go
-    if not matched_assessable:
+    if not measured_observed_components_go:
+        gate_status = "revise_or_stop_measured_supplemental_control_failure"
+        route = "review_frozen_failures_without_rerun"
+        allowed = "supplemental_measured_controls_do_not_close_phase_2"
+    elif not matched_assessable:
         gate_status = "not_assessable_no_full_go"
         route = "hold_phase_2_missing_parent_reference"
         allowed = "supplemental_only_metrics_reported_without_matched_context_decision"
@@ -435,6 +443,7 @@ def summarize_supplemental_analysis(
         "matched_context_assessable": matched_assessable,
         "controls": dict(controls),
         "generation": generation,
+        "measured_observed_components_go": measured_observed_components_go,
         "measured_supplemental_package_go": measured_package_go,
         "required_diagnostics_complete": diagnostics_complete,
         "gate_2_single_variable_causal_transfer": {"status": gate_status},
@@ -633,6 +642,7 @@ def run_exp001b_supplemental_analysis(
         "created_at_utc": datetime.now(timezone.utc).isoformat(),
         "experiment_id": "EXP-001B",
         "analysis_id": config["analysis_id"],
+        "implementation_revision": "v0.2-decision-precedence-correction",
         "analysis_config_sha256": EXPECTED_ANALYSIS_CONFIG_SHA256,
         "parent_raw_payload_digest_sha256": expected_parent_digest,
         "supplemental_raw_payload_digest_sha256": expected_supplemental_digest,
@@ -655,6 +665,7 @@ def run_exp001b_supplemental_analysis(
             else "supplemental_analysis_complete_partial_parent_unavailable"
         ),
         "valid": True,
+        "implementation_revision": "v0.2-decision-precedence-correction",
         "supplemental_results_observed": True,
         "parent_reference_available": parent_reference_available,
         "analysis_read_only": True,
@@ -667,6 +678,9 @@ def run_exp001b_supplemental_analysis(
         "gate_2_status": aggregate["gate_2_single_variable_causal_transfer"]["status"],
         "gate_4_status": aggregate["gate_4_native_state_carrier_qualification"]["status"],
         "matched_context_assessable": aggregate["matched_context_assessable"],
+        "measured_observed_components_go": aggregate[
+            "measured_observed_components_go"
+        ],
         "allowed_conclusion": aggregate["allowed_conclusion"],
         "route_decision": aggregate["route_decision"],
         "reports": ["group_level_metrics.json", "supplemental_report.json"],

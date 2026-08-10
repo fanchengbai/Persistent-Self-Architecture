@@ -17,5 +17,5 @@ export PYTHONPATH="${PROJECT_ROOT}/src${PYTHONPATH:+:${PYTHONPATH}}"
   --core-set-package preregistration/exp001/core_set_v1 \
   --supplemental-set-package preregistration/exp001b/supplemental_set_v1 \
   --analysis-config configs/analysis/exp001b_supplemental_v1.json \
-  --analysis-output-dir results/confirmatory/exp001b_v1_analysis \
+  --analysis-output-dir results/confirmatory/exp001b_v1_analysis_v02 \
   --project-root "${PROJECT_ROOT}"
