@@ -57,6 +57,7 @@ from psa.supplemental import (
     run_exp001b_runner_development_gate,
     run_exp001b_supplemental,
     run_exp001b_supplemental_analysis,
+    run_exp001b_posthoc_diagnostics,
     verify_exp001b_final_preregistration_package,
     verify_exp001b_supplemental_set_package,
     verify_exp001b_supplemental_raw_package,
@@ -830,6 +831,18 @@ def _exp001b_analyze(args: argparse.Namespace) -> int:
     return 0 if result["valid"] else 2
 
 
+def _exp001b_diagnose(args: argparse.Namespace) -> int:
+    result = run_exp001b_posthoc_diagnostics(
+        supplemental_raw_output_dir=args.supplemental_raw_output_dir,
+        supplemental_raw_verification_path=args.supplemental_raw_verification,
+        supplemental_set_package_dir=args.supplemental_set_package,
+        analysis_output_dir=args.analysis_output_dir,
+        diagnostic_output_dir=args.diagnostic_output_dir,
+    )
+    print(json.dumps(result, ensure_ascii=False, indent=2))
+    return 0 if result["valid"] else 2
+
+
 def _confirmatory_run(args: argparse.Namespace) -> int:
     result = run_exp001_confirmatory(
         project_root=args.project_root,
@@ -1369,6 +1382,17 @@ def build_parser() -> argparse.ArgumentParser:
     exp001b_analyze.add_argument("--analysis-output-dir", required=True)
     exp001b_analyze.add_argument("--project-root", default=".")
     exp001b_analyze.set_defaults(handler=_exp001b_analyze)
+
+    exp001b_diagnose = subparsers.add_parser(
+        "exp001b-diagnose",
+        help="run read-only post-hoc diagnostics without changing confirmatory decisions",
+    )
+    exp001b_diagnose.add_argument("--supplemental-raw-output-dir", required=True)
+    exp001b_diagnose.add_argument("--supplemental-raw-verification", required=True)
+    exp001b_diagnose.add_argument("--supplemental-set-package", required=True)
+    exp001b_diagnose.add_argument("--analysis-output-dir", required=True)
+    exp001b_diagnose.add_argument("--diagnostic-output-dir", required=True)
+    exp001b_diagnose.set_defaults(handler=_exp001b_diagnose)
 
     confirmatory_run = subparsers.add_parser(
         "confirmatory-run",

@@ -1,0 +1,283 @@
+from __future__ import annotations
+
+from collections import Counter, defaultdict
+from datetime import datetime, timezone
+import json
+import math
+from pathlib import Path
+from typing import Any, Mapping, Sequence
+
+from psa.artifacts import canonical_json_bytes, sha256_file, sha256_json
+from psa.supplemental.formal_run import (
+    EXPECTED_GROUP_COUNT,
+    EXPECTED_RAW_RECORD_COUNT,
+    SUPPLEMENTAL_SET_DIGEST,
+)
+from psa.supplemental.set_generation import verify_exp001b_supplemental_set_package
+
+
+EXPECTED_RAW_PAYLOAD_DIGEST = (
+    "6926a932220f34b37c6b4e86fa65edc230e414726bd2d4d308bf471d1af290f6"
+)
+
+
+def _load_object(path: str | Path, label: str) -> dict[str, Any]:
+    payload = json.loads(Path(path).read_text(encoding="utf-8"))
+    if not isinstance(payload, dict):
+        raise ValueError(f"{label} must be a JSON object")
+    return payload
+
+
+def _quantile(values: Sequence[float], probability: float) -> float | None:
+    ordered = sorted(float(value) for value in values)
+    if not ordered:
+        return None
+    position = min(1.0, max(0.0, probability)) * (len(ordered) - 1)
+    lower = math.floor(position)
+    upper = math.ceil(position)
+    if lower == upper:
+        return ordered[lower]
+    fraction = position - lower
+    return ordered[lower] * (1.0 - fraction) + ordered[upper] * fraction
+
+
+def prefix_failure_flags(output: Mapping[str, Any]) -> dict[str, bool]:
+    metadata = output.get("metadata")
+    prefix = metadata.get("forced_prefix") if isinstance(metadata, Mapping) else None
+    present = isinstance(prefix, Mapping)
+    text_exact = bool(present and prefix.get("text") == ">\n")
+    greedy_exact = bool(present and prefix.get("greedy_exact") is True)
+    roundtrip_exact = bool(present and prefix.get("roundtrip_exact") is True)
+    return {
+        "missing": not present,
+        "text_mismatch": not text_exact,
+        "greedy_mismatch": not greedy_exact,
+        "roundtrip_mismatch": not roundtrip_exact,
+        "valid": present and text_exact and greedy_exact and roundtrip_exact,
+    }
+
+
+def summarize_prefix_cells(
+    rows: Sequence[tuple[Mapping[str, Any], Mapping[str, Any]]],
+) -> dict[str, Any]:
+    cells: dict[tuple[str, str], list[dict[str, bool]]] = defaultdict(list)
+    for frozen, output in rows:
+        cells[(str(frozen["condition"]), str(frozen["task_type"]))].append(
+            prefix_failure_flags(output)
+        )
+    reports = []
+    for (condition, task_type), flags in sorted(cells.items()):
+        if len(flags) != 32:
+            raise ValueError("control diagnostic cell must contain 32 records")
+        failure_counts = {
+            key: sum(int(item[key]) for item in flags)
+            for key in (
+                "missing",
+                "text_mismatch",
+                "greedy_mismatch",
+                "roundtrip_mismatch",
+            )
+        }
+        invalid_count = sum(int(not item["valid"]) for item in flags)
+        reports.append(
+            {
+                "condition": condition,
+                "task_type": task_type,
+                "record_count": len(flags),
+                "invalid_prefix_count": invalid_count,
+                "valid_prefix_rate": 1.0 - invalid_count / len(flags),
+                "failure_counts": failure_counts,
+            }
+        )
+    return {
+        "cell_count": len(reports),
+        "cells_with_failures": sum(item["invalid_prefix_count"] > 0 for item in reports),
+        "invalid_record_count": sum(item["invalid_prefix_count"] for item in reports),
+        "cells": reports,
+    }
+
+
+def summarize_matched_norms(outputs: Sequence[Mapping[str, Any]]) -> dict[str, Any]:
+    path_counts: Counter[str] = Counter()
+    max_ratios = []
+    records_with_alerts = 0
+    total_alerts = 0
+    prefix_failures = Counter()
+    for output in outputs:
+        metadata = output.get("metadata")
+        if not isinstance(metadata, Mapping):
+            raise ValueError("matched diagnostic metadata is missing")
+        alert_count = int(metadata.get("state_norm_alert_count", -1))
+        paths = metadata.get("state_norm_alert_paths")
+        max_ratio = float(metadata.get("state_norm_max_alert_ratio", float("nan")))
+        if (
+            alert_count < 0
+            or not isinstance(paths, list)
+            or any(not isinstance(path, str) for path in paths)
+            or len(paths) != alert_count
+            or not math.isfinite(max_ratio)
+        ):
+            raise ValueError("matched state-norm diagnostic fields are invalid")
+        total_alerts += alert_count
+        records_with_alerts += int(alert_count > 0)
+        path_counts.update(paths)
+        max_ratios.append(max_ratio)
+        flags = prefix_failure_flags(output)
+        for key, value in flags.items():
+            if key != "valid" and value:
+                prefix_failures[key] += 1
+    count = len(outputs)
+    if count == 0:
+        raise ValueError("matched diagnostics require records")
+    return {
+        "record_count": count,
+        "records_with_alerts": records_with_alerts,
+        "record_alert_rate": records_with_alerts / count,
+        "total_component_alerts": total_alerts,
+        "alerts_per_record_mean": total_alerts / count,
+        "unique_alert_path_count": len(path_counts),
+        "top_alert_paths": [
+            {"path": path, "count": path_counts[path]}
+            for path in sorted(path_counts, key=lambda item: (-path_counts[item], item))[:25]
+        ],
+        "max_alert_ratio_distribution": {
+            "median": _quantile(max_ratios, 0.5),
+            "q95": _quantile(max_ratios, 0.95),
+            "q99": _quantile(max_ratios, 0.99),
+            "maximum": max(max_ratios),
+        },
+        "prefix_failure_counts": dict(sorted(prefix_failures.items())),
+    }
+
+
+def run_exp001b_posthoc_diagnostics(
+    *,
+    supplemental_raw_output_dir: str | Path,
+    supplemental_raw_verification_path: str | Path,
+    supplemental_set_package_dir: str | Path,
+    analysis_output_dir: str | Path,
+    diagnostic_output_dir: str | Path,
+) -> dict[str, Any]:
+    raw_root = Path(supplemental_raw_output_dir).resolve()
+    set_root = Path(supplemental_set_package_dir).resolve()
+    analysis_root = Path(analysis_output_dir).resolve()
+    destination = Path(diagnostic_output_dir).resolve()
+    if destination.exists() and any(destination.iterdir()):
+        raise ValueError("diagnostic output directory must be empty")
+    verification = _load_object(
+        supplemental_raw_verification_path, "supplemental raw verification"
+    )
+    raw_manifest = _load_object(raw_root / "manifest.json", "supplemental raw manifest")
+    supplemental_set = _load_object(set_root / "supplemental_set.json", "supplemental set")
+    set_report = verify_exp001b_supplemental_set_package(set_root)
+    analysis_summary = _load_object(analysis_root / "summary.json", "analysis summary")
+    analysis_report_path = analysis_root / "supplemental_report.json"
+    prerequisites = {
+        "raw_verification_valid": (
+            verification.get("valid") is True
+            and verification.get("status") == "raw_package_verified_unanalyzed"
+            and verification.get("verified_record_count") == EXPECTED_RAW_RECORD_COUNT
+            and verification.get("group_payload_digest_sha256")
+            == EXPECTED_RAW_PAYLOAD_DIGEST
+        ),
+        "supplemental_set_valid": (
+            set_report.get("valid") is True
+            and supplemental_set.get("supplemental_set_digest_sha256")
+            == SUPPLEMENTAL_SET_DIGEST
+        ),
+        "analysis_package_valid": (
+            analysis_summary.get("valid") is True
+            and analysis_summary.get("supplemental_raw_payload_digest_sha256")
+            == EXPECTED_RAW_PAYLOAD_DIGEST
+            and sha256_file(analysis_report_path)
+            == analysis_summary.get("supplemental_report_sha256")
+        ),
+        "group_count_valid": (
+            len(raw_manifest.get("expected_group_ids", [])) == EXPECTED_GROUP_COUNT
+        ),
+    }
+    if not all(prerequisites.values()):
+        failed = [key for key, value in prerequisites.items() if not value]
+        raise ValueError(f"diagnostic prerequisites failed: {failed}")
+
+    controls_by_id = {
+        str(record["record_id"]): record for record in supplemental_set["records"]["controls"]
+    }
+    control_rows = []
+    matched_outputs = []
+    generation_prefix_failures = Counter()
+    total_records = 0
+    for group_id in raw_manifest["expected_group_ids"]:
+        payload = _load_object(raw_root / "groups" / f"{group_id}.json", str(group_id))
+        for output in payload.get("records", []):
+            if not isinstance(output, Mapping):
+                raise ValueError("raw diagnostic record must be an object")
+            total_records += 1
+            kind = output.get("record_kind")
+            if kind == "matched_context":
+                matched_outputs.append(output)
+            elif kind == "general_capability_control_condition":
+                frozen = controls_by_id.get(str(output.get("record_id")))
+                if frozen is None:
+                    raise ValueError("control output is not bound to the frozen set")
+                control_rows.append((frozen, output))
+            elif kind == "formal_generation_readout":
+                flags = prefix_failure_flags(output)
+                for key, value in flags.items():
+                    if key != "valid" and value:
+                        generation_prefix_failures[key] += 1
+            else:
+                raise ValueError("unknown supplemental record kind")
+    if (
+        total_records != EXPECTED_RAW_RECORD_COUNT
+        or len(control_rows) != 768
+        or len(matched_outputs) != 5_120
+    ):
+        raise ValueError("diagnostic did not consume the complete supplemental package")
+
+    report = {
+        "report_version": "1.0-posthoc",
+        "created_at_utc": datetime.now(timezone.utc).isoformat(),
+        "experiment_id": "EXP-001B",
+        "exploratory_posthoc": True,
+        "confirmatory_decision_changed": False,
+        "automatic_rerun_authorized": False,
+        "supplemental_raw_payload_digest_sha256": EXPECTED_RAW_PAYLOAD_DIGEST,
+        "analysis_package_digest_sha256": analysis_summary[
+            "analysis_package_digest_sha256"
+        ],
+        "prerequisite_checks": prerequisites,
+        "control_prefix_diagnostics": summarize_prefix_cells(control_rows),
+        "matched_state_norm_diagnostics": summarize_matched_norms(matched_outputs),
+        "generation_prefix_failure_counts": dict(
+            sorted(generation_prefix_failures.items())
+        ),
+    }
+    destination.mkdir(parents=True, exist_ok=True)
+    report_path = destination / "diagnostic_report.json"
+    report_path.write_bytes(canonical_json_bytes(report))
+    summary = {
+        "summary_version": "1.0-posthoc",
+        "experiment_id": "EXP-001B",
+        "status": "posthoc_failure_diagnostics_complete",
+        "valid": True,
+        "exploratory_posthoc": True,
+        "confirmatory_decision_changed": False,
+        "automatic_rerun_authorized": False,
+        "diagnostic_report_sha256": sha256_file(report_path),
+        "diagnostic_package_digest_sha256": sha256_json(
+            {"diagnostic_report.json": sha256_file(report_path)}
+        ),
+        "control_cells_with_prefix_failures": report[
+            "control_prefix_diagnostics"
+        ]["cells_with_failures"],
+        "matched_records_with_state_norm_alerts": report[
+            "matched_state_norm_diagnostics"
+        ]["records_with_alerts"],
+        "matched_total_component_alerts": report[
+            "matched_state_norm_diagnostics"
+        ]["total_component_alerts"],
+        "reports": ["diagnostic_report.json"],
+    }
+    (destination / "summary.json").write_bytes(canonical_json_bytes(summary))
+    return summary
