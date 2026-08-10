@@ -6,10 +6,10 @@
     "EXP-001B",
     "EXP-001B-posthoc-diagnostics-v01-v06"
   ],
-  "status": "offline_development_authorized_unfrozen_formal_unapproved",
+  "status": "noncore_development_pilot_authorized_unfrozen_formal_unapproved",
   "authority": {
     "development_implementation_authorized": true,
-    "pilot_run_authorized": false,
+    "pilot_run_authorized": true,
     "test_set_generation_authorized": false,
     "formal_run_authorized": false,
     "result_observation_authorized": false,
@@ -17,6 +17,7 @@
   },
   "development_authorization": {
     "authorized_at": "2026-08-10",
+    "pilot_authorized_at": "2026-08-10",
     "scope": [
       "token instrumentation implementation",
       "JSON schema",
@@ -30,8 +31,8 @@
       "locked exp001c-probe-run CLI",
       "fake-adapter backend integration tests"
     ],
-    "model_execution_authorized": false,
-    "noncore_pilot_authorized": false,
+    "model_execution_authorized": true,
+    "noncore_pilot_authorized": true,
     "formal_data_generation_authorized": false
   },
   "scope": {

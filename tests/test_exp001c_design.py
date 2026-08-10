@@ -15,23 +15,27 @@ class Exp001CProspectiveDesignTests(unittest.TestCase):
     def setUp(self) -> None:
         self.config = json.loads(CONFIG.read_text(encoding="utf-8"))
 
-    def test_draft_authorizes_only_offline_development(self) -> None:
+    def test_draft_authorizes_only_noncore_development_pilot(self) -> None:
         self.assertEqual(
             self.config["status"],
-            "offline_development_authorized_unfrozen_formal_unapproved",
+            "noncore_development_pilot_authorized_unfrozen_formal_unapproved",
         )
         authority = self.config["authority"]
         self.assertTrue(authority["development_implementation_authorized"])
+        self.assertTrue(authority["pilot_run_authorized"])
         self.assertTrue(
-            all(
-                value is False
-                for key, value in authority.items()
-                if key != "development_implementation_authorized"
-            )
-        )
-        self.assertFalse(
             self.config["development_authorization"]["model_execution_authorized"]
         )
+        self.assertTrue(
+            self.config["development_authorization"]["noncore_pilot_authorized"]
+        )
+        for key in (
+            "test_set_generation_authorized",
+            "formal_run_authorized",
+            "result_observation_authorized",
+            "automatic_rerun_authorized",
+        ):
+            self.assertFalse(authority[key])
         self.assertFalse(self.config["scope"]["changes_exp001b_decision"])
         self.assertTrue(
             self.config["scope"]["requires_independent_preregistration_freeze"]

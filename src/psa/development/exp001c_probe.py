@@ -295,11 +295,26 @@ def validate_exp001c_probe_execution_authority(
         and authorization.get("experiment_id") == EXPERIMENT_ID
         and authorization.get("scope") == "noncore_development_pilot_only"
         and authorization.get("authorized") is True
+        and authorization.get("authorization_basis")
+        == "project_owner_explicit_chat_authorization"
+        and isinstance(authorization.get("authorized_at_utc"), str)
+        and len(str(authorization.get("authorized_at_utc"))) >= 20
+        and authorization.get("model_execution_authorized") is True
+        and authorization.get("noncore_fixture_only") is True
         and authorization.get("probe_manifest_digest_sha256")
         == manifest.get("manifest_digest_sha256")
         and authorization.get("formal_test_set_access_authorized") is False
         and authorization.get("formal_run_authorized") is False
         and authorization.get("result_observation_authorized") is False
+        and authorization.get("automatic_rerun_authorized") is False
+        and authorization.get("authorization_digest_sha256")
+        == sha256_json(
+            {
+                key: value
+                for key, value in authorization.items()
+                if key != "authorization_digest_sha256"
+            }
+        )
     )
     if not authorization_valid:
         raise PermissionError("EXP-001C non-Core pilot authorization is invalid")
@@ -312,6 +327,62 @@ def validate_exp001c_probe_execution_authority(
         "formal_run_authorized": False,
         "result_observation_authorized": False,
     }
+
+
+def build_exp001c_probe_pilot_authorization(
+    *,
+    manifest_path: str | Path,
+    project_root: str | Path,
+) -> dict[str, Any]:
+    verification = verify_exp001c_probe_manifest(
+        manifest_path,
+        project_root=project_root,
+    )
+    if verification.get("valid") is not True:
+        raise ValueError("EXP-001C probe manifest verification failed")
+    root = Path(project_root).resolve()
+    manifest = _load_object(manifest_path, "EXP-001C probe manifest")
+    design_entry = manifest.get("design_config")
+    if (
+        not isinstance(design_entry, Mapping)
+        or design_entry.get("noncore_pilot_authorized_at_build") is not True
+    ):
+        raise PermissionError("EXP-001C manifest was not built with pilot authority")
+    design = _load_object(
+        root / str(design_entry["path"]),
+        "EXP-001C design config",
+    )
+    authority = design.get("authority")
+    development = design.get("development_authorization")
+    if (
+        not isinstance(authority, Mapping)
+        or not isinstance(development, Mapping)
+        or authority.get("pilot_run_authorized") is not True
+        or development.get("noncore_pilot_authorized") is not True
+        or development.get("model_execution_authorized") is not True
+        or authority.get("formal_run_authorized") is not False
+        or authority.get("test_set_generation_authorized") is not False
+        or authority.get("result_observation_authorized") is not False
+        or authority.get("automatic_rerun_authorized") is not False
+    ):
+        raise PermissionError("EXP-001C design does not authorize a non-Core pilot")
+    authorization = {
+        "authorization_version": "0.1",
+        "experiment_id": EXPERIMENT_ID,
+        "scope": "noncore_development_pilot_only",
+        "authorized": True,
+        "authorization_basis": "project_owner_explicit_chat_authorization",
+        "authorized_at_utc": datetime.now(timezone.utc).isoformat(),
+        "model_execution_authorized": True,
+        "noncore_fixture_only": True,
+        "probe_manifest_digest_sha256": manifest["manifest_digest_sha256"],
+        "formal_test_set_access_authorized": False,
+        "formal_run_authorized": False,
+        "result_observation_authorized": False,
+        "automatic_rerun_authorized": False,
+    }
+    authorization["authorization_digest_sha256"] = sha256_json(authorization)
+    return authorization
 
 
 def run_exp001c_development_probe(

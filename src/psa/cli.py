@@ -20,6 +20,7 @@ from psa.confirmatory import (
 from psa.development import (
     PROBE_EXECUTION_ENV,
     build_exp001c_rwkv_development_backend,
+    build_exp001c_probe_pilot_authorization,
     build_exp001c_probe_manifest,
     run_g1_capability_audit,
     run_capability_ladder_gate,
@@ -870,6 +871,16 @@ def _exp001c_probe_verify(args: argparse.Namespace) -> int:
     return 0 if result["valid"] else 2
 
 
+def _exp001c_probe_authorize(args: argparse.Namespace) -> int:
+    result = build_exp001c_probe_pilot_authorization(
+        manifest_path=args.manifest,
+        project_root=args.project_root,
+    )
+    _write_json(Path(args.output), result)
+    print(json.dumps(result, ensure_ascii=False, indent=2))
+    return 0
+
+
 def _exp001c_probe_authority_check(args: argparse.Namespace) -> int:
     result = validate_exp001c_probe_execution_authority(
         manifest_path=args.manifest,
@@ -1471,6 +1482,18 @@ def build_parser() -> argparse.ArgumentParser:
     exp001c_probe_verify.add_argument("--manifest", required=True)
     exp001c_probe_verify.add_argument("--project-root", default=".")
     exp001c_probe_verify.set_defaults(handler=_exp001c_probe_verify)
+
+    exp001c_probe_authorize = subparsers.add_parser(
+        "exp001c-probe-authorize",
+        help=(
+            "bind the explicit project-owner non-Core pilot authority to a "
+            "verified unrun EXP-001C manifest"
+        ),
+    )
+    exp001c_probe_authorize.add_argument("--manifest", required=True)
+    exp001c_probe_authorize.add_argument("--output", required=True)
+    exp001c_probe_authorize.add_argument("--project-root", default=".")
+    exp001c_probe_authorize.set_defaults(handler=_exp001c_probe_authorize)
 
     exp001c_probe_authority = subparsers.add_parser(
         "exp001c-probe-authority-check",

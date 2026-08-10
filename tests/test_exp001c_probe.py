@@ -11,6 +11,7 @@ from psa.cli import main
 from psa.development.exp001c_probe import (
     PROBE_EXECUTION_LOCK,
     PROBE_SOURCE_FILES,
+    build_exp001c_probe_pilot_authorization,
     build_exp001c_probe_manifest,
     run_exp001c_development_probe,
     verify_exp001c_probe_manifest,
@@ -44,7 +45,7 @@ class Exp001CProbeRunnerTests(unittest.TestCase):
         )
         self.assertFalse(manifest["model_executed"])
         self.assertFalse(manifest["formal_test_set_accessed"])
-        self.assertFalse(manifest["design_config"]["noncore_pilot_authorized_at_build"])
+        self.assertTrue(manifest["design_config"]["noncore_pilot_authorized_at_build"])
         with tempfile.TemporaryDirectory() as temporary:
             path = Path(temporary) / "manifest.json"
             path.write_text(json.dumps(manifest), encoding="utf-8")
@@ -55,6 +56,7 @@ class Exp001CProbeRunnerTests(unittest.TestCase):
     def test_cli_builds_and_verifies_unrun_manifest(self) -> None:
         with tempfile.TemporaryDirectory() as temporary:
             path = Path(temporary) / "manifest.json"
+            authorization_path = Path(temporary) / "authorization.json"
             code = main(
                 [
                     "exp001c-probe-manifest",
@@ -81,6 +83,25 @@ class Exp001CProbeRunnerTests(unittest.TestCase):
                 ),
                 0,
             )
+            self.assertEqual(
+                main(
+                    [
+                        "exp001c-probe-authorize",
+                        "--manifest",
+                        str(path),
+                        "--output",
+                        str(authorization_path),
+                        "--project-root",
+                        str(ROOT),
+                    ]
+                ),
+                0,
+            )
+            authorization = json.loads(
+                authorization_path.read_text(encoding="utf-8")
+            )
+            self.assertTrue(authorization["authorized"])
+            self.assertFalse(authorization["automatic_rerun_authorized"])
 
     def test_execution_lock_fails_before_paths_or_backend_factory(self) -> None:
         factory_called = False
@@ -121,7 +142,7 @@ class Exp001CProbeRunnerTests(unittest.TestCase):
             2,
         )
 
-    def test_current_design_blocks_pilot_even_with_execution_lock(self) -> None:
+    def test_current_design_requires_separate_authorization_file(self) -> None:
         factory_called = False
 
         def factory():
@@ -137,10 +158,7 @@ class Exp001CProbeRunnerTests(unittest.TestCase):
         with tempfile.TemporaryDirectory() as temporary:
             manifest_path = Path(temporary) / "manifest.json"
             manifest_path.write_text(json.dumps(manifest), encoding="utf-8")
-            with self.assertRaisesRegex(
-                PermissionError,
-                "built without pilot authority",
-            ):
+            with self.assertRaises(FileNotFoundError):
                 run_exp001c_development_probe(
                     manifest_path=manifest_path,
                     authorization_path=Path(temporary) / "missing.json",
@@ -200,11 +218,17 @@ class Exp001CProbeRunnerTests(unittest.TestCase):
                 "experiment_id": "EXP-001C",
                 "scope": "noncore_development_pilot_only",
                 "authorized": True,
+                "authorization_basis": "project_owner_explicit_chat_authorization",
+                "authorized_at_utc": "2026-08-10T00:00:00+00:00",
+                "model_execution_authorized": True,
+                "noncore_fixture_only": True,
                 "probe_manifest_digest_sha256": manifest["manifest_digest_sha256"],
                 "formal_test_set_access_authorized": False,
                 "formal_run_authorized": False,
                 "result_observation_authorized": False,
+                "automatic_rerun_authorized": False,
             }
+            authorization["authorization_digest_sha256"] = sha256_json(authorization)
             authorization_path = sandbox / "authorization.json"
             authorization_path.write_text(json.dumps(authorization), encoding="utf-8")
             factory_calls = 0
@@ -227,6 +251,29 @@ class Exp001CProbeRunnerTests(unittest.TestCase):
             self.assertTrue(summary["model_executed"])
             self.assertFalse(summary["formal_test_set_accessed"])
             self.assertFalse(summary["contains_confirmatory_decision"])
+
+    def test_authorization_builder_binds_verified_manifest(self) -> None:
+        manifest = build_exp001c_probe_manifest(
+            design_config_path=DESIGN,
+            model_config_path=MODEL,
+            project_root=ROOT,
+        )
+        with tempfile.TemporaryDirectory() as temporary:
+            manifest_path = Path(temporary) / "manifest.json"
+            manifest_path.write_text(json.dumps(manifest), encoding="utf-8")
+            authorization = build_exp001c_probe_pilot_authorization(
+                manifest_path=manifest_path,
+                project_root=ROOT,
+            )
+        self.assertTrue(authorization["authorized"])
+        self.assertTrue(authorization["model_execution_authorized"])
+        self.assertTrue(authorization["noncore_fixture_only"])
+        self.assertFalse(authorization["formal_run_authorized"])
+        self.assertFalse(authorization["automatic_rerun_authorized"])
+        self.assertEqual(
+            authorization["probe_manifest_digest_sha256"],
+            manifest["manifest_digest_sha256"],
+        )
 
 
 if __name__ == "__main__":

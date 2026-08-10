@@ -9,10 +9,16 @@
     "experiment_id",
     "scope",
     "authorized",
+    "authorization_basis",
+    "authorized_at_utc",
+    "model_execution_authorized",
+    "noncore_fixture_only",
     "probe_manifest_digest_sha256",
     "formal_test_set_access_authorized",
     "formal_run_authorized",
-    "result_observation_authorized"
+    "result_observation_authorized",
+    "automatic_rerun_authorized",
+    "authorization_digest_sha256"
   ],
   "properties": {
     "authorization_version": {
@@ -27,6 +33,19 @@
     "authorized": {
       "const": true
     },
+    "authorization_basis": {
+      "const": "project_owner_explicit_chat_authorization"
+    },
+    "authorized_at_utc": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "model_execution_authorized": {
+      "const": true
+    },
+    "noncore_fixture_only": {
+      "const": true
+    },
     "probe_manifest_digest_sha256": {
       "type": "string",
       "pattern": "^[0-9a-f]{64}$"
@@ -39,6 +58,13 @@
     },
     "result_observation_authorized": {
       "const": false
+    },
+    "automatic_rerun_authorized": {
+      "const": false
+    },
+    "authorization_digest_sha256": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{64}$"
     }
   }
 }

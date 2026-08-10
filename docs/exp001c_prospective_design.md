@@ -164,5 +164,9 @@ scaffold。项目负责人随后授权进入离线 backend 集成阶段；该追
 backend 工厂代码、formal-shape 非 Core fixture、带锁 `exp001c-probe-run` CLI，以及
 fake-adapter backend 集成测试。
 
-上述批准仍不包含模型执行或非 Core pilot，不包含任何正式数据生成，也不包含结果观察。
-完成离线开发后必须再次停下，由项目负责人单独决定是否授权非 Core 模型开发门。
+项目负责人随后于 2026-08-10 明确授权进入非 Core 模型开发门。该授权仅允许使用已锁定
+formal-shape 非 Core fixture 执行一次 development pilot，并要求 manifest、独立授权包和
+环境变量执行锁三者同时匹配；不允许自动重跑。
+
+该 pilot 授权仍不包含正式测试集生成、正式运行或正式结果观察。pilot 完成后必须再次
+停下，由项目负责人决定是否进入后续校准或设计冻结阶段。
