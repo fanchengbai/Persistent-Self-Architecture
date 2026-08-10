@@ -1,0 +1,39 @@
+{
+  "fixture_version": "0.1-development",
+  "fixture_id": "EXP-001C-NONCORE-FORMAL-SHAPE-v01",
+  "fixture_kind": "noncore_formal_shape_prefix_probe",
+  "development_only": true,
+  "non_core": true,
+  "formal_test_set_accessed": false,
+  "forced_prefix": ">\n",
+  "rendered_answers": {
+    "A": "A",
+    "B": "B",
+    "C": "C",
+    "D": "D"
+  },
+  "histories": {
+    "0,0": "[NON-CORE DEVELOPMENT FIXTURE] The current identity marker is saffron and the current goal marker is spiral. Preserve both markers across the delayed state-only query. Distractor ledger: mica, willow, seven, north, lantern, quiet, delta, cedar.",
+    "0,1": "[NON-CORE DEVELOPMENT FIXTURE] The current identity marker is saffron and the current goal marker is harbor. Preserve both markers across the delayed state-only query. Distractor ledger: mica, willow, seven, north, lantern, quiet, delta, cedar.",
+    "1,0": "[NON-CORE DEVELOPMENT FIXTURE] The current identity marker is indigo and the current goal marker is spiral. Preserve both markers across the delayed state-only query. Distractor ledger: mica, willow, seven, north, lantern, quiet, delta, cedar.",
+    "1,1": "[NON-CORE DEVELOPMENT FIXTURE] The current identity marker is indigo and the current goal marker is harbor. Preserve both markers across the delayed state-only query. Distractor ledger: mica, willow, seven, north, lantern, quiet, delta, cedar."
+  },
+  "queries": {
+    "0,0": {
+      "prompt": "[NON-CORE DEVELOPMENT FIXTURE] Select the option that matches the identity and goal retained in recurrent state. A: saffron + spiral. B: saffron + harbor. C: indigo + spiral. D: indigo + harbor. Reply using the required assistant prefix followed by one option code.",
+      "target_code": "A"
+    },
+    "0,1": {
+      "prompt": "[NON-CORE DEVELOPMENT FIXTURE] Select the option that matches the identity and goal retained in recurrent state. A: saffron + spiral. B: saffron + harbor. C: indigo + spiral. D: indigo + harbor. Reply using the required assistant prefix followed by one option code.",
+      "target_code": "B"
+    },
+    "1,0": {
+      "prompt": "[NON-CORE DEVELOPMENT FIXTURE] Select the option that matches the identity and goal retained in recurrent state. A: saffron + spiral. B: saffron + harbor. C: indigo + spiral. D: indigo + harbor. Reply using the required assistant prefix followed by one option code.",
+      "target_code": "C"
+    },
+    "1,1": {
+      "prompt": "[NON-CORE DEVELOPMENT FIXTURE] Select the option that matches the identity and goal retained in recurrent state. A: saffron + spiral. B: saffron + harbor. C: indigo + spiral. D: indigo + harbor. Reply using the required assistant prefix followed by one option code.",
+      "target_code": "D"
+    }
+  }
+}

@@ -1,0 +1,134 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://persistent-self-architecture.local/schemas/exp001c_noncore_probe_result.schema.json",
+  "title": "EXP-001C Non-Core Development Probe Result",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "probe_result_version",
+    "experiment_id",
+    "status",
+    "development_only",
+    "non_core_fixture",
+    "model_executed",
+    "formal_test_set_accessed",
+    "contains_confirmatory_decision",
+    "fixture_id",
+    "fixture_sha256",
+    "manifest_digest_sha256",
+    "condition_count",
+    "record_count",
+    "warmup_token_lengths",
+    "snapshot_roundtrip_reports",
+    "records"
+  ],
+  "properties": {
+    "probe_result_version": {"const": "0.1-development"},
+    "experiment_id": {"const": "EXP-001C"},
+    "status": {"const": "noncore_development_probe_complete"},
+    "development_only": {"const": true},
+    "non_core_fixture": {"const": true},
+    "model_executed": {"const": true},
+    "formal_test_set_accessed": {"const": false},
+    "contains_confirmatory_decision": {"const": false},
+    "fixture_id": {"type": "string", "minLength": 1},
+    "fixture_sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+    "manifest_digest_sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+    "condition_count": {"const": 8},
+    "record_count": {"const": 32},
+    "warmup_token_lengths": {
+      "type": "array",
+      "minItems": 1,
+      "items": {"type": "integer", "minimum": 1}
+    },
+    "snapshot_roundtrip_reports": {"type": "object"},
+    "records": {
+      "type": "array",
+      "minItems": 32,
+      "maxItems": 32,
+      "items": {"$ref": "#/$defs/record"}
+    }
+  },
+  "$defs": {
+    "combo": {
+      "type": "array",
+      "prefixItems": [
+        {"type": "integer", "minimum": 0, "maximum": 1},
+        {"type": "integer", "minimum": 0, "maximum": 1}
+      ],
+      "minItems": 2,
+      "maxItems": 2
+    },
+    "record": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "record_id",
+        "condition",
+        "query_combo",
+        "state_source_combo",
+        "target_code",
+        "query_token_count",
+        "prefix_evidence",
+        "option_log_probabilities",
+        "answer_boundary_evidence"
+      ],
+      "properties": {
+        "record_id": {"type": "string", "minLength": 1},
+        "condition": {
+          "enum": [
+            "continuous",
+            "restored",
+            "swapped_I",
+            "swapped_G",
+            "swapped_both",
+            "reset",
+            "prompt_visible_reset",
+            "random_matched"
+          ]
+        },
+        "query_combo": {"$ref": "#/$defs/combo"},
+        "state_source_combo": {
+          "oneOf": [
+            {"$ref": "#/$defs/combo"},
+            {"type": "null"}
+          ]
+        },
+        "target_code": {"enum": ["A", "B", "C", "D"]},
+        "query_token_count": {"type": "integer", "minimum": 1},
+        "prefix_evidence": {
+          "$ref": "exp001c_prefix_evidence.schema.json"
+        },
+        "option_log_probabilities": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["A", "B", "C", "D"],
+          "properties": {
+            "A": {"type": "number"},
+            "B": {"type": "number"},
+            "C": {"type": "number"},
+            "D": {"type": "number"}
+          }
+        },
+        "answer_boundary_evidence": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "target_code",
+            "target_answer_log_probability",
+            "best_incorrect_code",
+            "best_incorrect_answer_log_probability",
+            "target_margin_over_best_incorrect"
+          ],
+          "properties": {
+            "target_code": {"enum": ["A", "B", "C", "D"]},
+            "target_answer_log_probability": {"type": "number"},
+            "best_incorrect_code": {"enum": ["A", "B", "C", "D"]},
+            "best_incorrect_answer_log_probability": {"type": "number"},
+            "target_margin_over_best_incorrect": {"type": "number"}
+          }
+        }
+      }
+    }
+  }
+}

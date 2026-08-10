@@ -15,18 +15,22 @@ PROBE_MANIFEST_VERSION = "0.1-development"
 PROBE_EXECUTION_ENV = "PSA_EXP001C_NONCORE_PILOT"
 PROBE_EXECUTION_LOCK = "AUTHORIZED_EXP001C_NONCORE_DEVELOPMENT_PILOT"
 PROBE_SOURCE_FILES = (
+    "configs/development/exp001c_noncore_formal_shape_fixture.v0.1.json",
     "configs/preregistration/exp001c_prefix_semantics.draft.json",
     "docs/exp001c_prospective_design.md",
     "schemas/exp001c_noncore_pilot_authorization.schema.json",
+    "schemas/exp001c_noncore_probe_result.schema.json",
     "schemas/exp001c_prefix_evidence.schema.json",
     "src/psa/cli.py",
     "src/psa/development/__init__.py",
     "src/psa/development/exp001c_probe.py",
+    "src/psa/development/exp001c_rwkv_backend.py",
     "src/psa/development/prefix_instrumentation.py",
     "tests/fixtures/exp001c_prefix_logits_fixture.json",
     "tests/test_exp001c_design.py",
     "tests/test_exp001c_prefix_instrumentation.py",
     "tests/test_exp001c_probe.py",
+    "tests/test_exp001c_rwkv_backend.py",
 )
 
 
@@ -334,6 +338,7 @@ def run_exp001c_development_probe(
     if (
         not isinstance(result, Mapping)
         or result.get("development_only") is not True
+        or result.get("model_executed") is not True
         or result.get("formal_test_set_accessed") is not False
         or result.get("contains_confirmatory_decision") is not False
     ):
@@ -347,6 +352,7 @@ def run_exp001c_development_probe(
         "status": "noncore_development_probe_complete",
         "valid": True,
         "development_only": True,
+        "model_executed": True,
         "manifest_digest_sha256": authority["manifest_digest_sha256"],
         "probe_result_sha256": sha256_file(result_path),
         "formal_test_set_accessed": False,

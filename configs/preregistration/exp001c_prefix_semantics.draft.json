@@ -24,7 +24,11 @@
       "offline unit tests",
       "development probe manifest and verifier",
       "CLI authority check",
-      "locked backend-factory runner scaffold"
+      "locked backend-factory runner scaffold",
+      "offline RWKV backend integration",
+      "formal-shape non-Core fixture",
+      "locked exp001c-probe-run CLI",
+      "fake-adapter backend integration tests"
     ],
     "model_execution_authorized": false,
     "noncore_pilot_authorized": false,

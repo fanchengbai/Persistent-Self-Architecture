@@ -52,6 +52,11 @@ from psa.development.exp001c_probe import (
     validate_exp001c_probe_execution_authority,
     verify_exp001c_probe_manifest,
 )
+from psa.development.exp001c_rwkv_backend import (
+    RWKVExp001CDevelopmentBackend,
+    build_exp001c_rwkv_development_backend,
+    load_exp001c_noncore_fixture,
+)
 
 __all__ = [
     "calibrate_standard_delay",
@@ -96,4 +101,7 @@ __all__ = [
     "run_exp001c_development_probe",
     "validate_exp001c_probe_execution_authority",
     "verify_exp001c_probe_manifest",
+    "RWKVExp001CDevelopmentBackend",
+    "build_exp001c_rwkv_development_backend",
+    "load_exp001c_noncore_fixture",
 ]

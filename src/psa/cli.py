@@ -18,6 +18,8 @@ from psa.confirmatory import (
     verify_exp001_confirmatory_raw_package,
 )
 from psa.development import (
+    PROBE_EXECUTION_ENV,
+    build_exp001c_rwkv_development_backend,
     build_exp001c_probe_manifest,
     run_g1_capability_audit,
     run_capability_ladder_gate,
@@ -26,6 +28,7 @@ from psa.development import (
     run_g1_code_rotation_review,
     run_history_binding_gate,
     run_impl3_development_gate,
+    run_exp001c_development_probe,
     validate_exp001c_probe_execution_authority,
     verify_exp001c_probe_manifest,
 )
@@ -871,11 +874,29 @@ def _exp001c_probe_authority_check(args: argparse.Namespace) -> int:
     result = validate_exp001c_probe_execution_authority(
         manifest_path=args.manifest,
         authorization_path=args.authorization,
-        execution_lock=os.environ.get("PSA_EXP001C_NONCORE_PILOT", ""),
+        execution_lock=os.environ.get(PROBE_EXECUTION_ENV, ""),
         project_root=args.project_root,
     )
     print(json.dumps(result, ensure_ascii=False, indent=2))
     return 0
+
+
+def _exp001c_probe_run(args: argparse.Namespace) -> int:
+    result = run_exp001c_development_probe(
+        manifest_path=args.manifest,
+        authorization_path=args.authorization,
+        output_dir=args.output_dir,
+        backend_factory=lambda: build_exp001c_rwkv_development_backend(
+            manifest_path=args.manifest,
+            model_config_path=args.model_config,
+            fixture_path=args.fixture,
+            project_root=args.project_root,
+        ),
+        execution_lock=os.environ.get(PROBE_EXECUTION_ENV, ""),
+        project_root=args.project_root,
+    )
+    print(json.dumps(result, ensure_ascii=False, indent=2))
+    return 0 if result["valid"] else 2
 
 
 def _confirmatory_run(args: argparse.Namespace) -> int:
@@ -1464,6 +1485,27 @@ def build_parser() -> argparse.ArgumentParser:
     exp001c_probe_authority.set_defaults(
         handler=_exp001c_probe_authority_check
     )
+
+    exp001c_probe_run = subparsers.add_parser(
+        "exp001c-probe-run",
+        help=(
+            "run the locked non-Core EXP-001C development probe only after "
+            "separate pilot authorization"
+        ),
+    )
+    exp001c_probe_run.add_argument("--manifest", required=True)
+    exp001c_probe_run.add_argument("--authorization", required=True)
+    exp001c_probe_run.add_argument("--model-config", required=True)
+    exp001c_probe_run.add_argument(
+        "--fixture",
+        default=(
+            "configs/development/"
+            "exp001c_noncore_formal_shape_fixture.v0.1.json"
+        ),
+    )
+    exp001c_probe_run.add_argument("--output-dir", required=True)
+    exp001c_probe_run.add_argument("--project-root", default=".")
+    exp001c_probe_run.set_defaults(handler=_exp001c_probe_run)
 
     confirmatory_run = subparsers.add_parser(
         "confirmatory-run",

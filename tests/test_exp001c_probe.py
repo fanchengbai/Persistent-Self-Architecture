@@ -27,6 +27,7 @@ class _FakeBackend:
         return {
             "probe_result_version": "0.1-development",
             "development_only": True,
+            "model_executed": True,
             "formal_test_set_accessed": False,
             "contains_confirmatory_decision": False,
             "record_count": 0,
@@ -99,6 +100,26 @@ class Exp001CProbeRunnerTests(unittest.TestCase):
                 project_root=ROOT,
             )
         self.assertFalse(factory_called)
+
+    def test_locked_run_cli_fails_before_manifest_or_model_access(self) -> None:
+        self.assertEqual(
+            main(
+                [
+                    "exp001c-probe-run",
+                    "--manifest",
+                    "missing-manifest.json",
+                    "--authorization",
+                    "missing-authorization.json",
+                    "--model-config",
+                    "missing-model.json",
+                    "--output-dir",
+                    "unused-output",
+                    "--project-root",
+                    str(ROOT),
+                ]
+            ),
+            2,
+        )
 
     def test_current_design_blocks_pilot_even_with_execution_lock(self) -> None:
         factory_called = False
@@ -203,6 +224,7 @@ class Exp001CProbeRunnerTests(unittest.TestCase):
             )
             self.assertEqual(factory_calls, 1)
             self.assertTrue(summary["valid"])
+            self.assertTrue(summary["model_executed"])
             self.assertFalse(summary["formal_test_set_accessed"])
             self.assertFalse(summary["contains_confirmatory_decision"])
 
