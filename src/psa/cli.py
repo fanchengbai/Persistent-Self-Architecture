@@ -838,6 +838,7 @@ def _exp001b_diagnose(args: argparse.Namespace) -> int:
         supplemental_set_package_dir=args.supplemental_set_package,
         analysis_output_dir=args.analysis_output_dir,
         diagnostic_output_dir=args.diagnostic_output_dir,
+        tokenizer_path=args.tokenizer,
     )
     print(json.dumps(result, ensure_ascii=False, indent=2))
     return 0 if result["valid"] else 2
@@ -1392,6 +1393,7 @@ def build_parser() -> argparse.ArgumentParser:
     exp001b_diagnose.add_argument("--supplemental-set-package", required=True)
     exp001b_diagnose.add_argument("--analysis-output-dir", required=True)
     exp001b_diagnose.add_argument("--diagnostic-output-dir", required=True)
+    exp001b_diagnose.add_argument("--tokenizer", required=True)
     exp001b_diagnose.set_defaults(handler=_exp001b_diagnose)
 
     confirmatory_run = subparsers.add_parser(

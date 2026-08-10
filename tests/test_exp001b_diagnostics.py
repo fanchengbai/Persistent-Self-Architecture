@@ -5,8 +5,10 @@ import unittest
 from psa.supplemental.diagnostics import (
     prefix_failure_flags,
     prefix_token_divergence,
+    decode_control_greedy_tokens,
     summarize_control_concordance,
     summarize_control_greedy_tokens,
+    summarize_nonrandom_failure_samples,
     summarize_matched_norms,
     summarize_prefix_cells,
 )
@@ -72,6 +74,79 @@ class Exp001BPosthocDiagnosticsTests(unittest.TestCase):
         self.assertEqual(report["greedy_mismatch_record_count"], 3)
         self.assertEqual(report["token_patterns"][0]["record_count"], 3)
         self.assertEqual(report["first_divergence_patterns"][0]["greedy_token_id"], 42)
+
+    def test_decode_control_tokens_adds_readable_text(self) -> None:
+        report = {
+            "greedy_mismatch_record_count": 1,
+            "token_patterns": [
+                {
+                    "condition": "continuous",
+                    "task_type": "copy",
+                    "expected_token_ids": [63, 11],
+                    "greedy_token_ids": [63, 66],
+                    "record_count": 1,
+                }
+            ],
+            "first_divergence_patterns": [
+                {
+                    "divergence_index": 1,
+                    "expected_token_id": 11,
+                    "greedy_token_id": 66,
+                    "record_count": 1,
+                }
+            ],
+        }
+        decoded = decode_control_greedy_tokens(
+            report, lambda ids: "/".join(str(item) for item in ids)
+        )
+        self.assertEqual(decoded["token_patterns"][0]["greedy_text"], "63/66")
+        self.assertEqual(
+            decoded["first_divergence_patterns"][0]["greedy_token_text"], "66"
+        )
+
+    def test_nonrandom_failure_samples_exclude_random_only_failures(self) -> None:
+        rows = []
+        conditions = (
+            "continuous",
+            "restored",
+            "reset",
+            "random_matched",
+            "swapped_I",
+            "swapped_G",
+            "swapped_both",
+            "prompt_visible_reset",
+        )
+        for condition in conditions:
+            output = _output(greedy=condition not in {"continuous", "random_matched"})
+            output["metadata"]["forced_prefix"]["token_ids"] = [63, 11]
+            output["metadata"]["forced_prefix"]["greedy_token_ids"] = (
+                [63, 66]
+                if condition in {"continuous", "random_matched"}
+                else [63, 11]
+            )
+            rows.append(
+                (
+                    {
+                        "source_control_sample_id": "sample-1",
+                        "condition": condition,
+                        "task_type": "copy",
+                        "target_code": "A",
+                        "prompt": "CONTROL\nAnswer: A",
+                        "prompt_digest_sha256": "a" * 64,
+                    },
+                    output,
+                )
+            )
+        report = summarize_nonrandom_failure_samples(
+            rows,
+            lambda text: len(text.split()),
+            lambda ids: "/".join(str(item) for item in ids),
+        )
+        self.assertEqual(report["sample_count"], 1)
+        self.assertEqual(
+            report["samples"][0]["failed_nonrandom_conditions"], ["continuous"]
+        )
+        self.assertEqual(report["samples"][0]["prompt_token_count"], 3)
 
     def test_prefix_cells_count_failure_reasons(self) -> None:
         rows = []

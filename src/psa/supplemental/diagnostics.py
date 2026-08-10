@@ -2,10 +2,11 @@ from __future__ import annotations
 
 from collections import Counter, defaultdict
 from datetime import datetime, timezone
+from importlib import import_module
 import json
 import math
 from pathlib import Path
-from typing import Any, Mapping, Sequence
+from typing import Any, Callable, Mapping, Sequence
 
 from psa.artifacts import canonical_json_bytes, sha256_file, sha256_json
 from psa.supplemental.formal_run import (
@@ -18,6 +19,9 @@ from psa.supplemental.set_generation import verify_exp001b_supplemental_set_pack
 
 EXPECTED_RAW_PAYLOAD_DIGEST = (
     "6926a932220f34b37c6b4e86fa65edc230e414726bd2d4d308bf471d1af290f6"
+)
+EXPECTED_TOKENIZER_SHA256 = (
+    "e6dee3d4e31b4d5c40ac99508ac6c701ceef4bed681bf2167ce9a908552bca89"
 )
 
 
@@ -269,6 +273,104 @@ def summarize_control_greedy_tokens(
     }
 
 
+def decode_control_greedy_tokens(
+    report: Mapping[str, Any],
+    decoder: Callable[[Sequence[int]], str],
+) -> dict[str, Any]:
+    result = {
+        "greedy_mismatch_record_count": int(report["greedy_mismatch_record_count"]),
+        "token_patterns": [],
+        "first_divergence_patterns": [],
+    }
+    for item in report["token_patterns"]:
+        decorated = dict(item)
+        decorated["expected_text"] = decoder(item["expected_token_ids"])
+        decorated["greedy_text"] = decoder(item["greedy_token_ids"])
+        result["token_patterns"].append(decorated)
+    for item in report["first_divergence_patterns"]:
+        decorated = dict(item)
+        expected = item["expected_token_id"]
+        greedy = item["greedy_token_id"]
+        decorated["expected_token_text"] = (
+            decoder([expected]) if expected is not None else None
+        )
+        decorated["greedy_token_text"] = decoder([greedy]) if greedy is not None else None
+        result["first_divergence_patterns"].append(decorated)
+    return result
+
+
+def summarize_nonrandom_failure_samples(
+    rows: Sequence[tuple[Mapping[str, Any], Mapping[str, Any]]],
+    token_counter: Callable[[str], int],
+    decoder: Callable[[Sequence[int]], str],
+) -> dict[str, Any]:
+    samples: dict[str, list[tuple[Mapping[str, Any], Mapping[str, Any]]]] = defaultdict(list)
+    for frozen, output in rows:
+        samples[str(frozen["source_control_sample_id"])].append((frozen, output))
+    reports = []
+    task_counts: Counter[str] = Counter()
+    target_counts: Counter[str] = Counter()
+    token_counts = []
+    for sample_id, sample_rows in sorted(samples.items()):
+        if len(sample_rows) != 8:
+            raise ValueError("each diagnostic source sample must contain eight conditions")
+        prompts = {str(frozen["prompt"]) for frozen, _ in sample_rows}
+        tasks = {str(frozen["task_type"]) for frozen, _ in sample_rows}
+        targets = {str(frozen["target_code"]) for frozen, _ in sample_rows}
+        digests = {str(frozen["prompt_digest_sha256"]) for frozen, _ in sample_rows}
+        if len(prompts) != 1 or len(tasks) != 1 or len(targets) != 1 or len(digests) != 1:
+            raise ValueError("control source sample fields differ across conditions")
+        failures = []
+        for frozen, output in sample_rows:
+            condition = str(frozen["condition"])
+            if condition == "random_matched" or not prefix_failure_flags(output)[
+                "greedy_mismatch"
+            ]:
+                continue
+            divergence = prefix_token_divergence(output)
+            divergence["expected_text"] = decoder(divergence["expected_token_ids"])
+            divergence["greedy_text"] = decoder(divergence["greedy_token_ids"])
+            failures.append({"condition": condition, **divergence})
+        if not failures:
+            continue
+        prompt = next(iter(prompts))
+        task = next(iter(tasks))
+        target = next(iter(targets))
+        prompt_tokens = int(token_counter(prompt))
+        task_counts[task] += 1
+        target_counts[target] += 1
+        token_counts.append(prompt_tokens)
+        reports.append(
+            {
+                "source_control_sample_id": sample_id,
+                "task_type": task,
+                "target_code": target,
+                "prompt_digest_sha256": next(iter(digests)),
+                "prompt_character_count": len(prompt),
+                "prompt_line_count": prompt.count("\n") + 1,
+                "prompt_token_count": prompt_tokens,
+                "failed_nonrandom_conditions": sorted(
+                    item["condition"] for item in failures
+                ),
+                "greedy_divergences": sorted(
+                    failures, key=lambda item: item["condition"]
+                ),
+                "prompt": prompt,
+            }
+        )
+    return {
+        "sample_count": len(reports),
+        "by_task_type": dict(sorted(task_counts.items())),
+        "by_target_code": dict(sorted(target_counts.items())),
+        "prompt_token_count_distribution": {
+            "minimum": min(token_counts) if token_counts else None,
+            "median": _quantile(token_counts, 0.5),
+            "maximum": max(token_counts) if token_counts else None,
+        },
+        "samples": reports,
+    }
+
+
 def summarize_matched_norms(outputs: Sequence[Mapping[str, Any]]) -> dict[str, Any]:
     path_counts: Counter[str] = Counter()
     max_ratios = []
@@ -329,11 +431,13 @@ def run_exp001b_posthoc_diagnostics(
     supplemental_set_package_dir: str | Path,
     analysis_output_dir: str | Path,
     diagnostic_output_dir: str | Path,
+    tokenizer_path: str | Path,
 ) -> dict[str, Any]:
     raw_root = Path(supplemental_raw_output_dir).resolve()
     set_root = Path(supplemental_set_package_dir).resolve()
     analysis_root = Path(analysis_output_dir).resolve()
     destination = Path(diagnostic_output_dir).resolve()
+    tokenizer_file = Path(tokenizer_path).resolve()
     if destination.exists() and any(destination.iterdir()):
         raise ValueError("diagnostic output directory must be empty")
     verification = _load_object(
@@ -367,10 +471,22 @@ def run_exp001b_posthoc_diagnostics(
         "group_count_valid": (
             len(raw_manifest.get("expected_group_ids", [])) == EXPECTED_GROUP_COUNT
         ),
+        "tokenizer_valid": (
+            tokenizer_file.is_file()
+            and sha256_file(tokenizer_file) == EXPECTED_TOKENIZER_SHA256
+        ),
     }
     if not all(prerequisites.values()):
         failed = [key for key, value in prerequisites.items() if not value]
         raise ValueError(f"diagnostic prerequisites failed: {failed}")
+    tokenizer_module = import_module("rwkv.rwkv_tokenizer")
+    tokenizer = tokenizer_module.TRIE_TOKENIZER(str(tokenizer_file))
+
+    def decode(token_ids: Sequence[int]) -> str:
+        return str(tokenizer.decode(list(token_ids)))
+
+    def token_count(text: str) -> int:
+        return len(list(tokenizer.encode(text)))
 
     controls_by_id = {
         str(record["record_id"]): record for record in supplemental_set["records"]["controls"]
@@ -407,8 +523,11 @@ def run_exp001b_posthoc_diagnostics(
     ):
         raise ValueError("diagnostic did not consume the complete supplemental package")
 
+    token_diagnostics = decode_control_greedy_tokens(
+        summarize_control_greedy_tokens(control_rows), decode
+    )
     report = {
-        "report_version": "1.1-posthoc",
+        "report_version": "1.2-posthoc",
         "created_at_utc": datetime.now(timezone.utc).isoformat(),
         "experiment_id": "EXP-001B",
         "exploratory_posthoc": True,
@@ -418,11 +537,15 @@ def run_exp001b_posthoc_diagnostics(
         "analysis_package_digest_sha256": analysis_summary[
             "analysis_package_digest_sha256"
         ],
+        "tokenizer_sha256": EXPECTED_TOKENIZER_SHA256,
         "prerequisite_checks": prerequisites,
         "control_prefix_diagnostics": summarize_prefix_cells(control_rows),
         "control_failure_concordance": summarize_control_concordance(control_rows),
-        "control_greedy_token_diagnostics": summarize_control_greedy_tokens(
-            control_rows
+        "control_greedy_token_diagnostics": token_diagnostics,
+        "nonrandom_failure_sample_diagnostics": summarize_nonrandom_failure_samples(
+            control_rows,
+            token_count,
+            decode,
         ),
         "matched_state_norm_diagnostics": summarize_matched_norms(matched_outputs),
         "generation_prefix_failure_counts": dict(
@@ -433,7 +556,7 @@ def run_exp001b_posthoc_diagnostics(
     report_path = destination / "diagnostic_report.json"
     report_path.write_bytes(canonical_json_bytes(report))
     summary = {
-        "summary_version": "1.1-posthoc",
+        "summary_version": "1.2-posthoc",
         "experiment_id": "EXP-001B",
         "status": "posthoc_failure_diagnostics_complete",
         "valid": True,
@@ -450,6 +573,9 @@ def run_exp001b_posthoc_diagnostics(
         "control_source_samples_with_any_greedy_mismatch": report[
             "control_failure_concordance"
         ]["samples_with_any_greedy_mismatch"],
+        "control_source_samples_with_nonrandom_greedy_mismatch": report[
+            "nonrandom_failure_sample_diagnostics"
+        ]["sample_count"],
         "matched_records_with_state_norm_alerts": report[
             "matched_state_norm_diagnostics"
         ]["records_with_alerts"],
