@@ -36,6 +36,13 @@ from psa.development.history_binding import (
     render_state_only_query,
     run_history_binding_gate,
 )
+from psa.development.prefix_instrumentation import (
+    DEFAULT_PREFIX_POSITION_LABELS,
+    INSTRUMENTATION_VERSION,
+    answer_boundary_evidence,
+    instrument_forced_prefix,
+    token_evidence_from_logits,
+)
 
 __all__ = [
     "calibrate_standard_delay",
@@ -68,4 +75,9 @@ __all__ = [
     "render_history_binding",
     "render_state_only_query",
     "run_history_binding_gate",
+    "DEFAULT_PREFIX_POSITION_LABELS",
+    "INSTRUMENTATION_VERSION",
+    "answer_boundary_evidence",
+    "instrument_forced_prefix",
+    "token_evidence_from_logits",
 ]

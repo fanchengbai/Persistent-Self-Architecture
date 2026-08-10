@@ -6,14 +6,26 @@
     "EXP-001B",
     "EXP-001B-posthoc-diagnostics-v01-v06"
   ],
-  "status": "design_only_unfrozen_unapproved",
+  "status": "offline_development_authorized_unfrozen_formal_unapproved",
   "authority": {
-    "development_implementation_authorized": false,
+    "development_implementation_authorized": true,
     "pilot_run_authorized": false,
     "test_set_generation_authorized": false,
     "formal_run_authorized": false,
     "result_observation_authorized": false,
     "automatic_rerun_authorized": false
+  },
+  "development_authorization": {
+    "authorized_at": "2026-08-10",
+    "scope": [
+      "token instrumentation implementation",
+      "JSON schema",
+      "synthetic logits fixtures",
+      "offline unit tests"
+    ],
+    "model_execution_authorized": false,
+    "noncore_pilot_authorized": false,
+    "formal_data_generation_authorized": false
   },
   "scope": {
     "objective": "Separate semantic answer preservation from strict prefix formatting while preserving a sensitive random-state corruption control.",

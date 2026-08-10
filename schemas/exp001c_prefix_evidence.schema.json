@@ -1,0 +1,148 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://persistent-self-architecture.local/schemas/exp001c_prefix_evidence.schema.json",
+  "title": "EXP-001C Development Prefix Evidence",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "instrumentation_version",
+    "development_only",
+    "text",
+    "token_ids",
+    "greedy_token_ids",
+    "greedy_exact",
+    "roundtrip_exact",
+    "top_k",
+    "positions"
+  ],
+  "properties": {
+    "instrumentation_version": {
+      "const": "0.1-development"
+    },
+    "development_only": {
+      "const": true
+    },
+    "text": {
+      "type": "string"
+    },
+    "token_ids": {
+      "type": "array",
+      "minItems": 2,
+      "maxItems": 2,
+      "items": {
+        "type": "integer",
+        "minimum": 0
+      }
+    },
+    "greedy_token_ids": {
+      "type": "array",
+      "minItems": 2,
+      "maxItems": 2,
+      "items": {
+        "type": "integer",
+        "minimum": 0
+      }
+    },
+    "greedy_exact": {
+      "type": "boolean"
+    },
+    "roundtrip_exact": {
+      "type": "boolean"
+    },
+    "top_k": {
+      "type": "integer",
+      "minimum": 1
+    },
+    "positions": {
+      "type": "array",
+      "minItems": 2,
+      "maxItems": 2,
+      "items": {
+        "$ref": "#/$defs/positionEvidence"
+      }
+    }
+  },
+  "$defs": {
+    "finiteNumber": {
+      "type": "number"
+    },
+    "positionEvidence": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "position_index",
+        "position_label",
+        "expected_token_id",
+        "greedy_token_id",
+        "expected_token_logit_float32",
+        "expected_token_log_probability_float32",
+        "expected_token_rank",
+        "greedy_token_logit_float32",
+        "greedy_token_log_probability_float32",
+        "logit_margin_greedy_minus_expected_float32",
+        "top_k_token_ids",
+        "top_k_logits_float32",
+        "top_k_log_probabilities_float32"
+      ],
+      "properties": {
+        "position_index": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "position_label": {
+          "type": "string",
+          "minLength": 1
+        },
+        "expected_token_id": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "greedy_token_id": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "expected_token_logit_float32": {
+          "$ref": "#/$defs/finiteNumber"
+        },
+        "expected_token_log_probability_float32": {
+          "$ref": "#/$defs/finiteNumber"
+        },
+        "expected_token_rank": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "greedy_token_logit_float32": {
+          "$ref": "#/$defs/finiteNumber"
+        },
+        "greedy_token_log_probability_float32": {
+          "$ref": "#/$defs/finiteNumber"
+        },
+        "logit_margin_greedy_minus_expected_float32": {
+          "$ref": "#/$defs/finiteNumber"
+        },
+        "top_k_token_ids": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "type": "integer",
+            "minimum": 0
+          }
+        },
+        "top_k_logits_float32": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "$ref": "#/$defs/finiteNumber"
+          }
+        },
+        "top_k_log_probabilities_float32": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "$ref": "#/$defs/finiteNumber"
+          }
+        }
+      }
+    }
+  }
+}

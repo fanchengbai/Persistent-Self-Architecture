@@ -15,13 +15,22 @@ class Exp001CProspectiveDesignTests(unittest.TestCase):
     def setUp(self) -> None:
         self.config = json.loads(CONFIG.read_text(encoding="utf-8"))
 
-    def test_draft_has_no_execution_authority(self) -> None:
+    def test_draft_authorizes_only_offline_development(self) -> None:
         self.assertEqual(
             self.config["status"],
-            "design_only_unfrozen_unapproved",
+            "offline_development_authorized_unfrozen_formal_unapproved",
         )
+        authority = self.config["authority"]
+        self.assertTrue(authority["development_implementation_authorized"])
         self.assertTrue(
-            all(value is False for value in self.config["authority"].values())
+            all(
+                value is False
+                for key, value in authority.items()
+                if key != "development_implementation_authorized"
+            )
+        )
+        self.assertFalse(
+            self.config["development_authorization"]["model_execution_authorized"]
         )
         self.assertFalse(self.config["scope"]["changes_exp001b_decision"])
         self.assertTrue(
@@ -71,7 +80,7 @@ class Exp001CProspectiveDesignTests(unittest.TestCase):
         self.assertIn("posthoc_diagnostics_closed_information_limit", closure)
         self.assertIn("revise_or_stop_measured_supplemental_control_failure", closure)
         self.assertIn("未授权重跑", closure)
-        self.assertIn("仅设计；未冻结", design)
+        self.assertIn("仅离线 instrumentation 开发获批；未冻结", design)
         self.assertIn("不是 EXP-001B 重跑", design)
         self.assertIn("独立授权", design)
 

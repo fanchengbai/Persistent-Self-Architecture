@@ -2,7 +2,7 @@
 
 版本：0.1 Draft  
 日期：2026-08-10  
-状态：仅设计；未冻结；未批准开发、试跑、测试集生成、正式运行或结果观察
+状态：仅离线 instrumentation 开发获批；未冻结；未批准模型试跑、测试集生成、正式运行或结果观察
 
 ## 1. 研究目的
 
@@ -156,7 +156,9 @@ EXP-001B 的 7 个格式事件只能辅助保守规划，不能据此选择有�
 
 ## 9. 本草案的权限边界
 
-本文件和 `configs/preregistration/exp001c_prefix_semantics.draft.json` 仅表达设计意图。
-它们不是预注册冻结包、不是开发授权、不是测试集生成授权，也不是正式运行授权。
-下一步只能由项目负责人单独批准“开发 instrumentation 与非 Core 门”，不能直接进入
-任何正式数据生成或模型执行。
+本文件和 `configs/preregistration/exp001c_prefix_semantics.draft.json` 仍不是预注册冻结
+包、测试集生成授权或正式运行授权。项目负责人于 2026-08-10 只批准了以下离线
+开发范围：token instrumentation、JSON schema、synthetic logits fixtures 与单元测试。
+
+该批准不包含模型执行或非 Core pilot，不包含任何正式数据生成，也不包含结果观察。
+完成离线开发后必须再次停下，由项目负责人单独决定是否授权非 Core 模型开发门。

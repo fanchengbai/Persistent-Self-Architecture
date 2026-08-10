@@ -1,0 +1,48 @@
+{
+  "fixture_version": "0.1-synthetic",
+  "development_only": true,
+  "vocabulary": {
+    "0": "x",
+    "1": "y",
+    "2": "A",
+    "3": "newline",
+    "4": "greater_than",
+    "5": "z"
+  },
+  "forced_prefix_text": ">\n",
+  "prefix_token_ids": [
+    4,
+    3
+  ],
+  "position_logits": [
+    [-4.0, -2.0, -1.0, 0.0, 3.0, 1.0],
+    [-3.0, -2.0, 2.5, 2.0, 0.0, -1.0]
+  ],
+  "post_prefix_logits": [-2.0, -1.0, 3.0, 0.5, -0.5, -3.0],
+  "expected": {
+    "greedy_token_ids": [
+      4,
+      2
+    ],
+    "expected_token_ranks": [
+      1,
+      2
+    ],
+    "greedy_minus_expected_margins": [
+      0.0,
+      0.5
+    ],
+    "top_3_token_ids": [
+      [4, 5, 3],
+      [2, 3, 4]
+    ]
+  },
+  "answer_log_probabilities": {
+    "A": -0.4,
+    "B": -1.2,
+    "C": -2.0,
+    "D": -3.0
+  },
+  "target_code": "A",
+  "expected_target_margin": 0.8
+}
