@@ -299,6 +299,108 @@ def decode_control_greedy_tokens(
     return result
 
 
+def classify_control_prefix_failures(
+    rows: Sequence[tuple[Mapping[str, Any], Mapping[str, Any]]],
+    decoder: Callable[[Sequence[int]], str],
+) -> dict[str, Any]:
+    category_counts: Counter[str] = Counter()
+    condition_counts: dict[str, Counter[str]] = defaultdict(Counter)
+    task_counts: dict[str, Counter[str]] = defaultdict(Counter)
+    cell_counts: dict[tuple[str, str], Counter[str]] = defaultdict(Counter)
+    source_combo_counts: dict[str, Counter[str]] = defaultdict(Counter)
+    factorial_group_counts: dict[str, Counter[str]] = defaultdict(Counter)
+    records = []
+    answer_codes = {"A", "B", "C", "D"}
+
+    for frozen, output in rows:
+        if not prefix_failure_flags(output)["greedy_mismatch"]:
+            continue
+        divergence = prefix_token_divergence(output)
+        expected_text = decoder(divergence["expected_token_ids"])
+        greedy_text = decoder(divergence["greedy_token_ids"])
+        target_code = str(frozen["target_code"])
+        if divergence["divergence_index"] == 0:
+            category = "first_token_corruption"
+        elif greedy_text == f">{target_code}":
+            category = "correct_answer_emitted_immediately"
+        elif (
+            len(greedy_text) == 2
+            and greedy_text.startswith(">")
+            and greedy_text[1] in answer_codes
+        ):
+            category = "wrong_answer_emitted_immediately"
+        else:
+            category = "other"
+
+        condition = str(frozen["condition"])
+        task_type = str(frozen["task_type"])
+        source_combo = frozen.get("assigned_source_combo")
+        if isinstance(source_combo, list):
+            source_combo_label = json.dumps(source_combo, separators=(",", ":"))
+        else:
+            source_combo_label = "null"
+        factorial_group = str(frozen.get("assigned_factorial_group_id"))
+        category_counts[category] += 1
+        condition_counts[condition][category] += 1
+        task_counts[task_type][category] += 1
+        cell_counts[(condition, task_type)][category] += 1
+        source_combo_counts[source_combo_label][category] += 1
+        factorial_group_counts[factorial_group][category] += 1
+        records.append(
+            {
+                "record_id": str(frozen["record_id"]),
+                "source_control_sample_id": str(frozen["source_control_sample_id"]),
+                "condition": condition,
+                "task_type": task_type,
+                "target_code": target_code,
+                "assigned_source_combo": source_combo,
+                "assigned_factorial_group_id": factorial_group,
+                "category": category,
+                "expected_token_ids": divergence["expected_token_ids"],
+                "greedy_token_ids": divergence["greedy_token_ids"],
+                "divergence_index": divergence["divergence_index"],
+                "expected_text": expected_text,
+                "greedy_text": greedy_text,
+            }
+        )
+
+    def decorated_counts(counts: Mapping[str, Counter[str]]) -> list[dict[str, Any]]:
+        return [
+            {
+                "label": label,
+                "failure_count": sum(counter.values()),
+                "category_counts": dict(sorted(counter.items())),
+            }
+            for label, counter in sorted(counts.items())
+        ]
+
+    failure_count = len(records)
+    format_only = category_counts["correct_answer_emitted_immediately"]
+    return {
+        "greedy_mismatch_record_count": failure_count,
+        "classification_complete": sum(category_counts.values()) == failure_count,
+        "category_counts": dict(sorted(category_counts.items())),
+        "semantic_preserving_format_only_count": format_only,
+        "semantic_preserving_format_only_rate": (
+            format_only / failure_count if failure_count else None
+        ),
+        "by_condition": decorated_counts(condition_counts),
+        "by_task_type": decorated_counts(task_counts),
+        "by_condition_and_task_type": [
+            {
+                "condition": condition,
+                "task_type": task_type,
+                "failure_count": sum(counter.values()),
+                "category_counts": dict(sorted(counter.items())),
+            }
+            for (condition, task_type), counter in sorted(cell_counts.items())
+        ],
+        "by_assigned_source_combo": decorated_counts(source_combo_counts),
+        "by_assigned_factorial_group": decorated_counts(factorial_group_counts),
+        "records": sorted(records, key=lambda item: item["record_id"]),
+    }
+
+
 def summarize_nonrandom_failure_samples(
     rows: Sequence[tuple[Mapping[str, Any], Mapping[str, Any]]],
     token_counter: Callable[[str], int],
@@ -527,7 +629,7 @@ def run_exp001b_posthoc_diagnostics(
         summarize_control_greedy_tokens(control_rows), decode
     )
     report = {
-        "report_version": "1.2-posthoc",
+        "report_version": "1.3-posthoc",
         "created_at_utc": datetime.now(timezone.utc).isoformat(),
         "experiment_id": "EXP-001B",
         "exploratory_posthoc": True,
@@ -542,6 +644,10 @@ def run_exp001b_posthoc_diagnostics(
         "control_prefix_diagnostics": summarize_prefix_cells(control_rows),
         "control_failure_concordance": summarize_control_concordance(control_rows),
         "control_greedy_token_diagnostics": token_diagnostics,
+        "control_prefix_failure_classification": classify_control_prefix_failures(
+            control_rows,
+            decode,
+        ),
         "nonrandom_failure_sample_diagnostics": summarize_nonrandom_failure_samples(
             control_rows,
             token_count,
@@ -556,7 +662,7 @@ def run_exp001b_posthoc_diagnostics(
     report_path = destination / "diagnostic_report.json"
     report_path.write_bytes(canonical_json_bytes(report))
     summary = {
-        "summary_version": "1.2-posthoc",
+        "summary_version": "1.3-posthoc",
         "experiment_id": "EXP-001B",
         "status": "posthoc_failure_diagnostics_complete",
         "valid": True,
@@ -576,6 +682,12 @@ def run_exp001b_posthoc_diagnostics(
         "control_source_samples_with_nonrandom_greedy_mismatch": report[
             "nonrandom_failure_sample_diagnostics"
         ]["sample_count"],
+        "control_prefix_failure_category_counts": report[
+            "control_prefix_failure_classification"
+        ]["category_counts"],
+        "control_semantic_preserving_format_only_count": report[
+            "control_prefix_failure_classification"
+        ]["semantic_preserving_format_only_count"],
         "matched_records_with_state_norm_alerts": report[
             "matched_state_norm_diagnostics"
         ]["records_with_alerts"],

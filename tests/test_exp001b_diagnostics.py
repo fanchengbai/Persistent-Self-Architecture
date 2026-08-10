@@ -3,6 +3,7 @@ from __future__ import annotations
 import unittest
 
 from psa.supplemental.diagnostics import (
+    classify_control_prefix_failures,
     prefix_failure_flags,
     prefix_token_divergence,
     decode_control_greedy_tokens,
@@ -27,6 +28,50 @@ def _output(*, greedy: bool, roundtrip: bool = True) -> dict:
 
 
 class Exp001BPosthocDiagnosticsTests(unittest.TestCase):
+    def test_classify_control_prefix_failures_covers_four_categories(self) -> None:
+        cases = (
+            ("A", [63, 65], "correct_answer_emitted_immediately"),
+            ("B", [63, 65], "wrong_answer_emitted_immediately"),
+            ("C", [42, 11], "first_token_corruption"),
+            ("D", [63, 99], "other"),
+        )
+        rows = []
+        decoded = {
+            (63, 11): ">\n",
+            (63, 65): ">A",
+            (42, 11): "x\n",
+            (63, 99): ">?",
+        }
+        for index, (target, greedy_ids, _) in enumerate(cases):
+            output = _output(greedy=False)
+            output["metadata"]["forced_prefix"]["token_ids"] = [63, 11]
+            output["metadata"]["forced_prefix"]["greedy_token_ids"] = greedy_ids
+            rows.append(
+                (
+                    {
+                        "record_id": f"record-{index}",
+                        "source_control_sample_id": f"sample-{index}",
+                        "condition": "continuous",
+                        "task_type": "copy",
+                        "target_code": target,
+                        "assigned_source_combo": [index % 2, index // 2],
+                        "assigned_factorial_group_id": f"group-{index}",
+                    },
+                    output,
+                )
+            )
+        report = classify_control_prefix_failures(
+            rows, lambda ids: decoded[tuple(ids)]
+        )
+        self.assertEqual(report["greedy_mismatch_record_count"], 4)
+        self.assertTrue(report["classification_complete"])
+        self.assertEqual(report["semantic_preserving_format_only_count"], 1)
+        self.assertEqual(
+            [record["category"] for record in report["records"]],
+            [expected for _, _, expected in cases],
+        )
+        self.assertEqual(len(report["by_assigned_source_combo"]), 4)
+
     def test_prefix_flags_separate_greedy_and_roundtrip_failures(self) -> None:
         greedy = prefix_failure_flags(_output(greedy=False))
         self.assertTrue(greedy["greedy_mismatch"])

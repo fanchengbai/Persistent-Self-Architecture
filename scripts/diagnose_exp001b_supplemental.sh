@@ -16,5 +16,5 @@ export PYTHONPATH="${PROJECT_ROOT}/src${PYTHONPATH:+:${PYTHONPATH}}"
   --supplemental-raw-verification results/confirmatory/exp001b_v1.raw_verification.json \
   --supplemental-set-package preregistration/exp001b/supplemental_set_v1 \
   --analysis-output-dir results/confirmatory/exp001b_v1_analysis_v02 \
-  --diagnostic-output-dir results/confirmatory/exp001b_v1_diagnostics_v03 \
+  --diagnostic-output-dir results/confirmatory/exp001b_v1_diagnostics_v04 \
   --tokenizer .psa-assets/tokenizers/rwkv_vocab_v20230424.txt
