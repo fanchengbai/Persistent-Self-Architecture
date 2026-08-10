@@ -57,6 +57,44 @@ def prefix_failure_flags(output: Mapping[str, Any]) -> dict[str, bool]:
     }
 
 
+def prefix_token_divergence(output: Mapping[str, Any]) -> dict[str, Any]:
+    metadata = output.get("metadata")
+    prefix = metadata.get("forced_prefix") if isinstance(metadata, Mapping) else None
+    if not isinstance(prefix, Mapping):
+        raise ValueError("forced-prefix metadata is missing")
+    expected = prefix.get("token_ids")
+    greedy = prefix.get("greedy_token_ids")
+    if (
+        not isinstance(expected, list)
+        or not isinstance(greedy, list)
+        or any(not isinstance(item, int) for item in expected + greedy)
+    ):
+        raise ValueError("forced-prefix token IDs are invalid")
+    divergence_index = None
+    limit = max(len(expected), len(greedy))
+    for index in range(limit):
+        expected_id = expected[index] if index < len(expected) else None
+        greedy_id = greedy[index] if index < len(greedy) else None
+        if expected_id != greedy_id:
+            divergence_index = index
+            break
+    return {
+        "expected_token_ids": list(expected),
+        "greedy_token_ids": list(greedy),
+        "divergence_index": divergence_index,
+        "expected_divergent_token_id": (
+            expected[divergence_index]
+            if divergence_index is not None and divergence_index < len(expected)
+            else None
+        ),
+        "greedy_divergent_token_id": (
+            greedy[divergence_index]
+            if divergence_index is not None and divergence_index < len(greedy)
+            else None
+        ),
+    }
+
+
 def summarize_prefix_cells(
     rows: Sequence[tuple[Mapping[str, Any], Mapping[str, Any]]],
 ) -> dict[str, Any]:
@@ -94,6 +132,140 @@ def summarize_prefix_cells(
         "cells_with_failures": sum(item["invalid_prefix_count"] > 0 for item in reports),
         "invalid_record_count": sum(item["invalid_prefix_count"] for item in reports),
         "cells": reports,
+    }
+
+
+def summarize_control_concordance(
+    rows: Sequence[tuple[Mapping[str, Any], Mapping[str, Any]]],
+) -> dict[str, Any]:
+    samples: dict[str, dict[str, Any]] = {}
+    for frozen, output in rows:
+        sample_id = str(frozen["source_control_sample_id"])
+        task_type = str(frozen["task_type"])
+        condition = str(frozen["condition"])
+        bucket = samples.setdefault(
+            sample_id,
+            {"task_type": task_type, "conditions": {}},
+        )
+        if bucket["task_type"] != task_type or condition in bucket["conditions"]:
+            raise ValueError("control source sample is inconsistent")
+        bucket["conditions"][condition] = prefix_failure_flags(output)[
+            "greedy_mismatch"
+        ]
+    condition_failure_sets: dict[str, set[str]] = defaultdict(set)
+    pattern_counts: Counter[tuple[str, ...]] = Counter()
+    condition_count_distribution: Counter[int] = Counter()
+    task_any_failure_counts: Counter[str] = Counter()
+    for sample_id, sample in samples.items():
+        if len(sample["conditions"]) != 8:
+            raise ValueError("each control source sample must cover eight conditions")
+        failed = tuple(
+            sorted(
+                condition
+                for condition, failure in sample["conditions"].items()
+                if failure
+            )
+        )
+        pattern_counts[failed] += 1
+        condition_count_distribution[len(failed)] += 1
+        task_any_failure_counts[sample["task_type"]] += int(bool(failed))
+        for condition in failed:
+            condition_failure_sets[condition].add(sample_id)
+    conditions = sorted(
+        {condition for sample in samples.values() for condition in sample["conditions"]}
+    )
+    pairwise = []
+    for index, left in enumerate(conditions):
+        for right in conditions[index + 1 :]:
+            left_set = condition_failure_sets[left]
+            right_set = condition_failure_sets[right]
+            overlap = len(left_set & right_set)
+            union = len(left_set | right_set)
+            if overlap:
+                pairwise.append(
+                    {
+                        "left": left,
+                        "right": right,
+                        "overlap_count": overlap,
+                        "jaccard": overlap / union,
+                    }
+                )
+    return {
+        "source_sample_count": len(samples),
+        "samples_with_any_greedy_mismatch": sum(
+            count for failures, count in condition_count_distribution.items() if failures
+        ),
+        "failed_condition_count_distribution": {
+            str(key): condition_count_distribution[key]
+            for key in sorted(condition_count_distribution)
+        },
+        "samples_with_any_failure_by_task": dict(sorted(task_any_failure_counts.items())),
+        "condition_failure_sample_counts": {
+            condition: len(condition_failure_sets[condition]) for condition in conditions
+        },
+        "failure_condition_patterns": [
+            {"conditions": list(pattern), "sample_count": count}
+            for pattern, count in sorted(
+                pattern_counts.items(), key=lambda item: (-item[1], item[0])
+            )
+        ],
+        "pairwise_failure_overlaps": sorted(
+            pairwise,
+            key=lambda item: (-item["overlap_count"], item["left"], item["right"]),
+        ),
+    }
+
+
+def summarize_control_greedy_tokens(
+    rows: Sequence[tuple[Mapping[str, Any], Mapping[str, Any]]],
+) -> dict[str, Any]:
+    pattern_counts: Counter[tuple[str, str, tuple[int, ...], tuple[int, ...]]] = Counter()
+    divergence_counts: Counter[tuple[int | None, int | None, int | None]] = Counter()
+    failure_count = 0
+    for frozen, output in rows:
+        flags = prefix_failure_flags(output)
+        if not flags["greedy_mismatch"]:
+            continue
+        failure_count += 1
+        divergence = prefix_token_divergence(output)
+        expected = tuple(divergence["expected_token_ids"])
+        greedy = tuple(divergence["greedy_token_ids"])
+        pattern_counts[
+            (str(frozen["condition"]), str(frozen["task_type"]), expected, greedy)
+        ] += 1
+        divergence_counts[
+            (
+                divergence["divergence_index"],
+                divergence["expected_divergent_token_id"],
+                divergence["greedy_divergent_token_id"],
+            )
+        ] += 1
+    return {
+        "greedy_mismatch_record_count": failure_count,
+        "token_patterns": [
+            {
+                "condition": condition,
+                "task_type": task_type,
+                "expected_token_ids": list(expected),
+                "greedy_token_ids": list(greedy),
+                "record_count": count,
+            }
+            for (condition, task_type, expected, greedy), count in sorted(
+                pattern_counts.items(), key=lambda item: (-item[1], item[0])
+            )
+        ],
+        "first_divergence_patterns": [
+            {
+                "divergence_index": index,
+                "expected_token_id": expected,
+                "greedy_token_id": greedy,
+                "record_count": count,
+            }
+            for (index, expected, greedy), count in sorted(
+                divergence_counts.items(),
+                key=lambda item: (-item[1], repr(item[0])),
+            )
+        ],
     }
 
 
@@ -236,7 +408,7 @@ def run_exp001b_posthoc_diagnostics(
         raise ValueError("diagnostic did not consume the complete supplemental package")
 
     report = {
-        "report_version": "1.0-posthoc",
+        "report_version": "1.1-posthoc",
         "created_at_utc": datetime.now(timezone.utc).isoformat(),
         "experiment_id": "EXP-001B",
         "exploratory_posthoc": True,
@@ -248,6 +420,10 @@ def run_exp001b_posthoc_diagnostics(
         ],
         "prerequisite_checks": prerequisites,
         "control_prefix_diagnostics": summarize_prefix_cells(control_rows),
+        "control_failure_concordance": summarize_control_concordance(control_rows),
+        "control_greedy_token_diagnostics": summarize_control_greedy_tokens(
+            control_rows
+        ),
         "matched_state_norm_diagnostics": summarize_matched_norms(matched_outputs),
         "generation_prefix_failure_counts": dict(
             sorted(generation_prefix_failures.items())
@@ -257,7 +433,7 @@ def run_exp001b_posthoc_diagnostics(
     report_path = destination / "diagnostic_report.json"
     report_path.write_bytes(canonical_json_bytes(report))
     summary = {
-        "summary_version": "1.0-posthoc",
+        "summary_version": "1.1-posthoc",
         "experiment_id": "EXP-001B",
         "status": "posthoc_failure_diagnostics_complete",
         "valid": True,
@@ -271,6 +447,9 @@ def run_exp001b_posthoc_diagnostics(
         "control_cells_with_prefix_failures": report[
             "control_prefix_diagnostics"
         ]["cells_with_failures"],
+        "control_source_samples_with_any_greedy_mismatch": report[
+            "control_failure_concordance"
+        ]["samples_with_any_greedy_mismatch"],
         "matched_records_with_state_norm_alerts": report[
             "matched_state_norm_diagnostics"
         ]["records_with_alerts"],

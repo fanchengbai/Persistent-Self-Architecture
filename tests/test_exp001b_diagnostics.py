@@ -4,6 +4,9 @@ import unittest
 
 from psa.supplemental.diagnostics import (
     prefix_failure_flags,
+    prefix_token_divergence,
+    summarize_control_concordance,
+    summarize_control_greedy_tokens,
     summarize_matched_norms,
     summarize_prefix_cells,
 )
@@ -27,6 +30,48 @@ class Exp001BPosthocDiagnosticsTests(unittest.TestCase):
         self.assertTrue(greedy["greedy_mismatch"])
         self.assertFalse(greedy["roundtrip_mismatch"])
         self.assertFalse(greedy["valid"])
+
+    def test_prefix_token_divergence_reports_first_changed_token(self) -> None:
+        output = _output(greedy=False)
+        output["metadata"]["forced_prefix"]["token_ids"] = [63, 11]
+        output["metadata"]["forced_prefix"]["greedy_token_ids"] = [42, 11]
+        report = prefix_token_divergence(output)
+        self.assertEqual(report["divergence_index"], 0)
+        self.assertEqual(report["expected_divergent_token_id"], 63)
+        self.assertEqual(report["greedy_divergent_token_id"], 42)
+
+    def test_control_concordance_groups_all_conditions_by_source_sample(self) -> None:
+        rows = []
+        conditions = tuple(f"condition_{index}" for index in range(8))
+        for sample_index in range(2):
+            for condition_index, condition in enumerate(conditions):
+                rows.append(
+                    (
+                        {
+                            "source_control_sample_id": f"sample-{sample_index}",
+                            "condition": condition,
+                            "task_type": "copy",
+                        },
+                        _output(greedy=not (sample_index == 0 and condition_index < 2)),
+                    )
+                )
+        report = summarize_control_concordance(rows)
+        self.assertEqual(report["source_sample_count"], 2)
+        self.assertEqual(report["samples_with_any_greedy_mismatch"], 1)
+        self.assertEqual(report["failed_condition_count_distribution"], {"0": 1, "2": 1})
+        self.assertEqual(report["pairwise_failure_overlaps"][0]["overlap_count"], 1)
+
+    def test_control_greedy_tokens_count_repeated_patterns(self) -> None:
+        rows = []
+        for _ in range(3):
+            output = _output(greedy=False)
+            output["metadata"]["forced_prefix"]["token_ids"] = [63, 11]
+            output["metadata"]["forced_prefix"]["greedy_token_ids"] = [42, 11]
+            rows.append(({"condition": "reset", "task_type": "copy"}, output))
+        report = summarize_control_greedy_tokens(rows)
+        self.assertEqual(report["greedy_mismatch_record_count"], 3)
+        self.assertEqual(report["token_patterns"][0]["record_count"], 3)
+        self.assertEqual(report["first_divergence_patterns"][0]["greedy_token_id"], 42)
 
     def test_prefix_cells_count_failure_reasons(self) -> None:
         rows = []
