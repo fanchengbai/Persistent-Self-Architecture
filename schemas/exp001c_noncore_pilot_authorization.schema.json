@@ -1,0 +1,44 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://persistent-self-architecture.local/schemas/exp001c_noncore_pilot_authorization.schema.json",
+  "title": "EXP-001C Non-Core Development Pilot Authorization",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "authorization_version",
+    "experiment_id",
+    "scope",
+    "authorized",
+    "probe_manifest_digest_sha256",
+    "formal_test_set_access_authorized",
+    "formal_run_authorized",
+    "result_observation_authorized"
+  ],
+  "properties": {
+    "authorization_version": {
+      "const": "0.1"
+    },
+    "experiment_id": {
+      "const": "EXP-001C"
+    },
+    "scope": {
+      "const": "noncore_development_pilot_only"
+    },
+    "authorized": {
+      "const": true
+    },
+    "probe_manifest_digest_sha256": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{64}$"
+    },
+    "formal_test_set_access_authorized": {
+      "const": false
+    },
+    "formal_run_authorized": {
+      "const": false
+    },
+    "result_observation_authorized": {
+      "const": false
+    }
+  }
+}

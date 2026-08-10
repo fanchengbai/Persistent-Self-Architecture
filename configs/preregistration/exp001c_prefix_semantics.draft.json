@@ -21,7 +21,10 @@
       "token instrumentation implementation",
       "JSON schema",
       "synthetic logits fixtures",
-      "offline unit tests"
+      "offline unit tests",
+      "development probe manifest and verifier",
+      "CLI authority check",
+      "locked backend-factory runner scaffold"
     ],
     "model_execution_authorized": false,
     "noncore_pilot_authorized": false,

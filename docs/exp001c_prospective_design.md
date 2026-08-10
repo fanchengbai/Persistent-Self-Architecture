@@ -158,7 +158,9 @@ EXP-001B 的 7 个格式事件只能辅助保守规划，不能据此选择有�
 
 本文件和 `configs/preregistration/exp001c_prefix_semantics.draft.json` 仍不是预注册冻结
 包、测试集生成授权或正式运行授权。项目负责人于 2026-08-10 只批准了以下离线
-开发范围：token instrumentation、JSON schema、synthetic logits fixtures 与单元测试。
+开发范围：token instrumentation、JSON schema、synthetic logits fixtures、单元测试、
+development probe manifest/verifier、CLI authority check 与带锁 backend-factory runner
+scaffold。
 
 该批准不包含模型执行或非 Core pilot，不包含任何正式数据生成，也不包含结果观察。
 完成离线开发后必须再次停下，由项目负责人单独决定是否授权非 Core 模型开发门。

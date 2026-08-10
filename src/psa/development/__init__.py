@@ -43,6 +43,15 @@ from psa.development.prefix_instrumentation import (
     instrument_forced_prefix,
     token_evidence_from_logits,
 )
+from psa.development.exp001c_probe import (
+    PROBE_EXECUTION_ENV,
+    PROBE_EXECUTION_LOCK,
+    PROBE_SOURCE_FILES,
+    build_exp001c_probe_manifest,
+    run_exp001c_development_probe,
+    validate_exp001c_probe_execution_authority,
+    verify_exp001c_probe_manifest,
+)
 
 __all__ = [
     "calibrate_standard_delay",
@@ -80,4 +89,11 @@ __all__ = [
     "answer_boundary_evidence",
     "instrument_forced_prefix",
     "token_evidence_from_logits",
+    "PROBE_EXECUTION_ENV",
+    "PROBE_EXECUTION_LOCK",
+    "PROBE_SOURCE_FILES",
+    "build_exp001c_probe_manifest",
+    "run_exp001c_development_probe",
+    "validate_exp001c_probe_execution_authority",
+    "verify_exp001c_probe_manifest",
 ]

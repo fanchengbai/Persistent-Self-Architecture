@@ -18,6 +18,7 @@ from psa.confirmatory import (
     verify_exp001_confirmatory_raw_package,
 )
 from psa.development import (
+    build_exp001c_probe_manifest,
     run_g1_capability_audit,
     run_capability_ladder_gate,
     run_g1_capability_ladder_gate,
@@ -25,6 +26,8 @@ from psa.development import (
     run_g1_code_rotation_review,
     run_history_binding_gate,
     run_impl3_development_gate,
+    validate_exp001c_probe_execution_authority,
+    verify_exp001c_probe_manifest,
 )
 from psa.environment import collect_environment
 from psa.evaluation import group_contrasts
@@ -844,6 +847,37 @@ def _exp001b_diagnose(args: argparse.Namespace) -> int:
     return 0 if result["valid"] else 2
 
 
+def _exp001c_probe_manifest(args: argparse.Namespace) -> int:
+    result = build_exp001c_probe_manifest(
+        design_config_path=args.design,
+        model_config_path=args.model_config,
+        project_root=args.project_root,
+    )
+    _write_json(Path(args.output), result)
+    print(json.dumps(result, ensure_ascii=False, indent=2))
+    return 0
+
+
+def _exp001c_probe_verify(args: argparse.Namespace) -> int:
+    result = verify_exp001c_probe_manifest(
+        args.manifest,
+        project_root=args.project_root,
+    )
+    print(json.dumps(result, ensure_ascii=False, indent=2))
+    return 0 if result["valid"] else 2
+
+
+def _exp001c_probe_authority_check(args: argparse.Namespace) -> int:
+    result = validate_exp001c_probe_execution_authority(
+        manifest_path=args.manifest,
+        authorization_path=args.authorization,
+        execution_lock=os.environ.get("PSA_EXP001C_NONCORE_PILOT", ""),
+        project_root=args.project_root,
+    )
+    print(json.dumps(result, ensure_ascii=False, indent=2))
+    return 0
+
+
 def _confirmatory_run(args: argparse.Namespace) -> int:
     result = run_exp001_confirmatory(
         project_root=args.project_root,
@@ -1395,6 +1429,41 @@ def build_parser() -> argparse.ArgumentParser:
     exp001b_diagnose.add_argument("--diagnostic-output-dir", required=True)
     exp001b_diagnose.add_argument("--tokenizer", required=True)
     exp001b_diagnose.set_defaults(handler=_exp001b_diagnose)
+
+    exp001c_probe_manifest = subparsers.add_parser(
+        "exp001c-probe-manifest",
+        help=(
+            "build an unrun EXP-001C development-probe manifest without "
+            "loading a model"
+        ),
+    )
+    exp001c_probe_manifest.add_argument("--design", required=True)
+    exp001c_probe_manifest.add_argument("--model-config", required=True)
+    exp001c_probe_manifest.add_argument("--output", required=True)
+    exp001c_probe_manifest.add_argument("--project-root", default=".")
+    exp001c_probe_manifest.set_defaults(handler=_exp001c_probe_manifest)
+
+    exp001c_probe_verify = subparsers.add_parser(
+        "exp001c-probe-verify",
+        help="verify an unrun EXP-001C development-probe manifest",
+    )
+    exp001c_probe_verify.add_argument("--manifest", required=True)
+    exp001c_probe_verify.add_argument("--project-root", default=".")
+    exp001c_probe_verify.set_defaults(handler=_exp001c_probe_verify)
+
+    exp001c_probe_authority = subparsers.add_parser(
+        "exp001c-probe-authority-check",
+        help=(
+            "validate the separate EXP-001C non-Core pilot authorization and "
+            "execution lock without loading a model"
+        ),
+    )
+    exp001c_probe_authority.add_argument("--manifest", required=True)
+    exp001c_probe_authority.add_argument("--authorization", required=True)
+    exp001c_probe_authority.add_argument("--project-root", default=".")
+    exp001c_probe_authority.set_defaults(
+        handler=_exp001c_probe_authority_check
+    )
 
     confirmatory_run = subparsers.add_parser(
         "confirmatory-run",
