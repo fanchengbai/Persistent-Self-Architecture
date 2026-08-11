@@ -1,0 +1,39 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://persistent-self-architecture.local/schemas/exp001c_v02_stage_b_observation.schema.json",
+  "title": "EXP-001C v02 Stage B exploratory observation",
+  "type": "object",
+  "required": [
+    "observation_version",
+    "experiment_id",
+    "status",
+    "valid",
+    "development_only",
+    "non_core",
+    "result_observed",
+    "model_executed_by_analysis",
+    "stage_b_result_sha256",
+    "analysis_plan_digest_sha256",
+    "condition_reports",
+    "descriptive_contrasts",
+    "contains_confirmatory_decision",
+    "automatic_rerun_authorized"
+  ],
+  "properties": {
+    "observation_version": {"const": "0.1-exploratory"},
+    "experiment_id": {"const": "EXP-001C"},
+    "status": {"const": "stage_b_exploratory_observation_complete_no_confirmatory_decision"},
+    "valid": {"const": true},
+    "development_only": {"const": true},
+    "non_core": {"const": true},
+    "result_observed": {"const": true},
+    "model_executed_by_analysis": {"const": false},
+    "stage_b_result_sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+    "analysis_plan_digest_sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+    "condition_reports": {"type": "object"},
+    "descriptive_contrasts": {"type": "object"},
+    "contains_confirmatory_decision": {"const": false},
+    "automatic_rerun_authorized": {"const": false}
+  },
+  "additionalProperties": true
+}
