@@ -42,6 +42,7 @@ STAGE_B_DESIGN_SOURCE_FILES = (
     "schemas/exp001c_v02_stage_b_preflight.schema.json",
     "schemas/exp001c_v02_stage_b_result.schema.json",
     "scripts/build_exp001c_v02_stage_b_preflight.py",
+    "scripts/run_exp001c_v02_stage_b.py",
     "src/psa/artifacts/integrity.py",
     "src/psa/development/exp001c_protocol_v02.py",
     "src/psa/development/exp001c_v02_stage_b_design.py",

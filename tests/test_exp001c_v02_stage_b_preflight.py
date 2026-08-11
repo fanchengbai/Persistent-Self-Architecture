@@ -2,7 +2,10 @@ from __future__ import annotations
 
 import copy
 import json
+import os
 from pathlib import Path
+import subprocess
+import sys
 from types import SimpleNamespace
 import tempfile
 import unittest
@@ -99,6 +102,36 @@ def _build(directory: Path, *, dirty: bool = False):
 
 
 class Exp001CV02StageBPreflightTests(unittest.TestCase):
+    def test_single_use_script_fails_before_paths_without_execution_lock(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            environment = dict(os.environ)
+            environment.pop("PSA_EXP001C_V02_STAGE_B_EXECUTION", None)
+            environment["PYTHONPATH"] = str(ROOT / "src")
+            completed = subprocess.run(
+                [
+                    sys.executable,
+                    str(ROOT / "scripts" / "run_exp001c_v02_stage_b.py"),
+                    "--project-root",
+                    directory,
+                ],
+                cwd=ROOT,
+                env=environment,
+                capture_output=True,
+                text=True,
+                timeout=30,
+                check=False,
+            )
+            self.assertNotEqual(completed.returncode, 0)
+            self.assertIn("single-use lock is absent", completed.stderr)
+            self.assertFalse(
+                (
+                    Path(directory)
+                    / "results"
+                    / "authorizations"
+                    / "exp001c_v02_stage_b_pilot_v01.json"
+                ).exists()
+            )
+
     def test_builds_read_only_commit_and_artifact_bound_preflight(self) -> None:
         with tempfile.TemporaryDirectory() as directory:
             root = Path(directory)
