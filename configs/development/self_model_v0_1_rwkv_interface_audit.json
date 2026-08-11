@@ -1,0 +1,29 @@
+{
+  "audit_version": "0.1-read-only",
+  "status": "static_source_audit_only",
+  "development_only": true,
+  "package": {
+    "name": "rwkv",
+    "version": "0.8.32",
+    "model_source_sha256": "75482aee89a08d2a8c8dbe628110b317fc8d0974ddffbaa52aa19190667305e0"
+  },
+  "model_config": "configs/models/rwkv7_g1h_2.9b.candidate.json",
+  "expected_runtime_environment": {
+    "RWKV_V7_ON": "1",
+    "RWKV_JIT_ON": "0",
+    "RWKV_CUDA_ON": "0"
+  },
+  "expected_architecture": {
+    "n_layer": 32,
+    "n_embd": 2560,
+    "head_size": 64
+  },
+  "authority": {
+    "source_read_authorized": true,
+    "rwkv_model_import_authorized": false,
+    "weights_access_authorized": false,
+    "model_execution_authorized": false,
+    "real_hook_implementation_authorized": false,
+    "layer_selection_authorized": false
+  }
+}

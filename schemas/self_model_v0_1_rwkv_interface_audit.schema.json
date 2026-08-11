@@ -1,0 +1,54 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://persistent-self-architecture.local/schemas/self_model_v0_1_rwkv_interface_audit.schema.json",
+  "title": "Self Model v0.1 RWKV interface static audit",
+  "type": "object",
+  "required": [
+    "audit_version",
+    "status",
+    "valid",
+    "package",
+    "runtime",
+    "model_interface",
+    "source_inspection",
+    "candidate_boundaries",
+    "implementation_boundary",
+    "safety",
+    "audit_digest_sha256"
+  ],
+  "properties": {
+    "audit_version": {"const": "0.1-read-only"},
+    "status": {"type": "string"},
+    "valid": {"type": "boolean"},
+    "package": {"type": "object"},
+    "runtime": {"type": "object"},
+    "model_interface": {"type": "object"},
+    "source_inspection": {"type": "object"},
+    "candidate_boundaries": {"type": "array", "minItems": 3},
+    "implementation_boundary": {"type": "object"},
+    "safety": {
+      "type": "object",
+      "required": [
+        "rwkv_model_imported",
+        "torch_imported",
+        "weights_accessed",
+        "model_loaded",
+        "model_executed",
+        "real_hook_implemented",
+        "final_layers_selected"
+      ],
+      "properties": {
+        "rwkv_model_imported": {"const": false},
+        "torch_imported": {"const": false},
+        "weights_accessed": {"const": false},
+        "model_loaded": {"const": false},
+        "model_executed": {"const": false},
+        "real_hook_implemented": {"const": false},
+        "final_layers_selected": {"const": false}
+      },
+      "additionalProperties": false
+    },
+    "audit_digest_sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"}
+  },
+  "additionalProperties": true
+}
