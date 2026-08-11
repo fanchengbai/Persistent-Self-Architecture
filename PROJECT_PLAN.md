@@ -617,3 +617,8 @@ EXP-001已完成320组、40,960条记录的冻结确认性运行、独立完整�
     single-use claim已消费。下一步使用运行后、读分数前冻结的唯一观察入口：五个状态语义
     条件按四代码轮换边际化，reset/random只作诊断；不设阈值、不作确认性决定、不运行或
     重跑模型。观察完成后再决定Phase 2是否已有足够依据进入Self Model v0.1工程原型。
+18. Stage B冻结观察已经完成：continuous、restored与三种swap均为联合7/8、domain 8/8、
+    operation 7/8，continuous/restored预测完全一致，swap错误随注入state移动；reset/random
+    对原参考字段均仅2/8。本结果支持进入Self Model v0.1的纯工程原型设计，但不闭合
+    EXP-001B控制、不构成正式Phase 2 Go或“已有Self”结论。下一步等待负责人确认是否冻结
+    Self Store、Encoder、gated injection与字段级消融接口；该轮不加载模型。
