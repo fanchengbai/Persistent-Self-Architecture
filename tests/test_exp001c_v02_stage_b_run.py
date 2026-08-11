@@ -254,7 +254,7 @@ class Exp001CV02StageBRunTests(unittest.TestCase):
                 factory_called = True
                 raise AssertionError("factory must remain unreachable")
 
-            with self.assertRaisesRegex(PermissionError, "not implemented"):
+            with self.assertRaisesRegex(PermissionError, "preflight"):
                 run_exp001c_v02_stage_b(
                     design_manifest_path=design_path,
                     preflight_path="missing-preflight.json",

@@ -2,7 +2,7 @@
 
 版本：0.1 Draft  
 日期：2026-08-11  
-状态：离线设计、真实 backend 与执行 runner 安全外壳完成；live preflight 和模型执行未授权
+状态：离线设计、真实 backend、执行 runner、live preflight 与机器授权锁已实现；云端预检和模型执行未完成
 
 ## 1. 本轮结论
 
@@ -45,17 +45,18 @@ Stage B 使用 Stage A 已完成的 32 条结果作为外部 prompt-visible 基�
 
 ## 3. 执行授权前仍必须完成
 
-真实执行 runner、结果完整性验证、原子输出和 single-use claim 已完成，但机器授权验证
-函数仍默认无条件关闭；测试通过 patch 后只调用 fake backend。claim 在 backend 启动前以
-独占创建方式消费，失败结果也不能自动重跑。进入任何 Stage B 模型执行前，仍必须：
+真实执行 runner、结果完整性验证、原子输出、single-use claim、只读 live preflight 与
+机器授权 builder/validator 已完成。默认路径在缺少有效预检或逐字授权时失败关闭；测试仅
+使用 fake backend。claim 在 backend 启动前以独占创建方式消费，失败结果也不能自动重跑。
+进入任何 Stage B 模型执行前，仍必须：
 
-1. 实现并运行只读服务器 preflight，核验 Stage A 原始结果、当前 Git commit、模型资产和主机环境；
-2. 实现机器授权 builder/validator，并由项目负责人逐字授权，绑定 design manifest 与 live preflight digest；
+1. 在服务器运行只读 preflight，核验 Stage A 原始结果、当前 Git commit、模型资产、主机环境和空输出目录；
+2. 由项目负责人使用预先冻结的逐字文本重新授权，绑定 design manifest、live preflight 与 Stage A result digest；
 3. 明确结果观察是否与执行同时授权；未写明时默认不授权观察；
 4. 继续禁止访问正式测试集、正式运行、确认性决定和自动重跑。
 
 ## 4. 本轮权限声明
 
 本文件、draft config、schema、manifest builder、未调用的真实 backend、默认关闭授权
-验证的runner和测试只属于离线开发与风险审查。它们不是 Stage B 执行授权，不创建测试
-集，不加载模型，不观察新的模型结果，也不改变 EXP-001B 或任何确认性决定。
+验证的runner、preflight和测试只属于离线开发与风险审查。它们不是 Stage B 执行授权，
+不创建测试集，不加载模型，不观察新的模型结果，也不改变 EXP-001B 或任何确认性决定。

@@ -77,16 +77,16 @@ def validate_exp001c_v02_stage_b_authority(
     model_config_path: str | Path,
     project_root: str | Path,
 ) -> dict[str, Any]:
-    """Remain closed until the next round implements live preflight binding."""
-    del (
-        design_manifest_path,
-        preflight_path,
-        authorization_path,
-        model_config_path,
-        project_root,
+    from psa.development.exp001c_v02_stage_b_preflight import (
+        validate_exp001c_v02_stage_b_machine_authority,
     )
-    raise PermissionError(
-        "Stage B live preflight and machine authorization validation are not implemented"
+
+    return validate_exp001c_v02_stage_b_machine_authority(
+        design_manifest_path=design_manifest_path,
+        preflight_path=preflight_path,
+        authorization_path=authorization_path,
+        model_config_path=model_config_path,
+        project_root=project_root,
     )
 
 

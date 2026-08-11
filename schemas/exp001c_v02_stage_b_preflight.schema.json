@@ -1,0 +1,70 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://persistent-self-architecture.local/schemas/exp001c_v02_stage_b_preflight.schema.json",
+  "title": "EXP-001C v02 Stage B read-only live preflight",
+  "type": "object",
+  "required": [
+    "preflight_version",
+    "created_at_utc",
+    "experiment_id",
+    "status",
+    "valid",
+    "development_only",
+    "non_core",
+    "model_assets_verified",
+    "model_loaded",
+    "model_executed",
+    "stage_b_execution_authorized",
+    "stage_b_result_observation_authorized",
+    "stage_a_rerun_authorized",
+    "formal_test_set_accessed",
+    "formal_run_authorized",
+    "confirmatory_decision_authorized",
+    "automatic_rerun_authorized",
+    "checks",
+    "stage_a_artifact_report",
+    "run_plan_candidate",
+    "preflight_digest_sha256",
+    "authorization_boundary"
+  ],
+  "properties": {
+    "preflight_version": {"const": "0.1-development"},
+    "created_at_utc": {"type": "string", "format": "date-time"},
+    "experiment_id": {"const": "EXP-001C"},
+    "status": {"enum": ["preflight_valid_authorization_still_required", "preflight_failed"]},
+    "valid": {"type": "boolean"},
+    "development_only": {"const": true},
+    "non_core": {"const": true},
+    "model_assets_verified": {"const": true},
+    "model_loaded": {"const": false},
+    "model_executed": {"const": false},
+    "stage_b_execution_authorized": {"const": false},
+    "stage_b_result_observation_authorized": {"const": false},
+    "stage_a_rerun_authorized": {"const": false},
+    "formal_test_set_accessed": {"const": false},
+    "formal_run_authorized": {"const": false},
+    "confirmatory_decision_authorized": {"const": false},
+    "automatic_rerun_authorized": {"const": false},
+    "checks": {"type": "object", "additionalProperties": {"type": "boolean"}},
+    "stage_a_artifact_report": {"type": "object"},
+    "run_plan_candidate": {"type": "object"},
+    "preflight_digest_sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+    "authorization_boundary": {
+      "type": "object",
+      "required": [
+        "new_project_owner_authorization_required",
+        "authorization_must_bind_design_manifest_digest_sha256",
+        "authorization_must_bind_preflight_digest_sha256",
+        "required_authorization_text"
+      ],
+      "properties": {
+        "new_project_owner_authorization_required": {"const": true},
+        "authorization_must_bind_design_manifest_digest_sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+        "authorization_must_bind_preflight_digest_sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+        "required_authorization_text": {"const": "授权执行 EXP-001C v02 Stage B recurrent-state 非 Core 224 条 pilot，并授权观察本轮结果；不授权重跑 Stage A、正式测试集、正式运行、确认性决定或自动重跑。"}
+      },
+      "additionalProperties": false
+    }
+  },
+  "additionalProperties": false
+}
