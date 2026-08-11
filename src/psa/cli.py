@@ -19,10 +19,12 @@ from psa.confirmatory import (
 )
 from psa.development import (
     PROBE_EXECUTION_ENV,
+    STAGE_A_EXECUTION_ENV,
     build_exp001c_rwkv_development_backend,
     build_exp001c_probe_pilot_authorization,
     build_exp001c_probe_manifest,
     build_exp001c_protocol_v02_manifest,
+    build_exp001c_v02_stage_a_backend,
     run_g1_capability_audit,
     run_capability_ladder_gate,
     run_g1_capability_ladder_gate,
@@ -31,7 +33,9 @@ from psa.development import (
     run_history_binding_gate,
     run_impl3_development_gate,
     run_exp001c_development_probe,
+    run_exp001c_v02_stage_a,
     validate_exp001c_probe_execution_authority,
+    validate_exp001c_v02_stage_a_authority,
     verify_exp001c_probe_manifest,
     verify_exp001c_protocol_v02_manifest,
 )
@@ -931,6 +935,35 @@ def _exp001c_protocol_v02_verify(args: argparse.Namespace) -> int:
     return 0 if result["valid"] else 2
 
 
+def _exp001c_v02_stage_a_authority_check(args: argparse.Namespace) -> int:
+    result = validate_exp001c_v02_stage_a_authority(
+        manifest_path=args.manifest,
+        authorization_path=args.authorization,
+        execution_lock=os.environ.get(STAGE_A_EXECUTION_ENV, ""),
+        project_root=args.project_root,
+    )
+    print(json.dumps(result, ensure_ascii=False, indent=2))
+    return 0 if result["valid"] else 2
+
+
+def _exp001c_v02_stage_a_run(args: argparse.Namespace) -> int:
+    result = run_exp001c_v02_stage_a(
+        manifest_path=args.manifest,
+        authorization_path=args.authorization,
+        model_config_path=args.model_config,
+        output_dir=args.output_dir,
+        backend_factory=lambda: build_exp001c_v02_stage_a_backend(
+            manifest_path=args.manifest,
+            model_config_path=args.model_config,
+            project_root=args.project_root,
+        ),
+        execution_lock=os.environ.get(STAGE_A_EXECUTION_ENV, ""),
+        project_root=args.project_root,
+    )
+    print(json.dumps(result, ensure_ascii=False, indent=2))
+    return 0 if result["valid"] else 2
+
+
 def _confirmatory_run(args: argparse.Namespace) -> int:
     result = run_exp001_confirmatory(
         project_root=args.project_root,
@@ -1574,6 +1607,34 @@ def build_parser() -> argparse.ArgumentParser:
     exp001c_protocol_v02_verify.set_defaults(
         handler=_exp001c_protocol_v02_verify
     )
+
+    exp001c_v02_stage_a_authority = subparsers.add_parser(
+        "exp001c-v02-stage-a-authority-check",
+        help=(
+            "validate a future, separately authorized EXP-001C v02 Stage A "
+            "execution without loading a model"
+        ),
+    )
+    exp001c_v02_stage_a_authority.add_argument("--manifest", required=True)
+    exp001c_v02_stage_a_authority.add_argument("--authorization", required=True)
+    exp001c_v02_stage_a_authority.add_argument("--project-root", default=".")
+    exp001c_v02_stage_a_authority.set_defaults(
+        handler=_exp001c_v02_stage_a_authority_check
+    )
+
+    exp001c_v02_stage_a_run = subparsers.add_parser(
+        "exp001c-v02-stage-a-run",
+        help=(
+            "run only the locked prompt-visible EXP-001C v02 Stage A after "
+            "separate execution and observation authorization"
+        ),
+    )
+    exp001c_v02_stage_a_run.add_argument("--manifest", required=True)
+    exp001c_v02_stage_a_run.add_argument("--authorization", required=True)
+    exp001c_v02_stage_a_run.add_argument("--model-config", required=True)
+    exp001c_v02_stage_a_run.add_argument("--output-dir", required=True)
+    exp001c_v02_stage_a_run.add_argument("--project-root", default=".")
+    exp001c_v02_stage_a_run.set_defaults(handler=_exp001c_v02_stage_a_run)
 
     confirmatory_run = subparsers.add_parser(
         "confirmatory-run",

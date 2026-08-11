@@ -13,9 +13,11 @@
     "formal_test_set_accessed",
     "model_executed",
     "execution_authorized",
+    "result_observation_authorized",
     "automatic_rerun_authorized",
     "formal_run_authorized",
     "config",
+    "model_config",
     "source_pilot",
     "stage_a_positive_control",
     "stage_b_recurrent_state",
@@ -41,8 +43,41 @@
     "formal_test_set_accessed": {"const": false},
     "model_executed": {"const": false},
     "execution_authorized": {"const": false},
+    "result_observation_authorized": {"const": false},
     "automatic_rerun_authorized": {"const": false},
     "formal_run_authorized": {"const": false},
+    "config": {"$ref": "#/$defs/lockedFile"},
+    "model_config": {"$ref": "#/$defs/lockedFile"},
+    "stage_a_positive_control": {
+      "type": "object",
+      "required": [
+        "scope",
+        "authorized",
+        "result_observation_authorized",
+        "record_count",
+        "execution_requires_new_authorization"
+      ],
+      "properties": {
+        "scope": {"const": "prompt_visible_only"},
+        "authorized": {"const": false},
+        "result_observation_authorized": {"const": false},
+        "record_count": {"const": 32},
+        "execution_requires_new_authorization": {"const": true}
+      }
+    },
+    "stage_b_recurrent_state": {
+      "type": "object",
+      "required": [
+        "authorized",
+        "requires_stage_a_pass",
+        "requires_separate_owner_authorization"
+      ],
+      "properties": {
+        "authorized": {"const": false},
+        "requires_stage_a_pass": {"const": true},
+        "requires_separate_owner_authorization": {"const": true}
+      }
+    },
     "assistant_prefix": {"const": "<think></think"},
     "forced_answer_prefix": {"const": ">\n"},
     "history_mode": {"const": "single_statement"},
@@ -75,6 +110,15 @@
     }
   },
   "$defs": {
+    "lockedFile": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["path", "sha256"],
+      "properties": {
+        "path": {"type": "string", "minLength": 1},
+        "sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"}
+      }
+    },
     "eightPerCode": {
       "type": "object",
       "additionalProperties": false,

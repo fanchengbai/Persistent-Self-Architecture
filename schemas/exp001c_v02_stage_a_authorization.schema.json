@@ -1,0 +1,41 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://persistent-self-architecture.local/schemas/exp001c_v02_stage_a_authorization.schema.json",
+  "title": "EXP-001C v02 Stage A Positive-Control Authorization",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "authorization_version",
+    "experiment_id",
+    "scope",
+    "authorized",
+    "authorization_basis",
+    "authorized_at_utc",
+    "manifest_digest_sha256",
+    "model_execution_authorized",
+    "stage_a_result_observation_authorized",
+    "stage_b_recurrent_state_authorized",
+    "formal_test_set_access_authorized",
+    "formal_run_authorized",
+    "formal_result_observation_authorized",
+    "automatic_rerun_authorized",
+    "authorization_digest_sha256"
+  ],
+  "properties": {
+    "authorization_version": {"const": "0.1"},
+    "experiment_id": {"const": "EXP-001C"},
+    "scope": {"const": "v02_stage_a_prompt_visible_only"},
+    "authorized": {"const": true},
+    "authorization_basis": {"const": "project_owner_explicit_chat_authorization"},
+    "authorized_at_utc": {"type": "string", "format": "date-time"},
+    "manifest_digest_sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+    "model_execution_authorized": {"const": true},
+    "stage_a_result_observation_authorized": {"const": true},
+    "stage_b_recurrent_state_authorized": {"const": false},
+    "formal_test_set_access_authorized": {"const": false},
+    "formal_run_authorized": {"const": false},
+    "formal_result_observation_authorized": {"const": false},
+    "automatic_rerun_authorized": {"const": false},
+    "authorization_digest_sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"}
+  }
+}

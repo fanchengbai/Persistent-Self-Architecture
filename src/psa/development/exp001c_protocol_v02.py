@@ -12,15 +12,20 @@ PROTOCOL_VERSION = "0.2-development-draft"
 MANIFEST_VERSION = "0.2-development-unrun"
 PROTOCOL_SOURCE_FILES = (
     "configs/development/exp001c_noncore_protocol_v02.draft.json",
+    "configs/models/rwkv7_g1h_2.9b.candidate.json",
     "docs/exp001c_noncore_pilot_v01_observation.md",
     "schemas/exp001c_protocol_v02_manifest.schema.json",
+    "schemas/exp001c_v02_stage_a_authorization.schema.json",
+    "schemas/exp001c_v02_stage_a_result.schema.json",
     "src/psa/artifacts/integrity.py",
     "src/psa/cli.py",
     "src/psa/development/__init__.py",
     "src/psa/development/exp001c_protocol_v02.py",
+    "src/psa/development/exp001c_v02_stage_a.py",
     "src/psa/development/history_binding.py",
     "src/psa/tasks/identity_goal.py",
     "tests/test_exp001c_protocol_v02.py",
+    "tests/test_exp001c_v02_stage_a.py",
 )
 
 
@@ -59,6 +64,8 @@ def _validate_config(config: Mapping[str, Any]) -> None:
         or config.get("formal_test_set_accessed") is not False
         or not isinstance(authority, Mapping)
         or authority.get("offline_manifest_build_authorized") is not True
+        or authority.get("offline_stage_a_runner_implementation_authorized")
+        is not True
         or authority.get("model_execution_authorized") is not False
         or authority.get("automatic_rerun_authorized") is not False
         or authority.get("formal_test_set_access_authorized") is not False
@@ -80,6 +87,8 @@ def _validate_config(config: Mapping[str, Any]) -> None:
     if (
         not isinstance(stage_a, Mapping)
         or stage_a.get("scope") != "prompt_visible_only"
+        or stage_a.get("authorized") is not False
+        or stage_a.get("result_observation_authorized") is not False
         or stage_a.get("record_count") != 32
         or stage_a.get("minimum_label_marginalized_accuracy") != 0.8
         or stage_a.get("require_complete_four_code_rotation") is not True
@@ -143,6 +152,13 @@ def build_exp001c_protocol_v02_manifest(
     config_relative = _relative(path, root)
     if source_digests.get(config_relative) != sha256_file(path):
         raise ValueError("EXP-001C v02 config is absent from source inventory")
+    model_path = (root / str(config.get("model_config_path", ""))).resolve()
+    model_relative = _relative(model_path, root)
+    if (
+        not model_path.is_file()
+        or source_digests.get(model_relative) != sha256_file(model_path)
+    ):
+        raise ValueError("EXP-001C v02 model config is not source-locked")
     manifest = {
         "manifest_version": MANIFEST_VERSION,
         "protocol_id": config["protocol_id"],
@@ -153,11 +169,16 @@ def build_exp001c_protocol_v02_manifest(
         "formal_test_set_accessed": False,
         "model_executed": False,
         "execution_authorized": False,
+        "result_observation_authorized": False,
         "automatic_rerun_authorized": False,
         "formal_run_authorized": False,
         "config": {
             "path": config_relative,
             "sha256": sha256_file(path),
+        },
+        "model_config": {
+            "path": model_relative,
+            "sha256": sha256_file(model_path),
         },
         "source_pilot": config["source_pilot"],
         "stage_a_positive_control": config["stage_a_positive_control"],
@@ -217,9 +238,16 @@ def verify_exp001c_protocol_v02_manifest(
         and manifest.get("formal_test_set_accessed") is False
         and manifest.get("model_executed") is False
         and manifest.get("execution_authorized") is False
+        and manifest.get("result_observation_authorized") is False
         and manifest.get("automatic_rerun_authorized") is False
         and manifest.get("formal_run_authorized") is False
         and isinstance(manifest.get("stage_b_recurrent_state"), Mapping)
+        and isinstance(manifest.get("stage_a_positive_control"), Mapping)
+        and manifest["stage_a_positive_control"].get("authorized") is False
+        and manifest["stage_a_positive_control"].get(
+            "result_observation_authorized"
+        )
+        is False
         and manifest["stage_b_recurrent_state"].get("authorized") is False
     )
     balance_valid = bool(

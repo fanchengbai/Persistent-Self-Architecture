@@ -8,11 +8,13 @@
   "formal_test_set_accessed": false,
   "authority": {
     "offline_manifest_build_authorized": true,
+    "offline_stage_a_runner_implementation_authorized": true,
     "model_execution_authorized": false,
     "automatic_rerun_authorized": false,
     "formal_test_set_access_authorized": false,
     "formal_run_authorized": false
   },
+  "model_config_path": "configs/models/rwkv7_g1h_2.9b.candidate.json",
   "source_pilot": {
     "version": "v01",
     "manifest_digest_sha256": "5e5d9a8eba2f5fe8b078ad007273e2f4e0040385ee6ab458b00b244ed2a18a8f",
@@ -35,6 +37,8 @@
   },
   "stage_a_positive_control": {
     "scope": "prompt_visible_only",
+    "authorized": false,
+    "result_observation_authorized": false,
     "record_count": 32,
     "minimum_label_marginalized_accuracy": 0.8,
     "require_complete_four_code_rotation": true,

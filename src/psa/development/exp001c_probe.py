@@ -24,18 +24,22 @@ PROBE_SOURCE_FILES = (
     "schemas/exp001c_noncore_probe_result.schema.json",
     "schemas/exp001c_prefix_evidence.schema.json",
     "schemas/exp001c_protocol_v02_manifest.schema.json",
+    "schemas/exp001c_v02_stage_a_authorization.schema.json",
+    "schemas/exp001c_v02_stage_a_result.schema.json",
     "src/psa/cli.py",
     "src/psa/development/__init__.py",
     "src/psa/development/exp001c_probe.py",
     "src/psa/development/exp001c_rwkv_backend.py",
     "src/psa/development/prefix_instrumentation.py",
     "src/psa/development/exp001c_protocol_v02.py",
+    "src/psa/development/exp001c_v02_stage_a.py",
     "tests/fixtures/exp001c_prefix_logits_fixture.json",
     "tests/test_exp001c_design.py",
     "tests/test_exp001c_prefix_instrumentation.py",
     "tests/test_exp001c_probe.py",
     "tests/test_exp001c_rwkv_backend.py",
     "tests/test_exp001c_protocol_v02.py",
+    "tests/test_exp001c_v02_stage_a.py",
 )
 
 

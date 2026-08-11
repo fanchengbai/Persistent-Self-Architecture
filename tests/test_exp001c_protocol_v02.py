@@ -37,9 +37,15 @@ class Exp001CProtocolV02Tests(unittest.TestCase):
             {str(index): 8 for index in range(4)},
         )
         self.assertFalse(manifest["execution_authorized"])
+        self.assertFalse(manifest["result_observation_authorized"])
         self.assertFalse(manifest["model_executed"])
         self.assertFalse(manifest["formal_test_set_accessed"])
+        self.assertFalse(manifest["stage_a_positive_control"]["authorized"])
         self.assertFalse(manifest["stage_b_recurrent_state"]["authorized"])
+        self.assertEqual(
+            manifest["model_config"]["path"],
+            "configs/models/rwkv7_g1h_2.9b.candidate.json",
+        )
 
     def test_each_semantic_case_has_complete_code_rotation(self) -> None:
         manifest = build_exp001c_protocol_v02_manifest(

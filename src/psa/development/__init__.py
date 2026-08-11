@@ -62,6 +62,14 @@ from psa.development.exp001c_protocol_v02 import (
     build_exp001c_protocol_v02_manifest,
     verify_exp001c_protocol_v02_manifest,
 )
+from psa.development.exp001c_v02_stage_a import (
+    STAGE_A_EXECUTION_ENV,
+    STAGE_A_EXECUTION_LOCK,
+    RWKVExp001CV02StageABackend,
+    build_exp001c_v02_stage_a_backend,
+    run_exp001c_v02_stage_a,
+    validate_exp001c_v02_stage_a_authority,
+)
 
 __all__ = [
     "calibrate_standard_delay",
@@ -112,4 +120,10 @@ __all__ = [
     "load_exp001c_noncore_fixture",
     "build_exp001c_protocol_v02_manifest",
     "verify_exp001c_protocol_v02_manifest",
+    "STAGE_A_EXECUTION_ENV",
+    "STAGE_A_EXECUTION_LOCK",
+    "RWKVExp001CV02StageABackend",
+    "build_exp001c_v02_stage_a_backend",
+    "run_exp001c_v02_stage_a",
+    "validate_exp001c_v02_stage_a_authority",
 ]

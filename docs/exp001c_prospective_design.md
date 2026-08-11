@@ -170,5 +170,6 @@ formal-shape 非 Core fixture 执行一次 development pilot，并要求 manifes
 获得只读结果观察授权；观察结论记录在
 `docs/exp001c_noncore_pilot_v01_observation.md`。
 
-v01 执行权限现已关闭。当前只授权离线设计 v02 prompt-visible 正控制 manifest；v02
+v01 执行权限现已关闭。当前只授权离线设计 v02 prompt-visible 正控制 manifest，以及
+Stage A 的锁定 runner/backend、未来授权与结果 Schema、假适配器测试；v02
 模型执行、recurrent-state 阶段、正式测试集生成、正式运行和正式结果观察均未授权。
