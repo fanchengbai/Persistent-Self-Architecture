@@ -587,3 +587,7 @@ EXP-001已完成320组、40,960条记录的冻结确认性运行、独立完整�
     28条正确，label-marginalized accuracy=0.875，最大单一代码占比=0.28125，
     prefix greedy/roundtrip均为1.0，预设门槛全部通过。该授权已关闭且禁止重跑；
     Stage B、正式测试集和正式运行仍需新的独立授权。
+11. EXP-001C v02 Stage B第一版离线设计与风险审查已完成：Stage A只作为外部基线，
+    不在Stage B中重跑；七个状态条件各32条，共224条。交换条件的预期答案跟随实际
+    注入状态重新映射，reset/random仅作诊断控制。下一步须经负责人确认后才能进入
+    纯离线runner/backend集成；Stage B模型执行仍需更后的独立授权和live preflight。

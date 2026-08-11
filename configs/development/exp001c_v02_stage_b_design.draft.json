@@ -1,0 +1,96 @@
+{
+  "design_version": "0.1-development-draft",
+  "experiment_id": "EXP-001C",
+  "scope": "v02_stage_b_recurrent_state_noncore_pilot",
+  "status": "offline_design_only_execution_unapproved",
+  "development_only": true,
+  "non_core": true,
+  "authority": {
+    "offline_design_authorized": true,
+    "offline_risk_review_authorized": true,
+    "offline_test_authorized": true,
+    "model_execution_authorized": false,
+    "result_observation_authorized": false,
+    "formal_test_set_access_authorized": false,
+    "formal_run_authorized": false,
+    "automatic_rerun_authorized": false
+  },
+  "stage_a_pass_evidence": {
+    "observation_path": "docs/exp001c_v02_stage_a_pilot_v01_observation.md",
+    "execution_commit": "94847dad44154a677053fc774bd53701163ef5b3",
+    "manifest_digest_sha256": "6874ea634ae6eb55421fe59d12dca0d910ba097eef63e3314db6f4a6ecea0909",
+    "preflight_digest_sha256": "0a9dfbf299c96a4f3f121fe94ff0beb8771edde2757ef36541285f977ca10a52",
+    "authorization_digest_sha256": "9f8dd3d9f41e744f9eed73298283594b2312f7872a60269ca14e74d1b7c62e08",
+    "stage_a_result_sha256": "763090bce72837e0957569e9abbeeda0db211c07d6d29e77a6fdf910889f3dcb",
+    "record_count": 32,
+    "label_marginalized_accuracy": 0.875,
+    "decision": "stage_a_positive_control_pass",
+    "remote_result_must_be_reverified_before_execution": true
+  },
+  "protocol_config_path": "configs/development/exp001c_noncore_protocol_v02.draft.json",
+  "external_prompt_visible_baseline": {
+    "source": "completed_stage_a_result",
+    "rerun_in_stage_b": false,
+    "record_count": 32
+  },
+  "conditions": [
+    {
+      "name": "continuous",
+      "role": "state_semantic_preservation",
+      "source_rule": "same_history_state"
+    },
+    {
+      "name": "restored",
+      "role": "state_roundtrip_preservation",
+      "source_rule": "same_history_state_after_disk_roundtrip"
+    },
+    {
+      "name": "swapped_I",
+      "role": "state_causal_tracking",
+      "source_rule": "complement_identity_preserve_goal"
+    },
+    {
+      "name": "swapped_G",
+      "role": "state_causal_tracking",
+      "source_rule": "preserve_identity_complement_goal"
+    },
+    {
+      "name": "swapped_both",
+      "role": "state_causal_tracking",
+      "source_rule": "complement_identity_and_goal"
+    },
+    {
+      "name": "reset",
+      "role": "no_state_negative_control",
+      "source_rule": "no_recurrent_state"
+    },
+    {
+      "name": "random_matched",
+      "role": "assay_sensitivity_control",
+      "source_rule": "deterministic_shape_matched_random_state"
+    }
+  ],
+  "record_plan": {
+    "stage_a_trial_count": 32,
+    "stage_b_condition_count": 7,
+    "stage_b_record_count": 224,
+    "complete_four_code_rotation_required": true,
+    "stage_a_rerun_forbidden": true
+  },
+  "execution_gate": {
+    "requires_separate_owner_authorization": true,
+    "requires_clean_git_commit": true,
+    "requires_remote_stage_a_artifact_reverification": true,
+    "requires_model_asset_digest_verification": true,
+    "requires_host_environment_preflight": true,
+    "requires_single_use_execution_lock": true,
+    "authorization_must_bind_design_manifest_and_preflight_digests": true
+  },
+  "forbidden_scope": {
+    "stage_a_rerun": true,
+    "formal_test_set_access": true,
+    "formal_run": true,
+    "confirmatory_decision": true,
+    "automatic_rerun": true
+  }
+}

@@ -1,0 +1,59 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://persistent-self-architecture.local/schemas/exp001c_v02_stage_b_design.schema.json",
+  "title": "EXP-001C v02 Stage B offline design manifest",
+  "type": "object",
+  "required": [
+    "design_manifest_version",
+    "experiment_id",
+    "scope",
+    "status",
+    "development_only",
+    "non_core",
+    "model_executed",
+    "execution_authorized",
+    "stage_a_pass_evidence",
+    "external_prompt_visible_baseline",
+    "condition_count",
+    "record_count",
+    "conditions",
+    "records",
+    "locked_source_digests",
+    "design_manifest_digest_sha256"
+  ],
+  "properties": {
+    "design_manifest_version": {"const": "0.1-development-unrun"},
+    "experiment_id": {"const": "EXP-001C"},
+    "scope": {"const": "v02_stage_b_recurrent_state_noncore_pilot"},
+    "status": {"const": "offline_stage_b_design_verified_execution_unapproved"},
+    "development_only": {"const": true},
+    "non_core": {"const": true},
+    "model_executed": {"const": false},
+    "execution_authorized": {"const": false},
+    "result_observation_authorized": {"const": false},
+    "formal_test_set_accessed": {"const": false},
+    "formal_run_authorized": {"const": false},
+    "automatic_rerun_authorized": {"const": false},
+    "condition_count": {"const": 7},
+    "record_count": {"const": 224},
+    "conditions": {
+      "type": "array",
+      "minItems": 7,
+      "maxItems": 7,
+      "uniqueItems": true,
+      "items": {"type": "string"}
+    },
+    "records": {
+      "type": "array",
+      "minItems": 224,
+      "maxItems": 224,
+      "items": {"type": "object"}
+    },
+    "locked_source_digests": {
+      "type": "object",
+      "additionalProperties": {"type": "string", "pattern": "^[0-9a-f]{64}$"}
+    },
+    "design_manifest_digest_sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"}
+  },
+  "additionalProperties": true
+}

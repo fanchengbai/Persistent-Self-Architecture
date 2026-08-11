@@ -1,8 +1,11 @@
 # EXP-001C 前缀语义与状态控制前瞻性设计草案
 
-版本：0.1 Draft  
-日期：2026-08-10  
-状态：仅离线 instrumentation 开发获批；未冻结；未批准模型试跑、测试集生成、正式运行或结果观察
+版本：0.2 Draft
+日期：2026-08-11
+状态：Stage B 离线设计与风险审查完成；未冻结；Stage B 模型执行、测试集生成和正式运行均未授权
+
+历史权限边界保留：`仅离线 instrumentation 开发获批；未冻结` 是本项目进入
+EXP-001C 时的初始状态；后续逐轮授权只扩展到本文明确记录的开发范围。
 
 ## 1. 研究目的
 
@@ -176,4 +179,14 @@ v01 执行权限已经关闭。v02 Stage A 在绑定 manifest、服务器环境�
 greedy/roundtrip 均为 32/32，且没有单一代码塌缩。授权已随单次运行完成而关闭，禁止
 自动重跑。Stage B、正式测试集和正式运行仍未授权；Stage A 通过只表示可以进入新的
 Stage B 独立授权审查，不构成 recurrent-state 结论。
-模型执行、recurrent-state 阶段、正式测试集生成、正式运行和正式结果观察均未授权。
+
+v02 Stage B 的第一版离线设计于 2026-08-11 完成。Stage A 的 32 条已完成结果只作为
+外部 prompt-visible 基线，不在 Stage B 中重跑。Stage B 规划 `continuous`、`restored`、
+`swapped_I`、`swapped_G`、`swapped_both`、`reset`、`random_matched` 七个条件，
+每个条件 32 条，共 224 条。交换条件的预期答案跟随实际注入状态重新映射；`reset`
+和 `random_matched` 只作为诊断控制，不设置状态语义正确项。完整风险边界见
+`docs/exp001c_v02_stage_b_risk_review.md`。
+
+当前只批准离线 design config、schema、确定性 manifest builder/verifier 和单元测试。
+Stage B runner/backend 集成、服务器 preflight 与任何模型执行仍需后续分轮完成；模型执行、
+recurrent-state 实跑、正式测试集生成、正式运行和正式结果观察均未授权。

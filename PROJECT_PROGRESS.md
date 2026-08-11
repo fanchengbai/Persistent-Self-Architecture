@@ -1,8 +1,8 @@
 # Persistent Self Architecture 项目进度表
 
 > 最后更新：2026-08-11
-> 当前节点：EXP-001C v02 Stage A prompt-visible 非 Core 正控制已通过并关闭单次授权；等待 Stage B 独立设计与授权审查
-> 研究状态：原生 recurrent state 已取得强因果行为证据；EXP-001C Stage A 正控制通过，但 Stage B 尚未授权，显式 Self Model 尚未实现
+> 当前节点：EXP-001C v02 Stage B 离线设计与风险审查完成；等待确认是否进入纯离线 runner/backend 集成
+> 研究状态：Stage A 正控制已通过；Stage B 已形成七条件、224条的离线计划，但模型执行仍未授权，显式 Self Model 尚未实现
 
 ## 1. 这张表怎么使用
 
@@ -105,6 +105,8 @@
 | 38h-a. 首次正式预检运行标志诊断 | ✅ 修复并复验 | 预检唯一失败项为`runtime_flags_frozen`；审计并修复三个GPU入口的自包含RWKV运行模式 | 新终端不应依赖旧shell遗留变量；否则同一脚本在不同会话会得到不同preflight | 首次digest=`3d48b04b…0365`永久作废。三个入口已固定`RWKV_V7_ON=1`、`RWKV_JIT_ON=0`、`RWKV_CUDA_ON=0`及项目`PYTHONPATH`；修复提交`defd6b0`上的非Core门和最终预检均复验通过 | 项目负责人回传；Codex诊断修复 |
 | 38i. EXP-001B项目负责人正式运行授权 | ✅ 已明确授权 | 负责人逐字确认最终preflight checksum及完整运行范围，授权记录必须与冻结包、模型、320组和11,008条记录精确绑定 | 生成补充集的旧授权不能自动升级为“允许模型读取并评分试卷”；正式运行是新的不可逆研究边界 | 已确认checksum=`bc91b2b3cd7557cc2000d8990fbc638de38a6d9895891e8b5b944e9572ab13a6`；授权固定2.9B模型、320组和11,008条记录，仅允许全量完成并通过原始包验证后观察结果；禁止修改设计、自动重跑和重跑EXP-001 | 项目负责人 |
 | 38j. EXP-001B完整补充运行 | ⏸️ 已授权，尚未启动 | 在云端忽略目录创建机器可验证授权记录，通过现场preflight匹配与执行锁后运行320组；运行期间只保存原始记录 | 将自然语言授权变成可审计的机器记录，并阻止中途看准确率、临时改设计或完成后重跑 | 当前尚未创建云端授权文件、尚未加载冻结补充记录评分。启动后只监控进程与已完成组数；320组结束后先运行独立原始包验证器 | 项目负责人云端运行；Codex核对 |
+| 38k. EXP-001C v02 Stage A正控制 | ✅ 已通过并关闭授权 | 使用G1 fake-think/chat prompt-visible协议运行32条非Core code-rotated正控制 | recurrent-state解释前必须先证明同一题在答案信息可见时可做 | 28/32正确，label-marginalized accuracy=0.875，prefix greedy/roundtrip均为1.0；单次授权已关闭，禁止自动重跑 | 项目负责人授权；Codex云端执行与观察 |
+| 38l. EXP-001C v02 Stage B离线设计 | ✅ 本轮完成 | 把Stage A作为外部基线，规划continuous/restored/三种swap/reset/random共7条件×32条=224条，并建立确定性manifest、风险审查和未来授权Schema | 防止Stage A隐式重跑、交换状态仍沿用旧target、负控制混入主要端点或“继续”被误当成执行授权 | 5项专项及全项目234项测试通过；交换目标按实际注入状态唯一重映射，reset/random仅作诊断；模型未加载、正式测试集未访问、执行和观察均未授权 | Codex |
 | 39. Phase 3：显式 Self Model | ⏳ 未开始 | 实现 Self Store、Self Encoder 和 gated injection | 只有原生状态基线可靠后，才能判断显式 Self Model 是否带来额外价值 | 目前只有设计，没有加入模型 | 后续由 Codex 实现 |
 | 40. Self 更新与演化 | ⏳ 未开始 | 让 Self State 根据经历受控更新、回滚和分化 | 这是“持续自我”真正更深入的部分 | 尚未开始 | 后续阶段 |
 | 41. 内生调节与自主审议 | ⏳ 未开始 | 让 Self/冲突决定是否检索、回放、模拟或停止，并在零新外部观察条件下受控更新 | 检验系统是否不仅“有状态”，还会因内部状态选择继续计算；同时排除定时器和随机回放解释 | 设计说明已完成；必须等待显式 Self 因果价值和受约束更新两道前置门，不创建空壳代码 | 后续阶段 |
@@ -112,7 +114,7 @@
 
 ## 3. 当前所在位置
 
-> 2026-08-11 当前状态：EXP-001C v02 Stage A 已在一次性授权下完成，32 条非 Core prompt-visible pilot 中 28 条正确，准确率 0.875，判定为 `stage_a_positive_control_pass`。该次授权已经关闭，未执行 Stage B、未访问正式测试集、未启动正式运行、未自动重跑。以下保留完整历史路径；如与旧阶段描述冲突，以本段和顶部“当前节点”为准。
+> 2026-08-11 当前状态：EXP-001C v02 Stage A 已通过并关闭单次授权；Stage B 第一版离线设计、风险审查、设计/授权 Schema 和确定性 manifest builder/verifier 已完成。Stage B 固定七个条件、每条件32条、共224条，不重跑 Stage A；本轮未加载模型、未访问正式测试集、未授权执行或结果观察。以下保留完整历史路径；如与旧阶段描述冲突，以本段和顶部“当前节点”为准。
 
 ```text
 理论设计
@@ -231,7 +233,7 @@ EXP-001B补充控制
 
 ## 4. 当前下一步
 
-> 2026-08-11 当前下一步：仅进行 Stage B 的离线设计、风险审查和独立授权准备。没有新的项目负责人授权，不得加载模型执行 Stage B；不得访问正式测试集、启动正式运行或自动重跑 Stage A。以下保留此前 EXP-001B 轨迹作为历史记录。
+> 2026-08-11 当前下一步：等待项目负责人确认是否进入 Stage B 纯离线 runner/backend 集成。若确认，下一轮只允许实现 fake-adapter 路由、结果结构和执行前失败关闭测试，不加载模型；服务器模型执行仍必须在后续 live preflight 与新的逐字授权之后。不得访问正式测试集、启动正式运行或自动重跑 Stage A。以下保留此前 EXP-001B 轨迹作为历史记录。
 
 截至2026-08-04，项目负责人已经确认EXP-001B设计草案中的B1–B7。
 新增范围仍锁在11,008条控制记录，并明确不重跑EXP-001、不重估E1–E3、
@@ -675,3 +677,4 @@ trial-condition单元；只允许全量完成且完整性验证后观察结果�
 | 2026-08-04 | 项目负责人逐字确认EXP-001B最终preflight digest `bc91b2b3cd7557cc2000d8990fbc638de38a6d9895891e8b5b944e9572ab13a6`并授权冻结的完整补充确认性实验：固定`rwkv7-g1h-2.9b-20260710`、320组、11,008条记录（5,120 matched-context、5,120正式生成、96×8控制）；只允许全量完成并通过原始包完整性验证后观察结果，明确禁止修改冻结设计、自动重跑和重跑EXP-001。当前仅完成自然语言授权，尚未创建机器授权文件、启动模型或观察结果 | 项目负责人授权原文 |
 | 2026-08-11 | EXP-001C v02 Stage A prompt-visible 非Core正控制在一次性机器授权下完成：执行提交`94847da`，manifest/preflight/authorization digest分别为`6874ea63…0909`、`0a9dfbf2…0a52`、`9f8dd3d9…2e08`；32条记录中28条正确，label-marginalized accuracy=0.875，预测A/B/C/D为9/9/8/6，最大单一代码占比0.28125，prefix greedy与roundtrip均为1.0，所有预设门槛通过。Stage B和正式测试集均未访问，无正式决策且禁止自动重跑；下一步只进入Stage B独立授权审查 | 远程`results/development/exp001c_v02_stage_a_pilot_v01/summary.json`；`docs/exp001c_v02_stage_a_pilot_v01_observation.md` |
 | 2026-08-11 | 修正进度表同步遗漏：顶部“最后更新”由2026-08-04更新为2026-08-11，并把“当前节点”“研究状态”“当前所在位置”“当前下一步”同步到EXP-001C v02 Stage A已通过、Stage B待独立设计与授权的真实状态；强化强制规则，明确每轮操作结束前都必须检查并更新这些位置，不得只追加文末记录 | `PROJECT_PROGRESS.md` |
+| 2026-08-11 | EXP-001C v02 Stage B第一版离线设计与风险审查完成：Stage A的32条已完成结果只作外部基线，Stage B不重跑Stage A；固定continuous/restored/三种swap/reset/random七条件×32条=224条。交换条件按实际注入状态重新映射唯一正确代码，reset/random不设状态语义正确项。新增draft config、两个Schema、确定性manifest builder/verifier、风险审查和5项专项测试；全项目234项通过。本轮未加载模型、未访问正式测试集，Stage B执行/观察、正式运行与自动重跑均未授权 | `docs/exp001c_v02_stage_b_risk_review.md`；`src/psa/development/exp001c_v02_stage_b_design.py`；`tests/test_exp001c_v02_stage_b_design.py` |
