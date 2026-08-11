@@ -1,0 +1,74 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://persistent-self-architecture.local/schemas/self_model_v0_1_fake_callback_report.schema.json",
+  "title": "Self Model v0.1 no-weight fake callback report",
+  "type": "object",
+  "required": [
+    "contract_version",
+    "status",
+    "valid",
+    "development_only",
+    "checks",
+    "runtime",
+    "callback",
+    "source_digests",
+    "safety",
+    "report_digest_sha256"
+  ],
+  "properties": {
+    "contract_version": {"const": "0.1-no-weight"},
+    "status": {"const": "self_model_v0_1_fake_callback_verified"},
+    "valid": {"const": true},
+    "development_only": {"const": true},
+    "checks": {
+      "type": "object",
+      "minProperties": 16,
+      "additionalProperties": {"const": true}
+    },
+    "runtime": {
+      "type": "object",
+      "required": ["kind", "execution_paths", "state_components_per_layer"],
+      "properties": {
+        "kind": {"const": "no_weight_fake_rwkv7_residual_runtime"},
+        "execution_paths": {"const": ["forward_one", "forward_seq"]},
+        "state_components_per_layer": {"const": 3}
+      }
+    },
+    "callback": {
+      "type": "object",
+      "required": [
+        "phase",
+        "sequence_policy",
+        "real_sequence_policy_frozen",
+        "real_layers_selected"
+      ],
+      "properties": {
+        "phase": {"const": "post_ffn_residual"},
+        "sequence_policy": {"const": "broadcast_all_tokens_fake_only"},
+        "real_sequence_policy_frozen": {"const": false},
+        "real_layers_selected": {"const": false}
+      }
+    },
+    "source_digests": {"type": "object", "minProperties": 6},
+    "safety": {
+      "type": "object",
+      "required": [
+        "rwkv_model_imported",
+        "torch_imported",
+        "weights_accessed",
+        "model_loaded",
+        "model_executed",
+        "site_packages_modified",
+        "real_hook_implemented",
+        "real_layers_selected",
+        "self_effect_experiment_run"
+      ],
+      "additionalProperties": {"const": false}
+    },
+    "report_digest_sha256": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{64}$"
+    }
+  },
+  "additionalProperties": true
+}

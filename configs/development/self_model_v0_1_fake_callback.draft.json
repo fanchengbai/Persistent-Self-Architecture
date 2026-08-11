@@ -1,0 +1,29 @@
+{
+  "contract_version": "0.1-no-weight",
+  "status": "fake_callback_contract_only",
+  "development_only": true,
+  "fake_runtime": {
+    "n_layer": 3,
+    "hidden_dimension": 4,
+    "dtype": "float16",
+    "device": "fake-cuda:0"
+  },
+  "fake_callback": {
+    "phase": "post_ffn_residual",
+    "layer_mask": ["fake-layer-01"],
+    "gate": 0.5,
+    "sequence_policy": "broadcast_all_tokens_fake_only",
+    "real_sequence_policy_frozen": false,
+    "real_layers_selected": false
+  },
+  "self_vector": [0.25, -0.5, 0.75, -1.0],
+  "authority": {
+    "no_weight_fake_runtime_authorized": true,
+    "rwkv_model_import_authorized": false,
+    "weights_access_authorized": false,
+    "model_execution_authorized": false,
+    "site_packages_modification_authorized": false,
+    "real_layer_selection_authorized": false,
+    "self_effect_experiment_authorized": false
+  }
+}
