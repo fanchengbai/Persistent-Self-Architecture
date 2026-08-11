@@ -172,4 +172,6 @@ formal-shape 非 Core fixture 执行一次 development pilot，并要求 manifes
 
 v01 执行权限现已关闭。当前只授权离线设计 v02 prompt-visible 正控制 manifest，以及
 Stage A 的锁定 runner/backend、未来授权与结果 Schema、假适配器测试；v02
+执行前还必须通过只读 preflight，并将授权绑定到当前 manifest、服务器环境、Git 提交和
+模型资产摘要；
 模型执行、recurrent-state 阶段、正式测试集生成、正式运行和正式结果观察均未授权。

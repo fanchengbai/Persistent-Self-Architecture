@@ -33,7 +33,9 @@
       "offline v02 Stage A locked runner scaffold",
       "offline v02 Stage A prompt-visible backend integration",
       "future v02 Stage A authorization and result schemas",
-      "v02 Stage A fake-adapter tests with model load blocked"
+      "v02 Stage A fake-adapter tests with model load blocked",
+      "read-only v02 Stage A execution preflight",
+      "preflight-bound future authorization contract"
     ],
     "model_execution_authorized": false,
     "noncore_pilot_authorized": false,

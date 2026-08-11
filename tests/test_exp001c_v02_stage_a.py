@@ -5,6 +5,7 @@ import copy
 import json
 import os
 from pathlib import Path
+from types import SimpleNamespace
 import tempfile
 import unittest
 from unittest.mock import patch
@@ -17,15 +18,34 @@ from psa.development.exp001c_v02_stage_a import (
     STAGE_A_EXECUTION_ENV,
     STAGE_A_EXECUTION_LOCK,
     RWKVExp001CV02StageABackend,
+    build_exp001c_v02_stage_a_preflight,
     build_exp001c_v02_stage_a_backend,
     run_exp001c_v02_stage_a,
     validate_exp001c_v02_stage_a_authority,
+    verify_exp001c_v02_stage_a_preflight,
 )
 
 
 ROOT = Path(__file__).resolve().parents[1]
 CONFIG = ROOT / "configs" / "development" / "exp001c_noncore_protocol_v02.draft.json"
 MODEL = ROOT / "configs" / "models" / "rwkv7_g1h_2.9b.candidate.json"
+
+
+def _fake_environment(*, dirty: bool = False) -> dict:
+    return {
+        "valid": True,
+        "git": {"commit": "1" * 40, "branch": "main", "dirty": dirty},
+    }
+
+
+def _fake_verified_model() -> SimpleNamespace:
+    return SimpleNamespace(
+        model_id="rwkv7-g1h-2.9b-20260710",
+        weights_sha256="2" * 64,
+        weights_size_bytes=5896273469,
+        tokenizer_sha256="3" * 64,
+        tokenizer_size_bytes=1093733,
+    )
 
 
 class _FakeAdapter:
@@ -109,6 +129,7 @@ class Exp001CV02StageATests(unittest.TestCase):
         with self.assertRaisesRegex(PermissionError, "lock is absent"):
             run_exp001c_v02_stage_a(
                 manifest_path="missing-manifest.json",
+                preflight_path="missing-preflight.json",
                 authorization_path="missing-authorization.json",
                 model_config_path="missing-model.json",
                 output_dir="missing-output",
@@ -118,7 +139,7 @@ class Exp001CV02StageATests(unittest.TestCase):
             )
         self.assertFalse(factory_called)
 
-    def test_current_unrun_manifest_blocks_even_with_exact_execution_lock(self) -> None:
+    def test_current_unrun_manifest_requires_preflight_before_authorization(self) -> None:
         manifest = build_exp001c_protocol_v02_manifest(
             config_path=CONFIG,
             project_root=ROOT,
@@ -126,7 +147,7 @@ class Exp001CV02StageATests(unittest.TestCase):
         with tempfile.TemporaryDirectory() as directory:
             manifest_path = Path(directory) / "manifest.json"
             manifest_path.write_text(json.dumps(manifest), encoding="utf-8")
-            with self.assertRaisesRegex(PermissionError, "not authorized by manifest"):
+            with self.assertRaisesRegex(PermissionError, "preflight is required"):
                 validate_exp001c_v02_stage_a_authority(
                     manifest_path=manifest_path,
                     authorization_path=Path(directory) / "absent.json",
@@ -145,6 +166,8 @@ class Exp001CV02StageATests(unittest.TestCase):
                             "exp001c-v02-stage-a-run",
                             "--manifest",
                             "missing-manifest.json",
+                            "--preflight",
+                            "missing-preflight.json",
                             "--authorization",
                             "missing-authorization.json",
                             "--model-config",
@@ -158,6 +181,78 @@ class Exp001CV02StageATests(unittest.TestCase):
                     2,
                 )
                 model_loader.assert_not_called()
+
+    def test_preflight_is_valid_but_authorizes_nothing(self) -> None:
+        manifest = build_exp001c_protocol_v02_manifest(
+            config_path=CONFIG,
+            project_root=ROOT,
+        )
+        with tempfile.TemporaryDirectory() as directory:
+            manifest_path = Path(directory) / "manifest.json"
+            preflight_path = Path(directory) / "preflight.json"
+            manifest_path.write_text(json.dumps(manifest), encoding="utf-8")
+            with patch(
+                "psa.development.exp001c_v02_stage_a.load_model_config",
+                return_value=_fake_verified_model(),
+            ):
+                preflight = build_exp001c_v02_stage_a_preflight(
+                    manifest_path=manifest_path,
+                    model_config_path=MODEL,
+                    project_root=ROOT,
+                    environment_report=_fake_environment(),
+                )
+                preflight_path.write_text(json.dumps(preflight), encoding="utf-8")
+                verification = verify_exp001c_v02_stage_a_preflight(
+                    preflight_path=preflight_path,
+                    manifest_path=manifest_path,
+                    model_config_path=MODEL,
+                    project_root=ROOT,
+                    environment_report=_fake_environment(),
+                )
+                tampered = dict(preflight)
+                tampered["model_loaded"] = True
+                preflight_path.write_text(json.dumps(tampered), encoding="utf-8")
+                tampered_verification = verify_exp001c_v02_stage_a_preflight(
+                    preflight_path=preflight_path,
+                    manifest_path=manifest_path,
+                    model_config_path=MODEL,
+                    project_root=ROOT,
+                    environment_report=_fake_environment(),
+                )
+            self.assertTrue(preflight["valid"])
+            self.assertEqual(
+                preflight["status"],
+                "preflight_valid_authorization_still_required",
+            )
+            self.assertFalse(preflight["model_loaded"])
+            self.assertFalse(preflight["model_executed"])
+            self.assertFalse(preflight["stage_a_execution_authorized"])
+            self.assertFalse(preflight["stage_a_result_observation_authorized"])
+            self.assertFalse(preflight["stage_b_recurrent_state_authorized"])
+            self.assertTrue(verification["valid"])
+            self.assertFalse(tampered_verification["valid"])
+
+    def test_dirty_host_preflight_fails_closed(self) -> None:
+        manifest = build_exp001c_protocol_v02_manifest(
+            config_path=CONFIG,
+            project_root=ROOT,
+        )
+        with tempfile.TemporaryDirectory() as directory:
+            manifest_path = Path(directory) / "manifest.json"
+            manifest_path.write_text(json.dumps(manifest), encoding="utf-8")
+            with patch(
+                "psa.development.exp001c_v02_stage_a.load_model_config",
+                return_value=_fake_verified_model(),
+            ):
+                preflight = build_exp001c_v02_stage_a_preflight(
+                    manifest_path=manifest_path,
+                    model_config_path=MODEL,
+                    project_root=ROOT,
+                    environment_report=_fake_environment(dirty=True),
+                )
+        self.assertFalse(preflight["valid"])
+        self.assertFalse(preflight["checks"]["git_clean"])
+        self.assertEqual(preflight["status"], "preflight_failed")
 
     def test_factory_rejects_unlocked_model_before_model_load(self) -> None:
         manifest = build_exp001c_protocol_v02_manifest(
@@ -181,6 +276,7 @@ class Exp001CV02StageATests(unittest.TestCase):
     def test_new_json_schemas_are_valid_json(self) -> None:
         for name in (
             "exp001c_v02_stage_a_authorization.schema.json",
+            "exp001c_v02_stage_a_preflight.schema.json",
             "exp001c_v02_stage_a_result.schema.json",
         ):
             value = json.loads((ROOT / "schemas" / name).read_text(encoding="utf-8"))

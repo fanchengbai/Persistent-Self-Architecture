@@ -25,6 +25,7 @@ PROBE_SOURCE_FILES = (
     "schemas/exp001c_prefix_evidence.schema.json",
     "schemas/exp001c_protocol_v02_manifest.schema.json",
     "schemas/exp001c_v02_stage_a_authorization.schema.json",
+    "schemas/exp001c_v02_stage_a_preflight.schema.json",
     "schemas/exp001c_v02_stage_a_result.schema.json",
     "src/psa/cli.py",
     "src/psa/development/__init__.py",

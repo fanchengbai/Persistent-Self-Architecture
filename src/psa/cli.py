@@ -25,6 +25,7 @@ from psa.development import (
     build_exp001c_probe_manifest,
     build_exp001c_protocol_v02_manifest,
     build_exp001c_v02_stage_a_backend,
+    build_exp001c_v02_stage_a_preflight,
     run_g1_capability_audit,
     run_capability_ladder_gate,
     run_g1_capability_ladder_gate,
@@ -38,6 +39,7 @@ from psa.development import (
     validate_exp001c_v02_stage_a_authority,
     verify_exp001c_probe_manifest,
     verify_exp001c_protocol_v02_manifest,
+    verify_exp001c_v02_stage_a_preflight,
 )
 from psa.environment import collect_environment
 from psa.evaluation import group_contrasts
@@ -941,6 +943,8 @@ def _exp001c_v02_stage_a_authority_check(args: argparse.Namespace) -> int:
         authorization_path=args.authorization,
         execution_lock=os.environ.get(STAGE_A_EXECUTION_ENV, ""),
         project_root=args.project_root,
+        preflight_path=args.preflight,
+        model_config_path=args.model_config,
     )
     print(json.dumps(result, ensure_ascii=False, indent=2))
     return 0 if result["valid"] else 2
@@ -949,6 +953,7 @@ def _exp001c_v02_stage_a_authority_check(args: argparse.Namespace) -> int:
 def _exp001c_v02_stage_a_run(args: argparse.Namespace) -> int:
     result = run_exp001c_v02_stage_a(
         manifest_path=args.manifest,
+        preflight_path=args.preflight,
         authorization_path=args.authorization,
         model_config_path=args.model_config,
         output_dir=args.output_dir,
@@ -958,6 +963,28 @@ def _exp001c_v02_stage_a_run(args: argparse.Namespace) -> int:
             project_root=args.project_root,
         ),
         execution_lock=os.environ.get(STAGE_A_EXECUTION_ENV, ""),
+        project_root=args.project_root,
+    )
+    print(json.dumps(result, ensure_ascii=False, indent=2))
+    return 0 if result["valid"] else 2
+
+
+def _exp001c_v02_stage_a_preflight_build(args: argparse.Namespace) -> int:
+    result = build_exp001c_v02_stage_a_preflight(
+        manifest_path=args.manifest,
+        model_config_path=args.model_config,
+        project_root=args.project_root,
+    )
+    _write_json(Path(args.output), result)
+    print(json.dumps(result, ensure_ascii=False, indent=2))
+    return 0 if result["valid"] else 2
+
+
+def _exp001c_v02_stage_a_preflight_verify(args: argparse.Namespace) -> int:
+    result = verify_exp001c_v02_stage_a_preflight(
+        preflight_path=args.preflight,
+        manifest_path=args.manifest,
+        model_config_path=args.model_config,
         project_root=args.project_root,
     )
     print(json.dumps(result, ensure_ascii=False, indent=2))
@@ -1616,7 +1643,9 @@ def build_parser() -> argparse.ArgumentParser:
         ),
     )
     exp001c_v02_stage_a_authority.add_argument("--manifest", required=True)
+    exp001c_v02_stage_a_authority.add_argument("--preflight", required=True)
     exp001c_v02_stage_a_authority.add_argument("--authorization", required=True)
+    exp001c_v02_stage_a_authority.add_argument("--model-config", required=True)
     exp001c_v02_stage_a_authority.add_argument("--project-root", default=".")
     exp001c_v02_stage_a_authority.set_defaults(
         handler=_exp001c_v02_stage_a_authority_check
@@ -1630,11 +1659,36 @@ def build_parser() -> argparse.ArgumentParser:
         ),
     )
     exp001c_v02_stage_a_run.add_argument("--manifest", required=True)
+    exp001c_v02_stage_a_run.add_argument("--preflight", required=True)
     exp001c_v02_stage_a_run.add_argument("--authorization", required=True)
     exp001c_v02_stage_a_run.add_argument("--model-config", required=True)
     exp001c_v02_stage_a_run.add_argument("--output-dir", required=True)
     exp001c_v02_stage_a_run.add_argument("--project-root", default=".")
     exp001c_v02_stage_a_run.set_defaults(handler=_exp001c_v02_stage_a_run)
+
+    exp001c_v02_stage_a_preflight_build = subparsers.add_parser(
+        "exp001c-v02-stage-a-preflight-build",
+        help="build a read-only Stage A preflight without loading a model",
+    )
+    exp001c_v02_stage_a_preflight_build.add_argument("--manifest", required=True)
+    exp001c_v02_stage_a_preflight_build.add_argument("--model-config", required=True)
+    exp001c_v02_stage_a_preflight_build.add_argument("--output", required=True)
+    exp001c_v02_stage_a_preflight_build.add_argument("--project-root", default=".")
+    exp001c_v02_stage_a_preflight_build.set_defaults(
+        handler=_exp001c_v02_stage_a_preflight_build
+    )
+
+    exp001c_v02_stage_a_preflight_verify = subparsers.add_parser(
+        "exp001c-v02-stage-a-preflight-verify",
+        help="verify a persisted Stage A preflight against the live host",
+    )
+    exp001c_v02_stage_a_preflight_verify.add_argument("--preflight", required=True)
+    exp001c_v02_stage_a_preflight_verify.add_argument("--manifest", required=True)
+    exp001c_v02_stage_a_preflight_verify.add_argument("--model-config", required=True)
+    exp001c_v02_stage_a_preflight_verify.add_argument("--project-root", default=".")
+    exp001c_v02_stage_a_preflight_verify.set_defaults(
+        handler=_exp001c_v02_stage_a_preflight_verify
+    )
 
     confirmatory_run = subparsers.add_parser(
         "confirmatory-run",

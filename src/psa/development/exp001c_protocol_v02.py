@@ -16,6 +16,7 @@ PROTOCOL_SOURCE_FILES = (
     "docs/exp001c_noncore_pilot_v01_observation.md",
     "schemas/exp001c_protocol_v02_manifest.schema.json",
     "schemas/exp001c_v02_stage_a_authorization.schema.json",
+    "schemas/exp001c_v02_stage_a_preflight.schema.json",
     "schemas/exp001c_v02_stage_a_result.schema.json",
     "src/psa/artifacts/integrity.py",
     "src/psa/cli.py",

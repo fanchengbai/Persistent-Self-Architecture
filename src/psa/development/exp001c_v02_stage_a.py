@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import json
 import os
+from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any, Callable, Mapping, Protocol
 from uuid import uuid4
@@ -14,6 +15,7 @@ from psa.development.prefix_instrumentation import (
     answer_boundary_evidence,
     instrument_forced_prefix,
 )
+from psa.environment import collect_environment
 from psa.model import RWKV7Adapter, clone_state, load_model_config
 
 
@@ -21,6 +23,7 @@ EXPERIMENT_ID = "EXP-001C"
 STAGE_A_RESULT_VERSION = "0.2-stage-a-development"
 STAGE_A_EXECUTION_ENV = "PSA_EXP001C_V02_STAGE_A"
 STAGE_A_EXECUTION_LOCK = "AUTHORIZED_EXP001C_V02_STAGE_A_POSITIVE_CONTROL"
+STAGE_A_PREFLIGHT_VERSION = "0.1-development"
 
 
 class Exp001CV02StageABackend(Protocol):
@@ -83,6 +86,188 @@ def _default_option_scorer(
                 )
         scores[code] = score
     return scores
+
+
+def build_exp001c_v02_stage_a_preflight(
+    *,
+    manifest_path: str | Path,
+    model_config_path: str | Path,
+    project_root: str | Path,
+    environment_report: Mapping[str, Any] | None = None,
+) -> dict[str, Any]:
+    """Build a read-only preflight; model weights are hashed but never loaded."""
+    root = Path(project_root).resolve()
+    manifest_file = _resolve(manifest_path, root)
+    verification = verify_exp001c_protocol_v02_manifest(
+        manifest_file,
+        project_root=root,
+    )
+    if verification.get("valid") is not True:
+        raise ValueError("EXP-001C v02 manifest verification failed")
+    manifest = _load_object(manifest_file, "EXP-001C v02 manifest")
+    model_entry = manifest.get("model_config")
+    requested_model = _resolve(model_config_path, root)
+    if not isinstance(model_entry, Mapping):
+        raise ValueError("EXP-001C v02 manifest lacks a model config")
+    locked_model = _resolve(str(model_entry.get("path", "")), root)
+    model_lock_valid = bool(
+        requested_model == locked_model
+        and requested_model.is_file()
+        and sha256_file(requested_model) == model_entry.get("sha256")
+    )
+    if not model_lock_valid:
+        raise ValueError("model config does not match the locked EXP-001C v02 manifest")
+    model = load_model_config(
+        requested_model,
+        project_root=root,
+        verify_files=True,
+    )
+    report = (
+        dict(environment_report)
+        if environment_report is not None
+        else collect_environment(root)
+    )
+    git = report.get("git")
+    environment_valid = report.get("valid") is True
+    git_clean = bool(
+        isinstance(git, Mapping)
+        and isinstance(git.get("commit"), str)
+        and len(str(git.get("commit"))) == 40
+        and git.get("dirty") is False
+    )
+    stable_plan = {
+        "plan_version": STAGE_A_PREFLIGHT_VERSION,
+        "experiment_id": EXPERIMENT_ID,
+        "scope": "v02_stage_a_prompt_visible_only",
+        "git_commit": git.get("commit") if isinstance(git, Mapping) else None,
+        "manifest_digest_sha256": manifest["manifest_digest_sha256"],
+        "model_config_path": str(model_entry["path"]),
+        "model_config_sha256": str(model_entry["sha256"]),
+        "model_id": model.model_id,
+        "weights_sha256": model.weights_sha256,
+        "weights_size_bytes": model.weights_size_bytes,
+        "tokenizer_sha256": model.tokenizer_sha256,
+        "tokenizer_size_bytes": model.tokenizer_size_bytes,
+        "record_count": manifest["record_count"],
+        "execution_command": "psa exp001c-v02-stage-a-run",
+        "execution_environment_variable": STAGE_A_EXECUTION_ENV,
+        "execution_lock_required_value": STAGE_A_EXECUTION_LOCK,
+        "safety_rules": {
+            "prompt_visible_only": True,
+            "stage_b_recurrent_state_forbidden": True,
+            "formal_test_set_access_forbidden": True,
+            "formal_run_forbidden": True,
+            "automatic_rerun_forbidden": True,
+            "separate_result_observation_authorization_required": True,
+        },
+    }
+    checks = {
+        "manifest_valid": True,
+        "manifest_still_unrun": manifest.get("model_executed") is False,
+        "model_config_lock_valid": model_lock_valid,
+        "model_assets_verified": True,
+        "environment_valid": environment_valid,
+        "git_clean": git_clean,
+        "record_count_locked": manifest.get("record_count") == 32,
+        "stage_b_still_forbidden": (
+            manifest.get("stage_b_recurrent_state", {}).get("authorized")
+            is False
+        ),
+        "formal_test_set_unaccessed": (
+            manifest.get("formal_test_set_accessed") is False
+        ),
+    }
+    valid = all(checks.values())
+    preflight_digest = sha256_json(stable_plan)
+    return {
+        "preflight_version": STAGE_A_PREFLIGHT_VERSION,
+        "created_at_utc": datetime.now(timezone.utc).isoformat(),
+        "experiment_id": EXPERIMENT_ID,
+        "status": (
+            "preflight_valid_authorization_still_required"
+            if valid
+            else "preflight_failed"
+        ),
+        "valid": valid,
+        "development_only": True,
+        "non_core": True,
+        "model_assets_verified": True,
+        "model_loaded": False,
+        "model_executed": False,
+        "stage_a_execution_authorized": False,
+        "stage_a_result_observation_authorized": False,
+        "stage_b_recurrent_state_authorized": False,
+        "formal_test_set_accessed": False,
+        "formal_run_authorized": False,
+        "automatic_rerun_authorized": False,
+        "checks": checks,
+        "run_plan_candidate": stable_plan,
+        "preflight_digest_sha256": preflight_digest,
+        "authorization_boundary": {
+            "new_project_owner_authorization_required": True,
+            "authorization_must_bind_manifest_digest_sha256": manifest[
+                "manifest_digest_sha256"
+            ],
+            "authorization_must_bind_preflight_digest_sha256": preflight_digest,
+        },
+    }
+
+
+def verify_exp001c_v02_stage_a_preflight(
+    *,
+    preflight_path: str | Path,
+    manifest_path: str | Path,
+    model_config_path: str | Path,
+    project_root: str | Path,
+    environment_report: Mapping[str, Any] | None = None,
+) -> dict[str, Any]:
+    root = Path(project_root).resolve()
+    persisted = _load_object(
+        preflight_path,
+        "EXP-001C v02 Stage A preflight",
+        root=root,
+    )
+    live = build_exp001c_v02_stage_a_preflight(
+        manifest_path=manifest_path,
+        model_config_path=model_config_path,
+        project_root=root,
+        environment_report=environment_report,
+    )
+    valid = bool(
+        persisted.get("preflight_version") == STAGE_A_PREFLIGHT_VERSION
+        and persisted.get("experiment_id") == EXPERIMENT_ID
+        and persisted.get("valid") is True
+        and persisted.get("status")
+        == "preflight_valid_authorization_still_required"
+        and persisted.get("development_only") is True
+        and persisted.get("non_core") is True
+        and persisted.get("model_assets_verified") is True
+        and persisted.get("model_loaded") is False
+        and persisted.get("model_executed") is False
+        and persisted.get("stage_a_execution_authorized") is False
+        and persisted.get("stage_a_result_observation_authorized") is False
+        and persisted.get("stage_b_recurrent_state_authorized") is False
+        and persisted.get("formal_test_set_accessed") is False
+        and persisted.get("formal_run_authorized") is False
+        and persisted.get("automatic_rerun_authorized") is False
+        and persisted.get("preflight_digest_sha256")
+        == live.get("preflight_digest_sha256")
+        and persisted.get("run_plan_candidate")
+        == live.get("run_plan_candidate")
+        and persisted.get("checks") == live.get("checks")
+        and persisted.get("authorization_boundary")
+        == live.get("authorization_boundary")
+    )
+    return {
+        "verification_version": STAGE_A_PREFLIGHT_VERSION,
+        "experiment_id": EXPERIMENT_ID,
+        "status": "preflight_verified" if valid else "invalid",
+        "valid": valid,
+        "preflight_digest_sha256": persisted.get("preflight_digest_sha256"),
+        "model_loaded": False,
+        "model_executed": False,
+        "formal_test_set_accessed": False,
+    }
 
 
 class RWKVExp001CV02StageABackend:
@@ -193,6 +378,8 @@ def validate_exp001c_v02_stage_a_authority(
     authorization_path: str | Path,
     execution_lock: str,
     project_root: str | Path,
+    preflight_path: str | Path | None = None,
+    model_config_path: str | Path | None = None,
 ) -> dict[str, Any]:
     # This guard intentionally precedes all path access and model construction.
     if execution_lock != STAGE_A_EXECUTION_LOCK:
@@ -207,13 +394,24 @@ def validate_exp001c_v02_stage_a_authority(
     manifest = _load_object(manifest_path, "EXP-001C v02 manifest", root=root)
     stage_a = manifest.get("stage_a_positive_control")
     if (
-        manifest.get("execution_authorized") is not True
-        or manifest.get("result_observation_authorized") is not True
+        manifest.get("execution_authorized") is not False
+        or manifest.get("result_observation_authorized") is not False
         or not isinstance(stage_a, Mapping)
-        or stage_a.get("authorized") is not True
-        or stage_a.get("result_observation_authorized") is not True
+        or stage_a.get("authorized") is not False
+        or stage_a.get("result_observation_authorized") is not False
+        or stage_a.get("execution_requires_new_authorization") is not True
     ):
-        raise PermissionError("EXP-001C v02 Stage A is not authorized by manifest")
+        raise ValueError("EXP-001C v02 Stage A manifest boundary is invalid")
+    if preflight_path is None or model_config_path is None:
+        raise PermissionError("EXP-001C v02 Stage A preflight is required")
+    preflight_verification = verify_exp001c_v02_stage_a_preflight(
+        preflight_path=preflight_path,
+        manifest_path=manifest_path,
+        model_config_path=model_config_path,
+        project_root=root,
+    )
+    if preflight_verification.get("valid") is not True:
+        raise PermissionError("EXP-001C v02 Stage A preflight is invalid")
 
     authorization = _load_object(
         authorization_path,
@@ -231,6 +429,8 @@ def validate_exp001c_v02_stage_a_authority(
         and len(str(authorization.get("authorized_at_utc"))) >= 20
         and authorization.get("manifest_digest_sha256")
         == manifest.get("manifest_digest_sha256")
+        and authorization.get("preflight_digest_sha256")
+        == preflight_verification.get("preflight_digest_sha256")
         and authorization.get("model_execution_authorized") is True
         and authorization.get("stage_a_result_observation_authorized") is True
         and authorization.get("stage_b_recurrent_state_authorized") is False
@@ -254,6 +454,9 @@ def validate_exp001c_v02_stage_a_authority(
         "experiment_id": EXPERIMENT_ID,
         "scope": "v02_stage_a_prompt_visible_only",
         "manifest_digest_sha256": manifest["manifest_digest_sha256"],
+        "preflight_digest_sha256": preflight_verification[
+            "preflight_digest_sha256"
+        ],
         "stage_b_recurrent_state_authorized": False,
         "formal_test_set_access_authorized": False,
         "formal_run_authorized": False,
@@ -288,6 +491,7 @@ def build_exp001c_v02_stage_a_backend(
 def run_exp001c_v02_stage_a(
     *,
     manifest_path: str | Path,
+    preflight_path: str | Path,
     authorization_path: str | Path,
     model_config_path: str | Path,
     output_dir: str | Path,
@@ -295,12 +499,13 @@ def run_exp001c_v02_stage_a(
     execution_lock: str,
     project_root: str | Path,
 ) -> dict[str, Any]:
-    del model_config_path  # Bound by the model-loading backend factory.
     authority = validate_exp001c_v02_stage_a_authority(
         manifest_path=manifest_path,
         authorization_path=authorization_path,
         execution_lock=execution_lock,
         project_root=project_root,
+        preflight_path=preflight_path,
+        model_config_path=model_config_path,
     )
     destination = Path(output_dir).resolve()
     if destination.exists() and any(destination.iterdir()):
@@ -339,6 +544,7 @@ def run_exp001c_v02_stage_a(
         "model_executed": True,
         "prompt_visible_only": True,
         "manifest_digest_sha256": authority["manifest_digest_sha256"],
+        "preflight_digest_sha256": authority["preflight_digest_sha256"],
         "stage_a_result_sha256": sha256_file(result_path),
         "record_count": 32,
         "stage_b_recurrent_state_accessed": False,

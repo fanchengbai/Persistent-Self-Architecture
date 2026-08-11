@@ -66,9 +66,11 @@ from psa.development.exp001c_v02_stage_a import (
     STAGE_A_EXECUTION_ENV,
     STAGE_A_EXECUTION_LOCK,
     RWKVExp001CV02StageABackend,
+    build_exp001c_v02_stage_a_preflight,
     build_exp001c_v02_stage_a_backend,
     run_exp001c_v02_stage_a,
     validate_exp001c_v02_stage_a_authority,
+    verify_exp001c_v02_stage_a_preflight,
 )
 
 __all__ = [
@@ -123,7 +125,9 @@ __all__ = [
     "STAGE_A_EXECUTION_ENV",
     "STAGE_A_EXECUTION_LOCK",
     "RWKVExp001CV02StageABackend",
+    "build_exp001c_v02_stage_a_preflight",
     "build_exp001c_v02_stage_a_backend",
     "run_exp001c_v02_stage_a",
     "validate_exp001c_v02_stage_a_authority",
+    "verify_exp001c_v02_stage_a_preflight",
 ]
