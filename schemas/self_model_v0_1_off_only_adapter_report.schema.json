@@ -1,0 +1,74 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://persistent-self-architecture.local/schemas/self_model_v0_1_off_only_adapter_report.schema.json",
+  "title": "Self Model v0.1 D2 off-only adapter report",
+  "type": "object",
+  "required": [
+    "implementation_version",
+    "status",
+    "valid",
+    "development_only",
+    "checks",
+    "off_gates",
+    "source_digests",
+    "safety",
+    "report_digest_sha256"
+  ],
+  "properties": {
+    "implementation_version": {"const": "0.1-off-only"},
+    "status": {"const": "d2_off_only_adapter_verified"},
+    "valid": {"const": true},
+    "development_only": {"const": true},
+    "checks": {
+      "type": "object",
+      "minProperties": 29,
+      "additionalProperties": {"const": true}
+    },
+    "off_gates": {
+      "const": {
+        "off_g1_implemented": true,
+        "off_g2_implemented": false
+      }
+    },
+    "source_digests": {"type": "object", "minProperties": 8},
+    "safety": {
+      "type": "object",
+      "required": [
+        "rwkv_model_imported",
+        "torch_imported",
+        "installed_rwkv_source_probed",
+        "weights_accessed",
+        "model_loaded",
+        "model_executed",
+        "site_packages_modified",
+        "off_only_adapter_implemented",
+        "instrumented_runtime_implemented",
+        "active_injection_implemented",
+        "real_layers_selected",
+        "self_effect_experiment_run",
+        "automatic_rerun_authorized"
+      ],
+      "properties": {
+        "rwkv_model_imported": {"const": false},
+        "torch_imported": {"const": false},
+        "installed_rwkv_source_probed": {"const": false},
+        "weights_accessed": {"const": false},
+        "model_loaded": {"const": false},
+        "model_executed": {"const": false},
+        "site_packages_modified": {"const": false},
+        "off_only_adapter_implemented": {"const": true},
+        "instrumented_runtime_implemented": {"const": false},
+        "active_injection_implemented": {"const": false},
+        "real_layers_selected": {"const": false},
+        "self_effect_experiment_run": {"const": false},
+        "automatic_rerun_authorized": {"const": false}
+      },
+      "additionalProperties": false
+    },
+    "report_digest_sha256": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{64}$"
+    }
+  },
+  "additionalProperties": true
+}

@@ -40,19 +40,25 @@ def _installed(**updates):
 
 
 class RealAdapterOffDesignTests(unittest.TestCase):
-    def test_design_report_is_valid_and_no_real_adapter_exists(self) -> None:
+    def test_design_report_detects_the_d2_implementation_transition(self) -> None:
         report = build_real_adapter_off_design_report(
             config_path=CONFIG,
             project_root=ROOT,
             installed_source=_installed(),
         )
-        self.assertTrue(report["valid"])
-        self.assertTrue(all(report["checks"].values()))
+        self.assertFalse(report["valid"])
         self.assertEqual(len(report["checks"]), 23)
+        self.assertFalse(report["checks"]["future_adapter_file_absent"])
+        self.assertTrue(
+            all(
+                valid
+                for name, valid in report["checks"].items()
+                if name != "future_adapter_file_absent"
+            )
+        )
         self.assertEqual(len(report["source_digests"]), 9)
-        self.assertTrue(all(value is False for value in report["safety"].values()))
-        self.assertFalse(
-            (ROOT / "src/psa/self_model/rwkv7_coupling_adapter.py").exists()
+        self.assertTrue(
+            (ROOT / "src/psa/self_model/rwkv7_coupling_adapter.py").is_file()
         )
 
     def test_upstream_version_or_digest_mismatch_fails_report(self) -> None:

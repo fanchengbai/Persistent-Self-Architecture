@@ -1,0 +1,53 @@
+{
+  "implementation_version": "0.1-off-only",
+  "stage": "D2_off_only_adapter_local_implementation_without_model",
+  "status": "off_g1_passthrough_only",
+  "development_only": true,
+  "prerequisite_design": {
+    "path": "configs/development/self_model_v0_1_real_adapter_off_design.draft.json",
+    "cloud_report_digest_sha256": "dbd64e9a44e99ccc2e9787716dbdac45af38c3c0e90e5d218acbe5a8720ef585"
+  },
+  "upstream": {
+    "package": "rwkv",
+    "version": "0.8.32",
+    "model_source_sha256": "75482aee89a08d2a8c8dbe628110b317fc8d0974ddffbaa52aa19190667305e0"
+  },
+  "implementation": {
+    "path": "src/psa/self_model/rwkv7_coupling_adapter.py",
+    "project_local_only": true,
+    "off_g1_implemented": true,
+    "off_g2_implemented": false,
+    "delegation": "base_model.forward(tokens, state, full_output)",
+    "tokens_identity_preserved": true,
+    "state_identity_preserved": true,
+    "full_output_preserved": true,
+    "callback_call_count": 0,
+    "self_projection_constructed": false,
+    "active_injection_available": false,
+    "real_layer_mask": [],
+    "real_sequence_policy": "unfrozen",
+    "instrumented_rwkv_loop_included": false
+  },
+  "current_verification": {
+    "fake_base_only": true,
+    "installed_rwkv_source_probe_included": false,
+    "model_import_included": false,
+    "weights_access_included": false,
+    "model_execution_included": false,
+    "d3_cloud_static_gate_completed": false,
+    "d4_real_2_9b_off_gate_completed": false
+  },
+  "authority": {
+    "off_only_adapter_implementation_authorized": true,
+    "active_injection_implementation_authorized": false,
+    "installed_source_verification_authorized": false,
+    "rwkv_model_import_authorized": false,
+    "weights_access_authorized": false,
+    "model_execution_authorized": false,
+    "site_packages_modification_authorized": false,
+    "instrumented_runtime_implementation_authorized": false,
+    "real_layer_selection_authorized": false,
+    "self_effect_experiment_authorized": false,
+    "automatic_rerun_authorized": false
+  }
+}
