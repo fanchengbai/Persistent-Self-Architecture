@@ -4,7 +4,7 @@
 
 ## 1. 文档信息
 
-- 项目阶段：Phase 2 — EXP-001B完整补充实验已获负责人授权，等待云端正式启动
+- 项目阶段：Phase 3 工程原型已启动；Phase 2正式控制闭合仍保留为未完成边界
 - 当前确认模型：RWKV-7 G1h 2.9B（`rwkv7-g1h-2.9b-20260710`）
 - 计划原则：小规模验证、因果优先、对照充分、结果可复现、允许否定结论
 - 更新方式：每完成一个阶段或发生关键技术决策后更新本文档
@@ -622,3 +622,8 @@ EXP-001已完成320组、40,960条记录的冻结确认性运行、独立完整�
     对原参考字段均仅2/8。本结果支持进入Self Model v0.1的纯工程原型设计，但不闭合
     EXP-001B控制、不构成正式Phase 2 Go或“已有Self”结论。下一步等待负责人确认是否冻结
     Self Store、Encoder、gated injection与字段级消融接口；该轮不加载模型。
+19. 项目负责人已确认进入Self Model v0.1纯工程原型。当前完成静态六字段Self Store、
+    checksum与不可变快照、deterministic fake Encoder、字段mask/swap/matched-random，以及
+    可关闭/缩放/分层的fake gated residual接口；所有输出均标记synthetic。9项专项、全项目
+    270项测试通过。下一步只在服务器重建离线manifest并复验，不加载模型；真实RWKV hook、
+    embedding维度、层位置和任何效果实验仍需新的独立审查与授权。

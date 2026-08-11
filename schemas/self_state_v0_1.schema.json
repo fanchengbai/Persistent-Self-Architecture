@@ -1,0 +1,78 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://persistent-self-architecture.local/schemas/self_state_v0_1.schema.json",
+  "title": "PSA static structured Self State v0.1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "state_id",
+    "parent_state_id",
+    "agent_instance_id",
+    "trajectory_id",
+    "step",
+    "static_phase3",
+    "identity_anchors",
+    "preferences",
+    "capability_estimate",
+    "active_goals",
+    "confidence",
+    "uncertainty_conflicts",
+    "provenance_refs",
+    "integrity"
+  ],
+  "properties": {
+    "schema_version": {"const": "0.1"},
+    "state_id": {"type": "string", "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]{0,127}$"},
+    "parent_state_id": {"type": ["string", "null"]},
+    "agent_instance_id": {"type": "string", "minLength": 1},
+    "trajectory_id": {"type": "string", "minLength": 1},
+    "step": {"type": "integer", "minimum": 0},
+    "static_phase3": {"const": true},
+    "identity_anchors": {"type": "array", "items": {"$ref": "#/$defs/field_item"}},
+    "preferences": {"type": "array", "items": {"$ref": "#/$defs/field_item"}},
+    "capability_estimate": {"type": "array", "items": {"$ref": "#/$defs/field_item"}},
+    "active_goals": {"type": "array", "items": {"$ref": "#/$defs/field_item"}},
+    "confidence": {"type": "array", "items": {"$ref": "#/$defs/field_item"}},
+    "uncertainty_conflicts": {"type": "array", "items": {"$ref": "#/$defs/field_item"}},
+    "provenance_refs": {"type": "array", "items": {"type": "string", "minLength": 1}},
+    "integrity": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["model_id", "tokenizer_id", "payload_sha256"],
+      "properties": {
+        "model_id": {"type": "string", "minLength": 1},
+        "tokenizer_id": {"type": "string", "minLength": 1},
+        "payload_sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"}
+      }
+    }
+  },
+  "$defs": {
+    "field_item": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "field_item_id",
+        "value",
+        "value_type",
+        "confidence",
+        "update_class",
+        "created_step",
+        "updated_step",
+        "source_evidence_ids",
+        "status"
+      ],
+      "properties": {
+        "field_item_id": {"type": "string", "minLength": 1},
+        "value": {},
+        "value_type": {"enum": ["string", "number", "boolean", "string_list", "object"]},
+        "confidence": {"type": "number", "minimum": 0.0, "maximum": 1.0},
+        "update_class": {"enum": ["protected", "slow", "fast"]},
+        "created_step": {"type": "integer", "minimum": 0},
+        "updated_step": {"type": "integer", "minimum": 0},
+        "source_evidence_ids": {"type": "array", "items": {"type": "string", "minLength": 1}},
+        "status": {"enum": ["active", "inactive", "resolved"]}
+      }
+    }
+  }
+}

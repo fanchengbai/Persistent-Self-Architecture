@@ -1,0 +1,50 @@
+{
+  "contract_version": "0.1-offline-draft",
+  "phase": "phase3_explicit_self_model_minimum_prototype",
+  "status": "offline_interface_only_real_model_unapproved",
+  "development_only": true,
+  "static_self_only": true,
+  "automatic_self_updater_included": false,
+  "self_fields": [
+    "identity_anchors",
+    "preferences",
+    "capability_estimate",
+    "active_goals",
+    "confidence",
+    "uncertainty_conflicts"
+  ],
+  "field_update_classes": {
+    "identity_anchors": ["protected"],
+    "preferences": ["slow"],
+    "capability_estimate": ["slow"],
+    "active_goals": ["fast"],
+    "confidence": ["fast"],
+    "uncertainty_conflicts": ["fast"]
+  },
+  "offline_encoder": {
+    "kind": "deterministic_hash_fake_encoder",
+    "embedding_dimension": 16,
+    "natural_language_prompt_serialization_forbidden": true,
+    "model_loaded": false
+  },
+  "offline_coupling": {
+    "kind": "fake_gated_residual_adapter",
+    "candidate_layers": ["fake-layer-00", "fake-layer-01"],
+    "default_gate": 0.5,
+    "minimum_scale": 0.0,
+    "maximum_scale": 2.0,
+    "coupling_off_required": true,
+    "field_mask_required": true,
+    "layer_mask_required": true
+  },
+  "authority": {
+    "offline_design_authorized": true,
+    "offline_fake_adapter_tests_authorized": true,
+    "real_rwkv_coupling_implementation_authorized": false,
+    "model_execution_authorized": false,
+    "noncore_effect_experiment_authorized": false,
+    "formal_test_set_access_authorized": false,
+    "formal_self_experiment_authorized": false,
+    "automatic_rerun_authorized": false
+  }
+}

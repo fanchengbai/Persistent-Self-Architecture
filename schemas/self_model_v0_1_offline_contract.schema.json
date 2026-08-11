@@ -1,0 +1,37 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://persistent-self-architecture.local/schemas/self_model_v0_1_offline_contract.schema.json",
+  "title": "PSA Self Model v0.1 offline interface contract",
+  "type": "object",
+  "required": [
+    "contract_version",
+    "development_only",
+    "static_self_only",
+    "automatic_self_updater_included",
+    "self_fields",
+    "offline_encoder",
+    "offline_coupling",
+    "authority"
+  ],
+  "properties": {
+    "contract_version": {"const": "0.1-offline-draft"},
+    "development_only": {"const": true},
+    "static_self_only": {"const": true},
+    "automatic_self_updater_included": {"const": false},
+    "self_fields": {"type": "array", "minItems": 6, "maxItems": 6},
+    "offline_encoder": {"type": "object"},
+    "offline_coupling": {"type": "object"},
+    "authority": {
+      "type": "object",
+      "properties": {
+        "real_rwkv_coupling_implementation_authorized": {"const": false},
+        "model_execution_authorized": {"const": false},
+        "noncore_effect_experiment_authorized": {"const": false},
+        "formal_test_set_access_authorized": {"const": false},
+        "formal_self_experiment_authorized": {"const": false},
+        "automatic_rerun_authorized": {"const": false}
+      }
+    }
+  },
+  "additionalProperties": true
+}
