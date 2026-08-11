@@ -1,8 +1,8 @@
 # Persistent Self Architecture 项目进度表
 
 > 最后更新：2026-08-11
-> 当前节点：Phase 3 D2 off-only adapter服务器fake复跑通过；等待D3确认
-> 研究状态：OFF-G1项目内直接委托有效、OFF-G2仍未实现；已安装RWKV源码未探测，模型未加载，active路径和真实层继续拒绝
+> 当前节点：Phase 3 D3服务器无模型静态复验工具完成；等待云端运行
+> 研究状态：D3已冻结已安装源码字节、wrapper AST和D2证据复核；OFF-G2仍未实现，模型/权重/active路径和真实层继续拒绝
 
 ## 1. 这张表怎么使用
 
@@ -113,14 +113,14 @@
 | 38p. EXP-001C v02 Stage B只读live preflight与机器授权锁 | ✅ 云端通过 | 在模型加载前绑定干净main提交、设计/protocol digest、Stage A原始结果、模型配置与资产哈希、主机环境、224条计划和空输出目录；授权只接受固定逐字文本并绑定preflight digest | 防止把“继续”解释成模型执行授权，也防止代码、证据、模型或输出目录变化后复用旧授权 | Stage B 29项远程测试通过，云端只读preflight全部检查为true且失败项为空；`model_loaded=false`、`model_executed=false`、执行/观察均为false。最终digest以本轮最终文档提交后的服务器v02证据为准 | Codex |
 | 38q. EXP-001C v02 Stage B项目负责人单次授权 | ✅ 已逐字确认并消费 | 负责人使用冻结原文授权224条recurrent-state非Core pilot及本轮结果观察，同时明确排除Stage A重跑、正式测试集、正式运行、确认性决定和自动重跑 | 模型执行和结果观察是新的不可逆边界，不能由此前“继续”推断 | 授权绑定preflight_v03与Stage A/result digest，机器记录和single-use claim均已消费；224条运行及观察完成后禁止重跑 | 项目负责人；Codex执行 |
 | 38r. EXP-001C v02 Stage B冻结只读观察 | ✅ 云端完成 | 对五个状态语义条件按8个语义案例×4代码轮换平均log score，记录联合/字段准确率与margin；reset/random只记录参考匹配率，不定义正确答案 | 原始code top-1容易受A–D先验影响；同时不能把诊断控制事后改成主要端点或临时添加通过阈值 | 五个主要条件均联合7/8、domain 8/8、operation 7/8；continuous/restored预测8/8一致，三种swap均7/8跟随注入state。reset/random参考匹配均2/8；无确认性决定或重跑 | Codex；云端只读分析 |
-| 39. Phase 3：显式 Self Model | 🟡 D2 off-only adapter完成，等待D3确认 | 实现静态Self Store、Self Encoder和可关闭/缩放gated injection，并建立字段mask/swap/random/coupling-off消融 | 先证明接口可审计、可干预、失败关闭，再决定真实RWKV注入位置和效果实验 | OFF-G1 wrapper已在服务器fake base复跑通过：tokens/state/`full_output`及返回identity、上游state变更和异常语义保持；29项检查与8个源码digest有效。`installed_rwkv_source_probed=false`，OFF-G2、模型加载和真实层均未实现/授权 | Codex |
+| 39. Phase 3：显式 Self Model | 🟡 D3静态复验工具完成，等待云端运行 | 实现静态Self Store、Self Encoder和可关闭/缩放gated injection，并建立字段mask/swap/random/coupling-off消融 | 先证明接口可审计、可干预、失败关闭，再决定真实RWKV注入位置和效果实验 | D3工具只用包元数据和`model.py`原始字节核对服务器安装；同时复核wrapper固定digest/AST及D2报告。33项检查、10个源码digest的本地测试通过；模型导入/权重/执行、OFF-G2、active和真实层均未实现或授权 | Codex |
 | 40. Self 更新与演化 | ⏳ 未开始 | 让 Self State 根据经历受控更新、回滚和分化 | 这是“持续自我”真正更深入的部分 | 尚未开始 | 后续阶段 |
 | 41. 内生调节与自主审议 | ⏳ 未开始 | 让 Self/冲突决定是否检索、回放、模拟或停止，并在零新外部观察条件下受控更新 | 检验系统是否不仅“有状态”，还会因内部状态选择继续计算；同时排除定时器和随机回放解释 | 设计说明已完成；必须等待显式 Self 因果价值和受约束更新两道前置门，不创建空壳代码 | 后续阶段 |
 | 42. 最终研究结论 | ⏳ 未开始 | 汇总统计结果、失败案例和替代解释 | 最终回答项目假设是否得到支持，而不是只展示几个有趣案例 | 尚未开始 | 共同完成 |
 
 ## 3. 当前所在位置
 
-> 2026-08-11 当前状态：此前Phase 3离线接口、静态调查、fake双路径回调和OFF设计均已云端通过。D2 off-only wrapper现也已在服务器用纯fake base复跑，仅实现OFF-G1直接委托；D1旧报告会正确检测到阶段迁移，不冒充当前实现证据。当前仍未读取服务器已安装RWKV源码、导入/加载模型、实现OFF-G2/active、选择真实层或获得Self效果证据；下一步只有D3无模型静态复验。以下保留完整历史路径；如与旧阶段描述冲突，以本段和顶部“当前节点”为准。
+> 2026-08-11 当前状态：此前Phase 3离线接口、静态调查、fake双路径回调、OFF设计和D2 OFF-G1 wrapper均已云端通过。D3无模型静态复验工具现已完成本地实现：未来服务器只读取已安装包元数据与`model.py`字节，并复核wrapper AST/digest及D2证据；不会导入`rwkv.model`/`torch`或访问权重。当前仍未完成D3云端证据，也未加载模型、实现OFF-G2/active、选择真实层或获得Self效果证据。以下保留完整历史路径；如与旧阶段描述冲突，以本段和顶部“当前节点”为准。
 
 ```text
 理论设计
@@ -239,7 +239,7 @@ EXP-001B补充控制
 
 ## 4. 当前下一步
 
-> 2026-08-11 当前下一步：等待项目负责人确认是否进入D3“服务器无模型静态复验”。D3只允许读取已安装`rwkv==0.8.32`的包版本和`model.py`字节、核对wrapper AST/源码锁及D2报告；不得导入`rwkv.model`/`torch`、访问权重、加载或执行模型。OFF-G2实现与D4真实2.9B off执行仍需后续独立确认。以下保留此前 EXP-001B 轨迹作为历史记录。
+> 2026-08-11 当前下一步：把D3工具推送到main，服务器启用`network_turbo`后快进拉取，运行专项测试并生成静态报告；只允许读取已安装`rwkv==0.8.32`包元数据和`model.py`字节，不得导入模型/torch、访问权重或执行模型。D3证据通过后本轮停止；OFF-G2实现与任何真实2.9B执行仍需后续独立确认。以下保留此前 EXP-001B 轨迹作为历史记录。
 
 截至2026-08-04，项目负责人已经确认EXP-001B设计草案中的B1–B7。
 新增范围仍锁在11,008条控制记录，并明确不重跑EXP-001、不重估E1–E3、
@@ -702,3 +702,4 @@ trial-condition单元；只允许全量完成且完整性验证后观察结果�
 | 2026-08-11 | 真实2.9B coupling-off adapter设计在服务器提交`f72e0cf`上复验通过：19项Phase 3组合测试通过；报告`valid=true`、digest=`dbd64e9a…f585`。独立重算确认23项设计检查、9个锁定文件digest、OFF-G1/OFF-G2顺序及未来adapter文件缺失全部有效；11个安全字段全为false，包括未导入模型/torch、未访问权重、未加载/执行模型、未修改`site-packages`、未实现adapter/active、未选真实层、未运行效果实验和未授权自动重跑。本轮到此停止 | 远程`results/development/self_model_v0_1_real_adapter_off_design/report.json` |
 | 2026-08-11 | D2 off-only adapter本地实现完成：新增项目内`RWKV7CouplingOffAdapter`，固定上游版本/digest后仅执行`base_model.forward(tokens,state,full_output)`；默认或精确off请求可用，非off对象、子类伪装、active方法和source lock错误均在底层调用前失败。fake base验证tokens/state/full-output与返回对象identity、上游原位state变更和异常传播不被改写；静态AST确认无`rwkv`/`torch`/`importlib`、无projection或post-FFN instrumentation。D2报告29项检查与8个源码digest有效，OFF-G1=true、OFF-G2=false；8项专项及全项目297项通过，等待服务器同一fake复跑 | `src/psa/self_model/rwkv7_coupling_adapter.py`；`docs/self_model_v0_1_off_only_adapter.md` |
 | 2026-08-11 | D2 off-only adapter在服务器提交`8fbfb8a`上完成纯fake-base复跑：8项专项通过，报告`valid=true`、digest=`527fc6ed…2e6c`；独立重算确认29项检查、8个锁定源码digest和OFF-G1=true/OFF-G2=false。安全记录明确off-only adapter已实现，但`installed_rwkv_source_probed=false`、`rwkv_model_imported=false`、`torch_imported=false`、权重/模型执行/site-packages修改/OFF-G2/active/真实层/效果实验/自动重跑均为false，因此本轮不算D3。本轮到此停止 | 远程`results/development/self_model_v0_1_off_only_adapter/report.json` |
+| 2026-08-11 | D3服务器无模型静态复验工具本地完成：冻结`rwkv==0.8.32`、`model.py` digest/大小、D2报告digest和wrapper digest；探针只通过包元数据定位并读取源码字节，报告同时重算D2的29项检查/8个源码digest并执行wrapper AST审计。新增6项专项测试，33项报告检查与10个源码digest有效；当前尚未生成服务器D3证据，模型导入/权重/执行、OFF-G2、active和真实层继续关闭 | `src/psa/self_model/d3_static_verification.py`；`docs/self_model_v0_1_d3_static_verification.md` |

@@ -1,0 +1,50 @@
+{
+  "verification_version": "0.1-d3-static",
+  "stage": "D3_off_only_adapter_cloud_static_verification_without_model",
+  "status": "installed_source_bytes_and_project_wrapper_only",
+  "development_only": true,
+  "upstream": {
+    "package": "rwkv",
+    "version": "0.8.32",
+    "model_source_path": "rwkv/model.py",
+    "model_source_sha256": "75482aee89a08d2a8c8dbe628110b317fc8d0974ddffbaa52aa19190667305e0",
+    "model_source_size_bytes": 85425
+  },
+  "wrapper": {
+    "path": "src/psa/self_model/rwkv7_coupling_adapter.py",
+    "sha256": "74683bcdc5395e9fcbd2f603d452bb047766b2ad78722bfcc42e757d1f8178d3",
+    "off_g1_implemented": true,
+    "off_g2_implemented": false
+  },
+  "d2_prerequisite": {
+    "config_path": "configs/development/self_model_v0_1_off_only_adapter.draft.json",
+    "config_sha256": "74ca109fb3c4b305a0602817c1ba6b9766344b2c5c910a90825f89c30e75cf27",
+    "report_path": "results/development/self_model_v0_1_off_only_adapter/report.json",
+    "report_digest_sha256": "527fc6ed2cf308bdc485cae6d2738d432cba01a7506f863f4615d36be4a22e6c"
+  },
+  "verification": {
+    "installed_package_metadata_read": true,
+    "installed_model_source_bytes_read": true,
+    "wrapper_digest_and_ast_audited": true,
+    "d2_report_and_source_digests_reverified": true,
+    "rwkv_model_import_included": false,
+    "torch_import_included": false,
+    "weights_access_included": false,
+    "model_load_included": false,
+    "model_execution_included": false
+  },
+  "authority": {
+    "installed_source_verification_authorized": true,
+    "rwkv_model_import_authorized": false,
+    "torch_import_authorized": false,
+    "weights_access_authorized": false,
+    "model_execution_authorized": false,
+    "site_packages_modification_authorized": false,
+    "instrumented_runtime_implementation_authorized": false,
+    "off_g2_implementation_authorized": false,
+    "active_injection_implementation_authorized": false,
+    "real_layer_selection_authorized": false,
+    "self_effect_experiment_authorized": false,
+    "automatic_rerun_authorized": false
+  }
+}

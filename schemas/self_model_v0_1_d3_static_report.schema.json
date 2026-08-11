@@ -1,0 +1,76 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://persistent-self-architecture.local/schemas/self_model_v0_1_d3_static_report.schema.json",
+  "title": "Self Model v0.1 D3 static verification report",
+  "type": "object",
+  "required": [
+    "verification_version",
+    "stage",
+    "status",
+    "valid",
+    "development_only",
+    "installed_source",
+    "d2_report",
+    "checks",
+    "off_gates",
+    "source_digests",
+    "safety",
+    "report_digest_sha256"
+  ],
+  "properties": {
+    "verification_version": {"const": "0.1-d3-static"},
+    "stage": {"const": "D3_off_only_adapter_cloud_static_verification_without_model"},
+    "status": {"const": "d3_cloud_static_verified"},
+    "valid": {"const": true},
+    "development_only": {"const": true},
+    "installed_source": {
+      "type": "object",
+      "required": ["package", "version", "model_source_path", "model_source_sha256", "model_source_size_bytes", "access_method"],
+      "properties": {
+        "package": {"const": "rwkv"},
+        "version": {"const": "0.8.32"},
+        "model_source_path": {"const": "rwkv/model.py"},
+        "model_source_sha256": {"const": "75482aee89a08d2a8c8dbe628110b317fc8d0974ddffbaa52aa19190667305e0"},
+        "model_source_size_bytes": {"const": 85425},
+        "access_method": {"const": "importlib.metadata_and_read_bytes"}
+      },
+      "additionalProperties": false
+    },
+    "checks": {
+      "type": "object",
+      "minProperties": 33,
+      "additionalProperties": {"const": true}
+    },
+    "off_gates": {"const": {"off_g1_implemented": true, "off_g2_implemented": false}},
+    "source_digests": {"type": "object", "minProperties": 10},
+    "safety": {
+      "type": "object",
+      "required": [
+        "installed_rwkv_source_probed", "rwkv_model_imported", "torch_imported",
+        "weights_accessed", "model_loaded", "model_executed", "site_packages_modified",
+        "off_only_adapter_implemented", "instrumented_runtime_implemented", "off_g2_implemented",
+        "active_injection_implemented", "real_layers_selected", "self_effect_experiment_run",
+        "automatic_rerun_authorized"
+      ],
+      "properties": {
+        "installed_rwkv_source_probed": {"const": true},
+        "rwkv_model_imported": {"const": false},
+        "torch_imported": {"const": false},
+        "weights_accessed": {"const": false},
+        "model_loaded": {"const": false},
+        "model_executed": {"const": false},
+        "site_packages_modified": {"const": false},
+        "off_only_adapter_implemented": {"const": true},
+        "instrumented_runtime_implemented": {"const": false},
+        "off_g2_implemented": {"const": false},
+        "active_injection_implemented": {"const": false},
+        "real_layers_selected": {"const": false},
+        "self_effect_experiment_run": {"const": false},
+        "automatic_rerun_authorized": {"const": false}
+      },
+      "additionalProperties": false
+    },
+    "report_digest_sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"}
+  },
+  "additionalProperties": true
+}
