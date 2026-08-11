@@ -2,7 +2,7 @@
 
 版本：0.1 Draft  
 日期：2026-08-11  
-状态：离线设计与 fake-adapter runner/backend 契约完成；模型执行未授权
+状态：离线设计、fake-adapter 契约与真实 RWKV backend 纯代码集成完成；模型执行未授权
 
 ## 1. 本轮结论
 
@@ -45,19 +45,18 @@ Stage B 使用 Stage A 已完成的 32 条结果作为外部 prompt-visible 基�
 
 ## 3. 执行授权前仍必须完成
 
-本轮已经建立仅接受未加载 fake adapter 的纯离线 runner/backend 契约：224 条路由会
-生成原子结果包，所有输出都固定标记为 synthetic、不能作为研究证据；真实模型入口在
-代码中无条件失败关闭。进入任何 Stage B 模型执行前，仍必须另行完成并审查：
+纯离线 runner/backend 契约会对224条路由生成原子 synthetic 结果包。真实 RWKV backend
+工厂与状态路由代码也已完成，但当前没有任何已授权 runner 能调用该工厂；测试只使用
+fake-RWKV adapter。进入任何 Stage B 模型执行前，仍必须另行完成并审查：
 
-1. 真实 RWKV Stage B backend 工厂代码与 fake-RWKV-adapter 集成测试，仍不得加载模型；
-2. 真实结果 schema、原子输出和一次性执行锁；
-3. 只读服务器 preflight，核验 Stage A 原始结果、当前 Git commit、模型资产和主机环境；
-4. 独立负责人逐字授权，绑定 Stage B design manifest digest 与 live preflight digest；
-5. 明确结果观察是否与执行同时授权；未写明时默认不授权观察；
-6. 继续禁止访问正式测试集、正式运行、确认性决定和自动重跑。
+1. 真实执行 runner、结果完整性验证、原子输出和一次性执行锁；
+2. 只读服务器 preflight，核验 Stage A 原始结果、当前 Git commit、模型资产和主机环境；
+3. 独立负责人逐字授权，绑定 Stage B design manifest digest 与 live preflight digest；
+4. 明确结果观察是否与执行同时授权；未写明时默认不授权观察；
+5. 继续禁止访问正式测试集、正式运行、确认性决定和自动重跑。
 
 ## 4. 本轮权限声明
 
-本文件、draft config、schema、manifest builder、fake-adapter runner/backend 和测试只
-属于离线开发与风险审查。它们不是 Stage B 执行授权，不创建测试集，不加载模型，
-不观察新的模型结果，也不改变 EXP-001B 或任何确认性决定。
+本文件、draft config、schema、manifest builder、fake-adapter 契约、未调用的真实 RWKV
+backend 工厂和测试只属于离线开发与风险审查。它们不是 Stage B 执行授权，不创建测试
+集，不加载模型，不观察新的模型结果，也不改变 EXP-001B 或任何确认性决定。

@@ -595,3 +595,7 @@ EXP-001已完成320组、40,960条记录的冻结确认性运行、独立完整�
     包和失败关闭契约已实现，全项目241项测试通过。所有synthetic输出明确不能作为
     研究证据，真实模型入口无条件关闭。下一步等待确认是否实现真实RWKV backend工厂
     与fake-RWKV-adapter测试；该步骤仍只写代码，不加载模型。
+13. 真实RWKV Stage B backend工厂、8个源状态构造、按两组2×2完成的disk roundtrip、
+    deterministic random和224条状态评分路由已经纯代码集成；fake-RWKV adapter验证三种
+    swap均使用正确来源，reset不带state，random使用同源shape。全项目246项测试通过，
+    本轮未调用模型工厂。下一步等待确认实现真实执行runner、结果完整性验证和一次性锁。
