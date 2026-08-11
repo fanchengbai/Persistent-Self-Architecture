@@ -1,0 +1,41 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://persistent-self-architecture.local/schemas/exp001c_v02_stage_b_execution_claim.schema.json",
+  "title": "EXP-001C v02 Stage B single-use execution claim",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "claim_version",
+    "experiment_id",
+    "status",
+    "claimed_at_utc",
+    "single_use",
+    "design_manifest_digest_sha256",
+    "preflight_digest_sha256",
+    "stage_a_result_sha256",
+    "model_execution_authorized",
+    "stage_b_result_observation_authorized",
+    "stage_a_rerun_authorized",
+    "formal_test_set_access_authorized",
+    "formal_run_authorized",
+    "confirmatory_decision_authorized",
+    "automatic_rerun_authorized"
+  ],
+  "properties": {
+    "claim_version": {"const": "0.1-development"},
+    "experiment_id": {"const": "EXP-001C"},
+    "status": {"const": "stage_b_single_use_execution_claim_consumed"},
+    "claimed_at_utc": {"type": "string", "format": "date-time"},
+    "single_use": {"const": true},
+    "design_manifest_digest_sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+    "preflight_digest_sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+    "stage_a_result_sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+    "model_execution_authorized": {"const": true},
+    "stage_b_result_observation_authorized": {"type": "boolean"},
+    "stage_a_rerun_authorized": {"const": false},
+    "formal_test_set_access_authorized": {"const": false},
+    "formal_run_authorized": {"const": false},
+    "confirmatory_decision_authorized": {"const": false},
+    "automatic_rerun_authorized": {"const": false}
+  }
+}

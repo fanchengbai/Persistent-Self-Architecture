@@ -2,7 +2,7 @@
 
 版本：0.1 Draft  
 日期：2026-08-11  
-状态：离线设计、fake-adapter 契约与真实 RWKV backend 纯代码集成完成；模型执行未授权
+状态：离线设计、真实 backend 与执行 runner 安全外壳完成；live preflight 和模型执行未授权
 
 ## 1. 本轮结论
 
@@ -45,18 +45,17 @@ Stage B 使用 Stage A 已完成的 32 条结果作为外部 prompt-visible 基�
 
 ## 3. 执行授权前仍必须完成
 
-纯离线 runner/backend 契约会对224条路由生成原子 synthetic 结果包。真实 RWKV backend
-工厂与状态路由代码也已完成，但当前没有任何已授权 runner 能调用该工厂；测试只使用
-fake-RWKV adapter。进入任何 Stage B 模型执行前，仍必须另行完成并审查：
+真实执行 runner、结果完整性验证、原子输出和 single-use claim 已完成，但机器授权验证
+函数仍默认无条件关闭；测试通过 patch 后只调用 fake backend。claim 在 backend 启动前以
+独占创建方式消费，失败结果也不能自动重跑。进入任何 Stage B 模型执行前，仍必须：
 
-1. 真实执行 runner、结果完整性验证、原子输出和一次性执行锁；
-2. 只读服务器 preflight，核验 Stage A 原始结果、当前 Git commit、模型资产和主机环境；
-3. 独立负责人逐字授权，绑定 Stage B design manifest digest 与 live preflight digest；
-4. 明确结果观察是否与执行同时授权；未写明时默认不授权观察；
-5. 继续禁止访问正式测试集、正式运行、确认性决定和自动重跑。
+1. 实现并运行只读服务器 preflight，核验 Stage A 原始结果、当前 Git commit、模型资产和主机环境；
+2. 实现机器授权 builder/validator，并由项目负责人逐字授权，绑定 design manifest 与 live preflight digest；
+3. 明确结果观察是否与执行同时授权；未写明时默认不授权观察；
+4. 继续禁止访问正式测试集、正式运行、确认性决定和自动重跑。
 
 ## 4. 本轮权限声明
 
-本文件、draft config、schema、manifest builder、fake-adapter 契约、未调用的真实 RWKV
-backend 工厂和测试只属于离线开发与风险审查。它们不是 Stage B 执行授权，不创建测试
+本文件、draft config、schema、manifest builder、未调用的真实 backend、默认关闭授权
+验证的runner和测试只属于离线开发与风险审查。它们不是 Stage B 执行授权，不创建测试
 集，不加载模型，不观察新的模型结果，也不改变 EXP-001B 或任何确认性决定。

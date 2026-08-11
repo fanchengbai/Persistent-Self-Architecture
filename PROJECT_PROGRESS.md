@@ -1,8 +1,8 @@
 # Persistent Self Architecture 项目进度表
 
 > 最后更新：2026-08-11
-> 当前节点：EXP-001C v02 Stage B 真实 RWKV backend 纯代码集成完成；等待确认执行 runner 与一次性锁的离线实现
-> 研究状态：Stage A 正控制已通过；Stage B 的真实状态路由已由 fake-RWKV adapter 验证，但模型工厂尚未调用、执行仍未授权
+> 当前节点：EXP-001C v02 Stage B 执行 runner 安全外壳完成；等待确认只读 live preflight 与机器授权验证
+> 研究状态：Stage A 正控制已通过；Stage B 路由、runner和single-use claim均已离线验证，但live authority默认关闭、模型执行未授权
 
 ## 1. 这张表怎么使用
 
@@ -109,6 +109,7 @@
 | 38l. EXP-001C v02 Stage B离线设计 | ✅ 本轮完成 | 把Stage A作为外部基线，规划continuous/restored/三种swap/reset/random共7条件×32条=224条，并建立确定性manifest、风险审查和未来授权Schema | 防止Stage A隐式重跑、交换状态仍沿用旧target、负控制混入主要端点或“继续”被误当成执行授权 | 5项专项及全项目234项测试通过；交换目标按实际注入状态唯一重映射，reset/random仅作诊断；模型未加载、正式测试集未访问、执行和观察均未授权 | Codex |
 | 38m. EXP-001C v02 Stage B纯离线runner/backend | ✅ 本轮完成 | 用只接受未加载fake adapter的backend执行224条路由，原子写入synthetic结果包，并保留无条件关闭的真实模型入口 | 在写真实RWKV路径前证明记录不漏、不重、条件不串，且离线测试输出不会被误当成研究结果 | 7项新增测试、Stage B合计12项专项及全项目241项通过；七条件各32条，缺锁、非fake/已加载adapter、非空输出和模型入口均失败关闭。未加载模型、未访问正式测试集 | Codex |
 | 38n. EXP-001C v02 Stage B真实RWKV backend纯代码集成 | ✅ 本轮完成 | 从32条protocol trial构造8个唯一history state，按两个block执行2×2磁盘恢复和matched random，再把continuous/restored/三种swap/reset/random路由到224条评分记录 | 在授权模型执行前证明真实backend的数据依赖、state来源、前缀证据和目标重映射与离线设计一致 | 新增真实结果Schema和5项fake-RWKV专项测试；Stage B合计17项、全项目246项通过。snapshot调用2组×4状态，random seed 8个且唯一；缺少执行授权、错误model路径或digest均在加载前拒绝。本轮未调用模型工厂 | Codex |
+| 38o. EXP-001C v02 Stage B执行runner安全外壳 | ✅ 本轮完成 | 在授权验证后独占消费single-use claim，调用backend，原子写入224条原始结果、独立完整性报告和无研究指标摘要；失败后禁止自动重入 | 确保一次授权只能启动一次，半失败或无效输出不能被覆盖重跑，完整性检查也不能提前泄露准确率 | 新增6项runner测试，Stage B合计23项、全项目252项通过；live authority validator默认无条件关闭。成功、重复启动、缺锁、缺授权、无效结果和篡改结果路径均验证；本轮只用fake backend | Codex |
 | 39. Phase 3：显式 Self Model | ⏳ 未开始 | 实现 Self Store、Self Encoder 和 gated injection | 只有原生状态基线可靠后，才能判断显式 Self Model 是否带来额外价值 | 目前只有设计，没有加入模型 | 后续由 Codex 实现 |
 | 40. Self 更新与演化 | ⏳ 未开始 | 让 Self State 根据经历受控更新、回滚和分化 | 这是“持续自我”真正更深入的部分 | 尚未开始 | 后续阶段 |
 | 41. 内生调节与自主审议 | ⏳ 未开始 | 让 Self/冲突决定是否检索、回放、模拟或停止，并在零新外部观察条件下受控更新 | 检验系统是否不仅“有状态”，还会因内部状态选择继续计算；同时排除定时器和随机回放解释 | 设计说明已完成；必须等待显式 Self 因果价值和受约束更新两道前置门，不创建空壳代码 | 后续阶段 |
@@ -116,7 +117,7 @@
 
 ## 3. 当前所在位置
 
-> 2026-08-11 当前状态：EXP-001C v02 Stage A 已通过并关闭单次授权；Stage B 的设计、风险审查、224条离线契约和真实 RWKV backend 纯代码集成已完成。8个history state及restore/swap/reset/random路由已由 fake-RWKV adapter 验证；本轮未调用模型工厂、未访问正式测试集、未授权执行或结果观察。以下保留完整历史路径；如与旧阶段描述冲突，以本段和顶部“当前节点”为准。
+> 2026-08-11 当前状态：EXP-001C v02 Stage A 已通过并关闭单次授权；Stage B 的设计、真实 backend 和执行 runner 安全外壳均已完成。single-use claim、原子结果包和无研究指标完整性验证已由 fake backend 测试；live authority validator仍默认关闭。本轮未调用模型工厂、未访问正式测试集、未授权执行或结果观察。以下保留完整历史路径；如与旧阶段描述冲突，以本段和顶部“当前节点”为准。
 
 ```text
 理论设计
@@ -235,7 +236,7 @@ EXP-001B补充控制
 
 ## 4. 当前下一步
 
-> 2026-08-11 当前下一步：等待项目负责人确认是否实现 Stage B 真实执行 runner、结果完整性验证、原子输出和一次性执行锁。若确认，下一轮仍只使用 fake backend 测试并保持模型工厂不被调用；服务器模型执行必须在更后的只读 live preflight 与新的逐字授权之后。不得访问正式测试集、启动正式运行或自动重跑 Stage A。以下保留此前 EXP-001B 轨迹作为历史记录。
+> 2026-08-11 当前下一步：等待项目负责人确认是否实现 Stage B 服务器只读 live preflight 与机器授权 builder/validator。该轮只能核验Stage A原始结果、Git、模型资产和主机环境，不加载模型；随后仍需负责人对最终preflight digest作新的逐字授权，才可能进入Stage B非Core pilot。不得访问正式测试集、启动正式运行或自动重跑 Stage A。以下保留此前 EXP-001B 轨迹作为历史记录。
 
 截至2026-08-04，项目负责人已经确认EXP-001B设计草案中的B1–B7。
 新增范围仍锁在11,008条控制记录，并明确不重跑EXP-001、不重估E1–E3、
@@ -682,3 +683,4 @@ trial-condition单元；只允许全量完成且完整性验证后观察结果�
 | 2026-08-11 | EXP-001C v02 Stage B第一版离线设计与风险审查完成：Stage A的32条已完成结果只作外部基线，Stage B不重跑Stage A；固定continuous/restored/三种swap/reset/random七条件×32条=224条。交换条件按实际注入状态重新映射唯一正确代码，reset/random不设状态语义正确项。新增draft config、两个Schema、确定性manifest builder/verifier、风险审查和5项专项测试；全项目234项通过。本轮未加载模型、未访问正式测试集，Stage B执行/观察、正式运行与自动重跑均未授权 | `docs/exp001c_v02_stage_b_risk_review.md`；`src/psa/development/exp001c_v02_stage_b_design.py`；`tests/test_exp001c_v02_stage_b_design.py` |
 | 2026-08-11 | EXP-001C v02 Stage B纯离线runner/backend契约完成：只接受`offline_fake_adapter=true`且`model_loaded=false`的adapter，完整路由七条件各32条并原子写入224条synthetic结果；所有输出固定`synthetic_output_not_research_evidence=true`、`model_executed=false`。缺少离线锁、非fake或已加载adapter、非空输出目录及真实模型入口均失败关闭；Stage B专项12项、全项目241项通过。本轮未加载模型、未访问正式测试集，也未创建执行授权 | `src/psa/development/exp001c_v02_stage_b_offline.py`；`schemas/exp001c_v02_stage_b_offline_result.schema.json`；`tests/test_exp001c_v02_stage_b_offline.py` |
 | 2026-08-11 | EXP-001C v02 Stage B真实RWKV backend纯代码集成完成：从Stage A同源protocol重建32条trial与8个唯一history state，按两个block各自执行4状态disk roundtrip，并为8个源状态生成唯一deterministic matched-random；224条路由覆盖continuous/restored/三种swap/reset/random，交换来源和重映射target逐条一致。新增真实结果Schema与5项fake-RWKV测试，Stage B专项17项、全项目246项通过；缺少执行授权、错误model路径和protocol digest均在评分/加载前拒绝。本轮未调用真实模型工厂、未执行模型或访问正式测试集 | `src/psa/development/exp001c_v02_stage_b_rwkv.py`；`schemas/exp001c_v02_stage_b_result.schema.json`；`tests/test_exp001c_v02_stage_b_rwkv.py` |
+| 2026-08-11 | EXP-001C v02 Stage B执行runner安全外壳完成：live authority validator默认关闭；通过验证后先独占创建single-use execution claim，再调用backend并原子写入原始结果、独立verification和summary。无效backend结果仍消费claim，后续自动重入由非空目录拒绝；独立验证逐条核对224条route、scores、prefix和target边界，但固定`contains_derived_accuracy=false`、`contains_research_decision=false`。新增execution claim Schema与6项runner测试，Stage B专项23项、全项目252项通过；本轮只用fake backend，未调用模型工厂或访问正式测试集 | `src/psa/development/exp001c_v02_stage_b_run.py`；`schemas/exp001c_v02_stage_b_execution_claim.schema.json`；`tests/test_exp001c_v02_stage_b_run.py` |

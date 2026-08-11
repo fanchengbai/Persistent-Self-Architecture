@@ -189,6 +189,7 @@ v02 Stage B 的第一版离线设计于 2026-08-11 完成。Stage A 的 32 条�
 
 当前已完成离线 design config、schema、确定性 manifest builder/verifier、只接受未加载
 fake adapter 的224条离线契约，以及真实 RWKV backend 工厂的纯代码集成。该工厂只在
-未来授权 runner 调用时才会加载模型；当前真实模型入口仍失败关闭，测试只使用
-fake-RWKV adapter。真实执行 runner、服务器 preflight 与任何模型执行仍需后续分轮完成；
+未来授权 runner 调用时才会加载模型。真实执行 runner 的原子输出、独占 single-use claim
+和不计算研究指标的独立结果验证也已完成，但 live authority validator 仍默认关闭，测试
+只使用 fake backend。服务器 preflight、机器授权绑定与任何模型执行仍需后续分轮完成；
 模型执行、recurrent-state 实跑、正式测试集生成、正式运行和正式结果观察均未授权。

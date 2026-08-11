@@ -11,6 +11,7 @@
     "offline_test_authorized": true,
     "offline_fake_runner_implementation_authorized": true,
     "real_rwkv_backend_implementation_authorized": true,
+    "offline_execution_runner_implementation_authorized": true,
     "model_execution_authorized": false,
     "result_observation_authorized": false,
     "formal_test_set_access_authorized": false,

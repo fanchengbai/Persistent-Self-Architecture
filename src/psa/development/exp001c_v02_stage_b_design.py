@@ -37,6 +37,7 @@ STAGE_B_DESIGN_SOURCE_FILES = (
     "docs/exp001c_v02_stage_b_risk_review.md",
     "schemas/exp001c_v02_stage_b_authorization.schema.json",
     "schemas/exp001c_v02_stage_b_design.schema.json",
+    "schemas/exp001c_v02_stage_b_execution_claim.schema.json",
     "schemas/exp001c_v02_stage_b_offline_result.schema.json",
     "schemas/exp001c_v02_stage_b_result.schema.json",
     "src/psa/artifacts/integrity.py",
@@ -44,10 +45,12 @@ STAGE_B_DESIGN_SOURCE_FILES = (
     "src/psa/development/exp001c_v02_stage_b_design.py",
     "src/psa/development/exp001c_v02_stage_b_offline.py",
     "src/psa/development/exp001c_v02_stage_b_rwkv.py",
+    "src/psa/development/exp001c_v02_stage_b_run.py",
     "src/psa/development/history_binding.py",
     "tests/test_exp001c_v02_stage_b_design.py",
     "tests/test_exp001c_v02_stage_b_offline.py",
     "tests/test_exp001c_v02_stage_b_rwkv.py",
+    "tests/test_exp001c_v02_stage_b_run.py",
 )
 
 
@@ -96,6 +99,8 @@ def _validate_config(config: Mapping[str, Any]) -> None:
         or authority.get("offline_fake_runner_implementation_authorized")
         is not True
         or authority.get("real_rwkv_backend_implementation_authorized")
+        is not True
+        or authority.get("offline_execution_runner_implementation_authorized")
         is not True
         or authority.get("model_execution_authorized") is not False
         or authority.get("result_observation_authorized") is not False
