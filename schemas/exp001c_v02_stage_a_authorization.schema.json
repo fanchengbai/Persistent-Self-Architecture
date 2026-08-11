@@ -10,6 +10,7 @@
     "scope",
     "authorized",
     "authorization_basis",
+    "authorization_text",
     "authorized_at_utc",
     "manifest_digest_sha256",
     "preflight_digest_sha256",
@@ -28,6 +29,9 @@
     "scope": {"const": "v02_stage_a_prompt_visible_only"},
     "authorized": {"const": true},
     "authorization_basis": {"const": "project_owner_explicit_chat_authorization"},
+    "authorization_text": {
+      "const": "授权执行 EXP-001C v02 Stage A prompt-visible 非 Core 32 条 pilot，并授权观察本轮结果；不授权 Stage B、正式测试集、正式运行或自动重跑。"
+    },
     "authorized_at_utc": {"type": "string", "format": "date-time"},
     "manifest_digest_sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
     "preflight_digest_sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},

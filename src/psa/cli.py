@@ -20,11 +20,13 @@ from psa.confirmatory import (
 from psa.development import (
     PROBE_EXECUTION_ENV,
     STAGE_A_EXECUTION_ENV,
+    STAGE_A_AUTHORIZATION_TEXT,
     build_exp001c_rwkv_development_backend,
     build_exp001c_probe_pilot_authorization,
     build_exp001c_probe_manifest,
     build_exp001c_protocol_v02_manifest,
     build_exp001c_v02_stage_a_backend,
+    build_exp001c_v02_stage_a_authorization,
     build_exp001c_v02_stage_a_preflight,
     run_g1_capability_audit,
     run_capability_ladder_gate,
@@ -991,6 +993,19 @@ def _exp001c_v02_stage_a_preflight_verify(args: argparse.Namespace) -> int:
     return 0 if result["valid"] else 2
 
 
+def _exp001c_v02_stage_a_authorization_build(args: argparse.Namespace) -> int:
+    result = build_exp001c_v02_stage_a_authorization(
+        manifest_path=args.manifest,
+        preflight_path=args.preflight,
+        model_config_path=args.model_config,
+        authorization_text=args.authorization_text,
+        project_root=args.project_root,
+    )
+    _write_json(Path(args.output), result)
+    print(json.dumps(result, ensure_ascii=False, indent=2))
+    return 0
+
+
 def _confirmatory_run(args: argparse.Namespace) -> int:
     result = run_exp001_confirmatory(
         project_root=args.project_root,
@@ -1688,6 +1703,34 @@ def build_parser() -> argparse.ArgumentParser:
     exp001c_v02_stage_a_preflight_verify.add_argument("--project-root", default=".")
     exp001c_v02_stage_a_preflight_verify.set_defaults(
         handler=_exp001c_v02_stage_a_preflight_verify
+    )
+
+    exp001c_v02_stage_a_authorization_build = subparsers.add_parser(
+        "exp001c-v02-stage-a-authorization-build",
+        help="record the exact owner authorization bound to the live preflight",
+    )
+    exp001c_v02_stage_a_authorization_build.add_argument(
+        "--manifest", required=True
+    )
+    exp001c_v02_stage_a_authorization_build.add_argument(
+        "--preflight", required=True
+    )
+    exp001c_v02_stage_a_authorization_build.add_argument(
+        "--model-config", required=True
+    )
+    exp001c_v02_stage_a_authorization_build.add_argument(
+        "--authorization-text",
+        required=True,
+        help=f"must exactly equal: {STAGE_A_AUTHORIZATION_TEXT}",
+    )
+    exp001c_v02_stage_a_authorization_build.add_argument(
+        "--output", required=True
+    )
+    exp001c_v02_stage_a_authorization_build.add_argument(
+        "--project-root", default="."
+    )
+    exp001c_v02_stage_a_authorization_build.set_defaults(
+        handler=_exp001c_v02_stage_a_authorization_build
     )
 
     confirmatory_run = subparsers.add_parser(

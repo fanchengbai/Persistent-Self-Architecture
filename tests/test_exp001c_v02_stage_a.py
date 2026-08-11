@@ -10,6 +10,7 @@ import tempfile
 import unittest
 from unittest.mock import patch
 
+from psa.artifacts import sha256_json
 from psa.cli import main
 from psa.development.exp001c_protocol_v02 import (
     build_exp001c_protocol_v02_manifest,
@@ -17,8 +18,10 @@ from psa.development.exp001c_protocol_v02 import (
 from psa.development.exp001c_v02_stage_a import (
     STAGE_A_EXECUTION_ENV,
     STAGE_A_EXECUTION_LOCK,
+    STAGE_A_AUTHORIZATION_TEXT,
     RWKVExp001CV02StageABackend,
     build_exp001c_v02_stage_a_preflight,
+    build_exp001c_v02_stage_a_authorization,
     build_exp001c_v02_stage_a_backend,
     run_exp001c_v02_stage_a,
     validate_exp001c_v02_stage_a_authority,
@@ -209,6 +212,14 @@ class Exp001CV02StageATests(unittest.TestCase):
                     project_root=ROOT,
                     environment_report=_fake_environment(),
                 )
+                authorization = build_exp001c_v02_stage_a_authorization(
+                    manifest_path=manifest_path,
+                    preflight_path=preflight_path,
+                    model_config_path=MODEL,
+                    authorization_text=STAGE_A_AUTHORIZATION_TEXT,
+                    project_root=ROOT,
+                    environment_report=_fake_environment(),
+                )
                 tampered = dict(preflight)
                 tampered["model_loaded"] = True
                 preflight_path.write_text(json.dumps(tampered), encoding="utf-8")
@@ -230,7 +241,35 @@ class Exp001CV02StageATests(unittest.TestCase):
             self.assertFalse(preflight["stage_a_result_observation_authorized"])
             self.assertFalse(preflight["stage_b_recurrent_state_authorized"])
             self.assertTrue(verification["valid"])
+            self.assertTrue(authorization["model_execution_authorized"])
+            self.assertTrue(
+                authorization["stage_a_result_observation_authorized"]
+            )
+            self.assertFalse(
+                authorization["stage_b_recurrent_state_authorized"]
+            )
+            self.assertFalse(authorization["automatic_rerun_authorized"])
+            self.assertEqual(
+                authorization["authorization_digest_sha256"],
+                sha256_json(
+                    {
+                        key: value
+                        for key, value in authorization.items()
+                        if key != "authorization_digest_sha256"
+                    }
+                ),
+            )
             self.assertFalse(tampered_verification["valid"])
+
+    def test_authorization_builder_requires_exact_owner_text(self) -> None:
+        with self.assertRaisesRegex(PermissionError, "text is not exact"):
+            build_exp001c_v02_stage_a_authorization(
+                manifest_path="missing.json",
+                preflight_path="missing.json",
+                model_config_path=MODEL,
+                authorization_text="authorize something similar",
+                project_root=ROOT,
+            )
 
     def test_dirty_host_preflight_fails_closed(self) -> None:
         manifest = build_exp001c_protocol_v02_manifest(

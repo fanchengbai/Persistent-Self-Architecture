@@ -24,6 +24,10 @@ STAGE_A_RESULT_VERSION = "0.2-stage-a-development"
 STAGE_A_EXECUTION_ENV = "PSA_EXP001C_V02_STAGE_A"
 STAGE_A_EXECUTION_LOCK = "AUTHORIZED_EXP001C_V02_STAGE_A_POSITIVE_CONTROL"
 STAGE_A_PREFLIGHT_VERSION = "0.1-development"
+STAGE_A_AUTHORIZATION_TEXT = (
+    "授权执行 EXP-001C v02 Stage A prompt-visible 非 Core 32 条 pilot，"
+    "并授权观察本轮结果；不授权 Stage B、正式测试集、正式运行或自动重跑。"
+)
 
 
 class Exp001CV02StageABackend(Protocol):
@@ -270,6 +274,55 @@ def verify_exp001c_v02_stage_a_preflight(
     }
 
 
+def build_exp001c_v02_stage_a_authorization(
+    *,
+    manifest_path: str | Path,
+    preflight_path: str | Path,
+    model_config_path: str | Path,
+    authorization_text: str,
+    project_root: str | Path,
+    environment_report: Mapping[str, Any] | None = None,
+) -> dict[str, Any]:
+    """Persist the exact owner authorization without loading or running a model."""
+    if authorization_text != STAGE_A_AUTHORIZATION_TEXT:
+        raise PermissionError("EXP-001C v02 Stage A authorization text is not exact")
+    root = Path(project_root).resolve()
+    verification = verify_exp001c_v02_stage_a_preflight(
+        preflight_path=preflight_path,
+        manifest_path=manifest_path,
+        model_config_path=model_config_path,
+        project_root=root,
+        environment_report=environment_report,
+    )
+    if verification.get("valid") is not True:
+        raise PermissionError("EXP-001C v02 Stage A preflight is invalid")
+    manifest = _load_object(
+        manifest_path,
+        "EXP-001C v02 manifest",
+        root=root,
+    )
+    authorization = {
+        "authorization_version": "0.1",
+        "experiment_id": EXPERIMENT_ID,
+        "scope": "v02_stage_a_prompt_visible_only",
+        "authorized": True,
+        "authorization_basis": "project_owner_explicit_chat_authorization",
+        "authorization_text": authorization_text,
+        "authorized_at_utc": datetime.now(timezone.utc).isoformat(),
+        "manifest_digest_sha256": manifest["manifest_digest_sha256"],
+        "preflight_digest_sha256": verification["preflight_digest_sha256"],
+        "model_execution_authorized": True,
+        "stage_a_result_observation_authorized": True,
+        "stage_b_recurrent_state_authorized": False,
+        "formal_test_set_access_authorized": False,
+        "formal_run_authorized": False,
+        "formal_result_observation_authorized": False,
+        "automatic_rerun_authorized": False,
+    }
+    authorization["authorization_digest_sha256"] = sha256_json(authorization)
+    return authorization
+
+
 class RWKVExp001CV02StageABackend:
     """Prompt-visible positive control; recurrent state is never constructed."""
 
@@ -425,6 +478,8 @@ def validate_exp001c_v02_stage_a_authority(
         and authorization.get("authorized") is True
         and authorization.get("authorization_basis")
         == "project_owner_explicit_chat_authorization"
+        and authorization.get("authorization_text")
+        == STAGE_A_AUTHORIZATION_TEXT
         and isinstance(authorization.get("authorized_at_utc"), str)
         and len(str(authorization.get("authorized_at_utc"))) >= 20
         and authorization.get("manifest_digest_sha256")
