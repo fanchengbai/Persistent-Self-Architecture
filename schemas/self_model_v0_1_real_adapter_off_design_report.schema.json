@@ -1,0 +1,87 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://persistent-self-architecture.local/schemas/self_model_v0_1_real_adapter_off_design_report.schema.json",
+  "title": "Self Model v0.1 real adapter coupling-off design report",
+  "type": "object",
+  "required": [
+    "design_version",
+    "status",
+    "valid",
+    "development_only",
+    "checks",
+    "installed_source",
+    "off_equivalence_gates",
+    "future_gates",
+    "source_digests",
+    "safety",
+    "report_digest_sha256"
+  ],
+  "properties": {
+    "design_version": {"const": "0.1-off-equivalence-draft"},
+    "status": {"const": "real_adapter_off_design_static_verification_complete"},
+    "valid": {"const": true},
+    "development_only": {"const": true},
+    "checks": {
+      "type": "object",
+      "minProperties": 23,
+      "additionalProperties": {"const": true}
+    },
+    "installed_source": {
+      "type": "object",
+      "required": [
+        "package_version",
+        "model_source_path",
+        "model_source_sha256",
+        "source_size_bytes"
+      ],
+      "properties": {
+        "package_version": {"const": "0.8.32"},
+        "model_source_sha256": {
+          "const": "75482aee89a08d2a8c8dbe628110b317fc8d0974ddffbaa52aa19190667305e0"
+        },
+        "source_size_bytes": {"type": "integer", "minimum": 1}
+      }
+    },
+    "off_equivalence_gates": {
+      "type": "array",
+      "prefixItems": [
+        {
+          "type": "object",
+          "properties": {"gate_id": {"const": "OFF-G1"}},
+          "required": ["gate_id"]
+        },
+        {
+          "type": "object",
+          "properties": {"gate_id": {"const": "OFF-G2"}},
+          "required": ["gate_id"]
+        }
+      ],
+      "minItems": 2,
+      "maxItems": 2
+    },
+    "future_gates": {"type": "array", "minItems": 5, "maxItems": 5},
+    "source_digests": {"type": "object", "minProperties": 9},
+    "safety": {
+      "type": "object",
+      "required": [
+        "rwkv_model_imported",
+        "torch_imported",
+        "weights_accessed",
+        "model_loaded",
+        "model_executed",
+        "site_packages_modified",
+        "real_adapter_implemented",
+        "active_injection_implemented",
+        "real_layers_selected",
+        "self_effect_experiment_run",
+        "automatic_rerun_authorized"
+      ],
+      "additionalProperties": {"const": false}
+    },
+    "report_digest_sha256": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{64}$"
+    }
+  },
+  "additionalProperties": true
+}

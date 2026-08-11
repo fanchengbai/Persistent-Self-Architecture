@@ -1,0 +1,88 @@
+{
+  "design_version": "0.1-off-equivalence-draft",
+  "status": "design_only_unimplemented",
+  "development_only": true,
+  "prerequisites": {
+    "rwkv_interface_audit_config": "configs/development/self_model_v0_1_rwkv_interface_audit.json",
+    "fake_callback_config": "configs/development/self_model_v0_1_fake_callback.draft.json",
+    "model_config": "configs/models/rwkv7_g1h_2.9b.candidate.json"
+  },
+  "upstream": {
+    "package": "rwkv",
+    "version": "0.8.32",
+    "model_source_sha256": "75482aee89a08d2a8c8dbe628110b317fc8d0974ddffbaa52aa19190667305e0",
+    "active_class": "RWKV_x070",
+    "runtime_environment": {
+      "RWKV_V7_ON": "1",
+      "RWKV_JIT_ON": "0",
+      "RWKV_CUDA_ON": "0"
+    }
+  },
+  "adapter": {
+    "future_project_path": "src/psa/self_model/rwkv7_coupling_adapter.py",
+    "project_local_only": true,
+    "site_packages_modification_forbidden": true,
+    "active_injection_available": false,
+    "real_layer_mask": [],
+    "real_sequence_policy": "unfrozen",
+    "candidate_phase_family": "post_ffn_residual",
+    "required_execution_paths": ["forward_one", "forward_seq"],
+    "state_ownership": "runner_clones_source_adapter_preserves_upstream_mutation"
+  },
+  "off_equivalence_gates": [
+    {
+      "gate_id": "OFF-G1",
+      "name": "passthrough_wrapper_off",
+      "implementation": "delegate_directly_to_original_model_forward",
+      "callback_constructed": false,
+      "self_projection_constructed": false,
+      "required_before": "instrumented_runtime_implementation"
+    },
+    {
+      "gate_id": "OFF-G2",
+      "name": "instrumented_runtime_off",
+      "implementation": "project_local_dual_path_runtime_with_callback_bypassed",
+      "callback_constructed": false,
+      "self_projection_constructed": false,
+      "required_before": "any_active_injection_design_or_execution"
+    }
+  ],
+  "future_model_test_protocol": {
+    "currently_authorized": false,
+    "non_core_token_ids_only": true,
+    "same_process": true,
+    "identical_shape_warmup_count": 1,
+    "paths": ["forward_one", "forward_seq"],
+    "state_inputs": ["none", "cloned_restored_snapshot"],
+    "sequence_full_output_modes": [false, true],
+    "required_checks": [
+      "logits_torch_equal",
+      "all_state_tensors_torch_equal",
+      "shape_dtype_device_equal",
+      "source_snapshot_unchanged",
+      "callback_call_count_zero",
+      "self_projection_not_constructed"
+    ],
+    "failure_action": "stop_without_active_injection_or_tolerance_revision"
+  },
+  "future_gates": [
+    "D1_design_static_verification",
+    "D2_off_only_adapter_local_implementation_without_model",
+    "D3_off_only_adapter_cloud_static_verification_without_model",
+    "D4_separately_authorized_2_9b_off_equivalence_execution",
+    "D5_new_design_and_authorization_before_active_injection"
+  ],
+  "authority": {
+    "design_authorized": true,
+    "installed_source_read_authorized": true,
+    "real_adapter_implementation_authorized": false,
+    "active_injection_implementation_authorized": false,
+    "rwkv_model_import_authorized": false,
+    "weights_access_authorized": false,
+    "model_execution_authorized": false,
+    "site_packages_modification_authorized": false,
+    "real_layer_selection_authorized": false,
+    "self_effect_experiment_authorized": false,
+    "automatic_rerun_authorized": false
+  }
+}
