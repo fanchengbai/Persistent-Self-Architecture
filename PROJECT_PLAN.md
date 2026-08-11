@@ -622,8 +622,9 @@ EXP-001已完成320组、40,960条记录的冻结确认性运行、独立完整�
     对原参考字段均仅2/8。本结果支持进入Self Model v0.1的纯工程原型设计，但不闭合
     EXP-001B控制、不构成正式Phase 2 Go或“已有Self”结论。下一步等待负责人确认是否冻结
     Self Store、Encoder、gated injection与字段级消融接口；该轮不加载模型。
-19. 项目负责人已确认进入Self Model v0.1纯工程原型。当前完成静态六字段Self Store、
+19. 项目负责人已确认进入Self Model v0.1纯工程原型。当前完成并通过云端复验：静态六字段Self Store、
     checksum与不可变快照、deterministic fake Encoder、字段mask/swap/matched-random，以及
     可关闭/缩放/分层的fake gated residual接口；所有输出均标记synthetic。9项专项、全项目
-    270项测试通过。下一步只在服务器重建离线manifest并复验，不加载模型；真实RWKV hook、
-    embedding维度、层位置和任何效果实验仍需新的独立审查与授权。
+    270项测试通过；云端9项专项通过，离线manifest digest=`694d8e2e…84ca6`，模型未加载。
+    下一步等待确认是否进行真实RWKV coupling接口调查；真实hook实现、embedding维度、层位置
+    和任何效果实验仍需后续独立审查与授权。

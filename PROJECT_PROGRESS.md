@@ -1,8 +1,8 @@
 # Persistent Self Architecture 项目进度表
 
 > 最后更新：2026-08-11
-> 当前节点：Phase 3 Self Model v0.1 离线接口完成；等待服务器纯离线manifest复验
-> 研究状态：静态Self Store、fake Encoder、gated coupling接口与字段级消融已实现；尚无真实RWKV hook、模型执行或Self效果证据
+> 当前节点：Phase 3 Self Model v0.1 离线接口云端复验通过；等待真实RWKV coupling接口调查确认
+> 研究状态：静态Self Store、fake Encoder、gated coupling与字段级消融契约有效；模型未加载，尚无真实hook或Self效果证据
 
 ## 1. 这张表怎么使用
 
@@ -113,14 +113,14 @@
 | 38p. EXP-001C v02 Stage B只读live preflight与机器授权锁 | ✅ 云端通过 | 在模型加载前绑定干净main提交、设计/protocol digest、Stage A原始结果、模型配置与资产哈希、主机环境、224条计划和空输出目录；授权只接受固定逐字文本并绑定preflight digest | 防止把“继续”解释成模型执行授权，也防止代码、证据、模型或输出目录变化后复用旧授权 | Stage B 29项远程测试通过，云端只读preflight全部检查为true且失败项为空；`model_loaded=false`、`model_executed=false`、执行/观察均为false。最终digest以本轮最终文档提交后的服务器v02证据为准 | Codex |
 | 38q. EXP-001C v02 Stage B项目负责人单次授权 | ✅ 已逐字确认并消费 | 负责人使用冻结原文授权224条recurrent-state非Core pilot及本轮结果观察，同时明确排除Stage A重跑、正式测试集、正式运行、确认性决定和自动重跑 | 模型执行和结果观察是新的不可逆边界，不能由此前“继续”推断 | 授权绑定preflight_v03与Stage A/result digest，机器记录和single-use claim均已消费；224条运行及观察完成后禁止重跑 | 项目负责人；Codex执行 |
 | 38r. EXP-001C v02 Stage B冻结只读观察 | ✅ 云端完成 | 对五个状态语义条件按8个语义案例×4代码轮换平均log score，记录联合/字段准确率与margin；reset/random只记录参考匹配率，不定义正确答案 | 原始code top-1容易受A–D先验影响；同时不能把诊断控制事后改成主要端点或临时添加通过阈值 | 五个主要条件均联合7/8、domain 8/8、operation 7/8；continuous/restored预测8/8一致，三种swap均7/8跟随注入state。reset/random参考匹配均2/8；无确认性决定或重跑 | Codex；云端只读分析 |
-| 39. Phase 3：显式 Self Model | 🟡 v0.1离线接口完成，等待云端复验 | 实现静态Self Store、Self Encoder和可关闭/缩放gated injection，并建立字段mask/swap/random/coupling-off消融 | 先证明接口可审计、可干预、失败关闭，再决定真实RWKV注入位置和效果实验 | 六字段Schema、checksum不可变Store、deterministic fake Encoder、fake gated residual及9项专项测试完成；尚未加载模型或实现真实hook | Codex |
+| 39. Phase 3：显式 Self Model | 🟡 v0.1离线接口云端通过，等待真实接口调查 | 实现静态Self Store、Self Encoder和可关闭/缩放gated injection，并建立字段mask/swap/random/coupling-off消融 | 先证明接口可审计、可干预、失败关闭，再决定真实RWKV注入位置和效果实验 | 六字段Schema、checksum不可变Store、deterministic fake Encoder、fake gated residual完成；云端9项测试及manifest验证通过，digest=`694d8e2e…84ca6`。模型未加载、真实hook未实现 | Codex |
 | 40. Self 更新与演化 | ⏳ 未开始 | 让 Self State 根据经历受控更新、回滚和分化 | 这是“持续自我”真正更深入的部分 | 尚未开始 | 后续阶段 |
 | 41. 内生调节与自主审议 | ⏳ 未开始 | 让 Self/冲突决定是否检索、回放、模拟或停止，并在零新外部观察条件下受控更新 | 检验系统是否不仅“有状态”，还会因内部状态选择继续计算；同时排除定时器和随机回放解释 | 设计说明已完成；必须等待显式 Self 因果价值和受约束更新两道前置门，不创建空壳代码 | 后续阶段 |
 | 42. 最终研究结论 | ⏳ 未开始 | 汇总统计结果、失败案例和替代解释 | 最终回答项目假设是否得到支持，而不是只展示几个有趣案例 | 尚未开始 | 共同完成 |
 
 ## 3. 当前所在位置
 
-> 2026-08-11 当前状态：EXP-001C v02 Stage B已完成并为Phase 3工程原型提供正面依据。Self Model v0.1现已完成纯离线接口：Self Store与checksum、字段级fake Encoder、gated coupling、mask/swap/random/off/scale/layer消融均有测试；真实RWKV coupling和效果实验仍未开始。以下保留完整历史路径；如与旧阶段描述冲突，以本段和顶部“当前节点”为准。
+> 2026-08-11 当前状态：EXP-001C v02 Stage B已完成并为Phase 3工程原型提供正面依据。Self Model v0.1纯离线接口已在本地与云端通过：Store/Encoder/Coupling/消融源码和证据清单一致，manifest digest=`694d8e2e…84ca6`。这仍是工程契约，不是神经Self效果；真实RWKV coupling和效果实验尚未开始。以下保留完整历史路径；如与旧阶段描述冲突，以本段和顶部“当前节点”为准。
 
 ```text
 理论设计
@@ -239,7 +239,7 @@ EXP-001B补充控制
 
 ## 4. 当前下一步
 
-> 2026-08-11 当前下一步：提交并在服务器运行Self Model v0.1的9项纯离线测试，重建包含配置、Schema、设计、源码和测试digest的manifest。通过后停在“真实RWKV coupling接口调查”确认门；不得加载模型、选择真实注入层或运行Self效果实验。以下保留此前 EXP-001B 轨迹作为历史记录。
+> 2026-08-11 当前下一步：等待项目负责人确认是否进入“真实RWKV coupling接口调查”。该轮只读审计RWKV-7源码和现有adapter，列出可行注入点、shape、生命周期、风险与最小fake-hook契约；默认不加载模型、不实现真实hook、不选定最终层，也不运行Self效果实验。以下保留此前 EXP-001B 轨迹作为历史记录。
 
 截至2026-08-04，项目负责人已经确认EXP-001B设计草案中的B1–B7。
 新增范围仍锁在11,008条控制记录，并明确不重跑EXP-001、不重估E1–E3、
@@ -693,3 +693,4 @@ trial-condition单元；只允许全量完成且完整性验证后观察结果�
 | 2026-08-11 | EXP-001C v02 Stage B单次原始运行完成：224条、7条件、`valid=true`，recurrent state已访问，single-use claim已消费；结果SHA-256=`e0b871e7…8b655`，Stage A未重跑、正式测试集未访问、无正式运行或确认性决定。冻结后续只读观察口径：五个状态语义条件做四代码轮换边际化，reset/random仅作诊断，不设事后阈值；当前尚未读取派生指标 | 远程`results/development/exp001c_v02_stage_b_pilot_v01/summary.json`；`configs/analysis/exp001c_v02_stage_b_observation_v01.json` |
 | 2026-08-11 | EXP-001C v02 Stage B冻结只读观察完成：五个状态语义条件均为轮换边际化联合7/8、domain 8/8、operation 7/8，平均目标margin约1.627；continuous/restored语义预测8/8一致，三种swap均7/8跟随实际注入state。唯一错误始终是`indigo+harbor`读成`indigo+spiral`，并随state交换移动到不同query，非固定题目错误。reset/random与原Stage A参考字段均仅2/8；本轮不设阈值、不作确认性决定、不重跑。该结果支持进入Self Model v0.1工程原型设计，但不能替代EXP-001B控制闭合 | `docs/exp001c_v02_stage_b_pilot_v01_observation.md`；远程`results/development/exp001c_v02_stage_b_observation_v01/observation.json` |
 | 2026-08-11 | Phase 3 Self Model v0.1纯离线接口完成：新增六字段静态Self State Schema、typed item/update-class约束、payload checksum和独占不可变SelfStore；fake Encoder支持确定性字段向量与mask，禁止自然语言Prompt序列化；fake gated residual支持off、scale、layer mask，字段swap保持来源不变，encoded random按字段/seed复现且L2 norm匹配。离线manifest锁定配置、Schema、设计、源码和测试；9项专项、全项目270项通过。真实RWKV hook、模型加载、训练和Self效果实验均未实现/未授权 | `docs/self_model_v0_1_design.md`；`src/psa/self_model/`；`tests/test_self_model_v0_1.py` |
+| 2026-08-11 | Self Model v0.1纯离线接口完成服务器复验：提交`fdf626a`上9项专项测试通过，服务器确定性重建并验证配置、两个Schema、设计文档、脚本、五个模块和测试的完整source digest清单；manifest `valid=true`、digest=`694d8e2e…84ca6`。证据明确`model_loaded=false`、`model_executed=false`、`real_rwkv_coupling_implemented=false`；下一步只进入真实RWKV接口调查确认门，不直接实现或运行 | 远程`results/development/self_model_v0_1_offline/manifest.json` |
