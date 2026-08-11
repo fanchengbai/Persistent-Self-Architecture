@@ -15,19 +15,21 @@ class Exp001CProspectiveDesignTests(unittest.TestCase):
     def setUp(self) -> None:
         self.config = json.loads(CONFIG.read_text(encoding="utf-8"))
 
-    def test_draft_authorizes_only_noncore_development_pilot(self) -> None:
+    def test_draft_closes_v01_and_authorizes_only_offline_v02_design(self) -> None:
         self.assertEqual(
             self.config["status"],
-            "noncore_development_pilot_authorized_unfrozen_formal_unapproved",
+            "noncore_pilot_v01_observed_closed_offline_v02_design_authorized",
         )
         authority = self.config["authority"]
         self.assertTrue(authority["development_implementation_authorized"])
-        self.assertTrue(authority["pilot_run_authorized"])
+        self.assertFalse(authority["pilot_run_authorized"])
+        development = self.config["development_authorization"]
+        self.assertFalse(development["model_execution_authorized"])
+        self.assertFalse(development["noncore_pilot_authorized"])
+        self.assertTrue(development["pilot_v01_result_observation_authorized"])
+        self.assertFalse(development["pilot_v01_automatic_rerun_authorized"])
         self.assertTrue(
-            self.config["development_authorization"]["model_execution_authorized"]
-        )
-        self.assertTrue(
-            self.config["development_authorization"]["noncore_pilot_authorized"]
+            development["offline_protocol_v02_design_authorized"]
         )
         for key in (
             "test_set_generation_authorized",

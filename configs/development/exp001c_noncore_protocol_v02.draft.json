@@ -1,0 +1,52 @@
+{
+  "protocol_version": "0.2-development-draft",
+  "protocol_id": "EXP-001C-NONCORE-PROTOCOL-v02",
+  "experiment_id": "EXP-001C",
+  "status": "offline_manifest_design_authorized_execution_unapproved",
+  "development_only": true,
+  "non_core": true,
+  "formal_test_set_accessed": false,
+  "authority": {
+    "offline_manifest_build_authorized": true,
+    "model_execution_authorized": false,
+    "automatic_rerun_authorized": false,
+    "formal_test_set_access_authorized": false,
+    "formal_run_authorized": false
+  },
+  "source_pilot": {
+    "version": "v01",
+    "manifest_digest_sha256": "5e5d9a8eba2f5fe8b078ad007273e2f4e0040385ee6ab458b00b244ed2a18a8f",
+    "probe_result_sha256": "7791aad073ad2692a68c9a2b7e0beedb1d19d06f850ac35c52630beaca39a056",
+    "decision": "revise_positive_control_protocol_before_any_state_inference"
+  },
+  "prompt_protocol": {
+    "source": "existing_g1_history_binding_generator",
+    "prompt_format": "rwkv7-g1-state-only-fake-think-v0.1",
+    "history_mode": "single_statement",
+    "assistant_prefix": "<think></think",
+    "forced_answer_prefix": ">\n",
+    "answer_codes": ["A", "B", "C", "D"],
+    "identity_label_pairs": [["saffron", "indigo"]],
+    "goal_label_pairs": [["spiral", "harbor"]],
+    "repetitions": 2,
+    "rotation_count": 4,
+    "delay_units": 11,
+    "base_seed": 20260811
+  },
+  "stage_a_positive_control": {
+    "scope": "prompt_visible_only",
+    "record_count": 32,
+    "minimum_label_marginalized_accuracy": 0.8,
+    "require_complete_four_code_rotation": true,
+    "require_all_answer_codes_equally_represented": true,
+    "maximum_single_predicted_code_share": 0.5,
+    "prefix_roundtrip_required_rate": 1.0,
+    "prefix_greedy_exact_is_secondary": true,
+    "execution_requires_new_authorization": true
+  },
+  "stage_b_recurrent_state": {
+    "authorized": false,
+    "requires_stage_a_pass": true,
+    "requires_separate_owner_authorization": true
+  }
+}

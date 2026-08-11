@@ -1,0 +1,101 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://persistent-self-architecture.local/schemas/exp001c_protocol_v02_manifest.schema.json",
+  "title": "EXP-001C Non-Core Protocol v02 Offline Manifest",
+  "type": "object",
+  "required": [
+    "manifest_version",
+    "protocol_id",
+    "experiment_id",
+    "status",
+    "development_only",
+    "non_core",
+    "formal_test_set_accessed",
+    "model_executed",
+    "execution_authorized",
+    "automatic_rerun_authorized",
+    "formal_run_authorized",
+    "config",
+    "source_pilot",
+    "stage_a_positive_control",
+    "stage_b_recurrent_state",
+    "prompt_format",
+    "assistant_prefix",
+    "forced_answer_prefix",
+    "history_mode",
+    "rotation_count",
+    "semantic_case_count",
+    "record_count",
+    "target_code_counts",
+    "rotation_counts",
+    "trials",
+    "locked_source_digests",
+    "manifest_digest_sha256"
+  ],
+  "properties": {
+    "manifest_version": {"const": "0.2-development-unrun"},
+    "experiment_id": {"const": "EXP-001C"},
+    "status": {"const": "offline_positive_control_manifest_unrun"},
+    "development_only": {"const": true},
+    "non_core": {"const": true},
+    "formal_test_set_accessed": {"const": false},
+    "model_executed": {"const": false},
+    "execution_authorized": {"const": false},
+    "automatic_rerun_authorized": {"const": false},
+    "formal_run_authorized": {"const": false},
+    "assistant_prefix": {"const": "<think></think"},
+    "forced_answer_prefix": {"const": ">\n"},
+    "history_mode": {"const": "single_statement"},
+    "rotation_count": {"const": 4},
+    "semantic_case_count": {"const": 8},
+    "record_count": {"const": 32},
+    "target_code_counts": {"$ref": "#/$defs/eightPerCode"},
+    "rotation_counts": {"$ref": "#/$defs/eightPerRotation"},
+    "trials": {
+      "type": "array",
+      "minItems": 32,
+      "maxItems": 32,
+      "items": {
+        "type": "object",
+        "required": [
+          "sample_id",
+          "semantic_case_id",
+          "history_mode",
+          "rotation_index",
+          "history_text",
+          "query_text",
+          "target_code",
+          "option_mapping"
+        ]
+      }
+    },
+    "manifest_digest_sha256": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{64}$"
+    }
+  },
+  "$defs": {
+    "eightPerCode": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["A", "B", "C", "D"],
+      "properties": {
+        "A": {"const": 8},
+        "B": {"const": 8},
+        "C": {"const": 8},
+        "D": {"const": 8}
+      }
+    },
+    "eightPerRotation": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["0", "1", "2", "3"],
+      "properties": {
+        "0": {"const": 8},
+        "1": {"const": 8},
+        "2": {"const": 8},
+        "3": {"const": 8}
+      }
+    }
+  }
+}

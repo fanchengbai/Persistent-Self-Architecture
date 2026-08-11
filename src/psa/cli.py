@@ -22,6 +22,7 @@ from psa.development import (
     build_exp001c_rwkv_development_backend,
     build_exp001c_probe_pilot_authorization,
     build_exp001c_probe_manifest,
+    build_exp001c_protocol_v02_manifest,
     run_g1_capability_audit,
     run_capability_ladder_gate,
     run_g1_capability_ladder_gate,
@@ -32,6 +33,7 @@ from psa.development import (
     run_exp001c_development_probe,
     validate_exp001c_probe_execution_authority,
     verify_exp001c_probe_manifest,
+    verify_exp001c_protocol_v02_manifest,
 )
 from psa.environment import collect_environment
 from psa.evaluation import group_contrasts
@@ -910,6 +912,25 @@ def _exp001c_probe_run(args: argparse.Namespace) -> int:
     return 0 if result["valid"] else 2
 
 
+def _exp001c_protocol_v02_build(args: argparse.Namespace) -> int:
+    result = build_exp001c_protocol_v02_manifest(
+        config_path=args.config,
+        project_root=args.project_root,
+    )
+    _write_json(Path(args.output), result)
+    print(json.dumps(result, ensure_ascii=False, indent=2))
+    return 0
+
+
+def _exp001c_protocol_v02_verify(args: argparse.Namespace) -> int:
+    result = verify_exp001c_protocol_v02_manifest(
+        args.manifest,
+        project_root=args.project_root,
+    )
+    print(json.dumps(result, ensure_ascii=False, indent=2))
+    return 0 if result["valid"] else 2
+
+
 def _confirmatory_run(args: argparse.Namespace) -> int:
     result = run_exp001_confirmatory(
         project_root=args.project_root,
@@ -1529,6 +1550,30 @@ def build_parser() -> argparse.ArgumentParser:
     exp001c_probe_run.add_argument("--output-dir", required=True)
     exp001c_probe_run.add_argument("--project-root", default=".")
     exp001c_probe_run.set_defaults(handler=_exp001c_probe_run)
+
+    exp001c_protocol_v02_build = subparsers.add_parser(
+        "exp001c-protocol-v02-build",
+        help=(
+            "build the unrun, code-rotated EXP-001C v02 positive-control "
+            "manifest without loading a model"
+        ),
+    )
+    exp001c_protocol_v02_build.add_argument("--config", required=True)
+    exp001c_protocol_v02_build.add_argument("--output", required=True)
+    exp001c_protocol_v02_build.add_argument("--project-root", default=".")
+    exp001c_protocol_v02_build.set_defaults(
+        handler=_exp001c_protocol_v02_build
+    )
+
+    exp001c_protocol_v02_verify = subparsers.add_parser(
+        "exp001c-protocol-v02-verify",
+        help="verify the unrun EXP-001C v02 positive-control manifest",
+    )
+    exp001c_protocol_v02_verify.add_argument("--manifest", required=True)
+    exp001c_protocol_v02_verify.add_argument("--project-root", default=".")
+    exp001c_protocol_v02_verify.set_defaults(
+        handler=_exp001c_protocol_v02_verify
+    )
 
     confirmatory_run = subparsers.add_parser(
         "confirmatory-run",

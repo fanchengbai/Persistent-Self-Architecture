@@ -6,10 +6,10 @@
     "EXP-001B",
     "EXP-001B-posthoc-diagnostics-v01-v06"
   ],
-  "status": "noncore_development_pilot_authorized_unfrozen_formal_unapproved",
+  "status": "noncore_pilot_v01_observed_closed_offline_v02_design_authorized",
   "authority": {
     "development_implementation_authorized": true,
-    "pilot_run_authorized": true,
+    "pilot_run_authorized": false,
     "test_set_generation_authorized": false,
     "formal_run_authorized": false,
     "result_observation_authorized": false,
@@ -31,8 +31,11 @@
       "locked exp001c-probe-run CLI",
       "fake-adapter backend integration tests"
     ],
-    "model_execution_authorized": true,
-    "noncore_pilot_authorized": true,
+    "model_execution_authorized": false,
+    "noncore_pilot_authorized": false,
+    "pilot_v01_result_observation_authorized": true,
+    "pilot_v01_automatic_rerun_authorized": false,
+    "offline_protocol_v02_design_authorized": true,
     "formal_data_generation_authorized": false
   },
   "scope": {

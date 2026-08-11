@@ -58,6 +58,10 @@ from psa.development.exp001c_rwkv_backend import (
     build_exp001c_rwkv_development_backend,
     load_exp001c_noncore_fixture,
 )
+from psa.development.exp001c_protocol_v02 import (
+    build_exp001c_protocol_v02_manifest,
+    verify_exp001c_protocol_v02_manifest,
+)
 
 __all__ = [
     "calibrate_standard_delay",
@@ -106,4 +110,6 @@ __all__ = [
     "RWKVExp001CDevelopmentBackend",
     "build_exp001c_rwkv_development_backend",
     "load_exp001c_noncore_fixture",
+    "build_exp001c_protocol_v02_manifest",
+    "verify_exp001c_protocol_v02_manifest",
 ]

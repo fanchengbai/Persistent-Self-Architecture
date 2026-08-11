@@ -16,21 +16,26 @@ PROBE_EXECUTION_ENV = "PSA_EXP001C_NONCORE_PILOT"
 PROBE_EXECUTION_LOCK = "AUTHORIZED_EXP001C_NONCORE_DEVELOPMENT_PILOT"
 PROBE_SOURCE_FILES = (
     "configs/development/exp001c_noncore_formal_shape_fixture.v0.1.json",
+    "configs/development/exp001c_noncore_protocol_v02.draft.json",
     "configs/preregistration/exp001c_prefix_semantics.draft.json",
     "docs/exp001c_prospective_design.md",
+    "docs/exp001c_noncore_pilot_v01_observation.md",
     "schemas/exp001c_noncore_pilot_authorization.schema.json",
     "schemas/exp001c_noncore_probe_result.schema.json",
     "schemas/exp001c_prefix_evidence.schema.json",
+    "schemas/exp001c_protocol_v02_manifest.schema.json",
     "src/psa/cli.py",
     "src/psa/development/__init__.py",
     "src/psa/development/exp001c_probe.py",
     "src/psa/development/exp001c_rwkv_backend.py",
     "src/psa/development/prefix_instrumentation.py",
+    "src/psa/development/exp001c_protocol_v02.py",
     "tests/fixtures/exp001c_prefix_logits_fixture.json",
     "tests/test_exp001c_design.py",
     "tests/test_exp001c_prefix_instrumentation.py",
     "tests/test_exp001c_probe.py",
     "tests/test_exp001c_rwkv_backend.py",
+    "tests/test_exp001c_protocol_v02.py",
 )
 
 

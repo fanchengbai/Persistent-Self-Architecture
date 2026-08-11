@@ -166,7 +166,9 @@ fake-adapter backend 集成测试。
 
 项目负责人随后于 2026-08-10 明确授权进入非 Core 模型开发门。该授权仅允许使用已锁定
 formal-shape 非 Core fixture 执行一次 development pilot，并要求 manifest、独立授权包和
-环境变量执行锁三者同时匹配；不允许自动重跑。
+环境变量执行锁三者同时匹配；不允许自动重跑。该次 v01 pilot 已完成，并于 2026-08-11
+获得只读结果观察授权；观察结论记录在
+`docs/exp001c_noncore_pilot_v01_observation.md`。
 
-该 pilot 授权仍不包含正式测试集生成、正式运行或正式结果观察。pilot 完成后必须再次
-停下，由项目负责人决定是否进入后续校准或设计冻结阶段。
+v01 执行权限现已关闭。当前只授权离线设计 v02 prompt-visible 正控制 manifest；v02
+模型执行、recurrent-state 阶段、正式测试集生成、正式运行和正式结果观察均未授权。
