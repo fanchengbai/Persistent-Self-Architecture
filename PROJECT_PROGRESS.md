@@ -1,8 +1,8 @@
 # Persistent Self Architecture 项目进度表
 
 > 最后更新：2026-08-11
-> 当前节点：Phase 3真实2.9B coupling-off adapter设计本地完成；等待云端只读复验
-> 研究状态：OFF-G1/G2、逐位判据和五级授权门已冻结；adapter文件不存在，模型未加载，active路径与真实层仍未授权
+> 当前节点：Phase 3真实2.9B coupling-off adapter设计云端复验通过；等待D2实现确认
+> 研究状态：OFF-G1/G2、逐位判据和五级授权门已锁定；adapter文件仍不存在，模型未加载，active路径与真实层仍未授权
 
 ## 1. 这张表怎么使用
 
@@ -113,14 +113,14 @@
 | 38p. EXP-001C v02 Stage B只读live preflight与机器授权锁 | ✅ 云端通过 | 在模型加载前绑定干净main提交、设计/protocol digest、Stage A原始结果、模型配置与资产哈希、主机环境、224条计划和空输出目录；授权只接受固定逐字文本并绑定preflight digest | 防止把“继续”解释成模型执行授权，也防止代码、证据、模型或输出目录变化后复用旧授权 | Stage B 29项远程测试通过，云端只读preflight全部检查为true且失败项为空；`model_loaded=false`、`model_executed=false`、执行/观察均为false。最终digest以本轮最终文档提交后的服务器v02证据为准 | Codex |
 | 38q. EXP-001C v02 Stage B项目负责人单次授权 | ✅ 已逐字确认并消费 | 负责人使用冻结原文授权224条recurrent-state非Core pilot及本轮结果观察，同时明确排除Stage A重跑、正式测试集、正式运行、确认性决定和自动重跑 | 模型执行和结果观察是新的不可逆边界，不能由此前“继续”推断 | 授权绑定preflight_v03与Stage A/result digest，机器记录和single-use claim均已消费；224条运行及观察完成后禁止重跑 | 项目负责人；Codex执行 |
 | 38r. EXP-001C v02 Stage B冻结只读观察 | ✅ 云端完成 | 对五个状态语义条件按8个语义案例×4代码轮换平均log score，记录联合/字段准确率与margin；reset/random只记录参考匹配率，不定义正确答案 | 原始code top-1容易受A–D先验影响；同时不能把诊断控制事后改成主要端点或临时添加通过阈值 | 五个主要条件均联合7/8、domain 8/8、operation 7/8；continuous/restored预测8/8一致，三种swap均7/8跟随注入state。reset/random参考匹配均2/8；无确认性决定或重跑 | Codex；云端只读分析 |
-| 39. Phase 3：显式 Self Model | 🟡 真实adapter off设计本地完成，等待云端复验 | 实现静态Self Store、Self Encoder和可关闭/缩放gated injection，并建立字段mask/swap/random/coupling-off消融 | 先证明接口可审计、可干预、失败关闭，再决定真实RWKV注入位置和效果实验 | 已冻结OFF-G1直接委托与OFF-G2 instrumented-off两级门、单token/序列×None/restored×full-output判据、同shape预热和逐位logits/state标准。真实adapter目标文件必须不存在，active、真实层和模型执行均未授权 | Codex |
+| 39. Phase 3：显式 Self Model | 🟡 真实adapter off设计云端通过，等待D2确认 | 实现静态Self Store、Self Encoder和可关闭/缩放gated injection，并建立字段mask/swap/random/coupling-off消融 | 先证明接口可审计、可干预、失败关闭，再决定真实RWKV注入位置和效果实验 | OFF-G1直接委托与OFF-G2 instrumented-off两级门、单token/序列×None/restored×full-output判据、同shape预热和逐位logits/state标准已云端锁定；23项检查与9个源码digest有效。真实adapter文件仍不存在，active、真实层和模型执行均未授权 | Codex |
 | 40. Self 更新与演化 | ⏳ 未开始 | 让 Self State 根据经历受控更新、回滚和分化 | 这是“持续自我”真正更深入的部分 | 尚未开始 | 后续阶段 |
 | 41. 内生调节与自主审议 | ⏳ 未开始 | 让 Self/冲突决定是否检索、回放、模拟或停止，并在零新外部观察条件下受控更新 | 检验系统是否不仅“有状态”，还会因内部状态选择继续计算；同时排除定时器和随机回放解释 | 设计说明已完成；必须等待显式 Self 因果价值和受约束更新两道前置门，不创建空壳代码 | 后续阶段 |
 | 42. 最终研究结论 | ⏳ 未开始 | 汇总统计结果、失败案例和替代解释 | 最终回答项目假设是否得到支持，而不是只展示几个有趣案例 | 尚未开始 | 共同完成 |
 
 ## 3. 当前所在位置
 
-> 2026-08-11 当前状态：EXP-001C v02 Stage B、Self Model v0.1离线接口、真实RWKV静态调查和无权重双路径回调均已云端通过。真实2.9B adapter的coupling-off设计现已在本地冻结：先过直接委托OFF-G1，再过项目内instrumented runtime OFF-G2；任一逐位检查失败都停止且不得事后改容差。当前没有创建真实adapter、加载模型、选择真实层或获得神经Self效果证据，等待云端只读设计复验。以下保留完整历史路径；如与旧阶段描述冲突，以本段和顶部“当前节点”为准。
+> 2026-08-11 当前状态：EXP-001C v02 Stage B、Self Model v0.1离线接口、真实RWKV静态调查、无权重双路径回调和真实2.9B coupling-off设计均已云端通过。设计固定先过直接委托OFF-G1，再过项目内instrumented runtime OFF-G2；任一逐位检查失败都停止且不得事后改容差。当前没有创建真实adapter、加载模型、选择真实层或获得神经Self效果证据；下一步D2只允许本地实现off-only adapter。以下保留完整历史路径；如与旧阶段描述冲突，以本段和顶部“当前节点”为准。
 
 ```text
 理论设计
@@ -239,7 +239,7 @@ EXP-001B补充控制
 
 ## 4. 当前下一步
 
-> 2026-08-11 当前下一步：推送本轮设计到main，服务器先启用`network_turbo`拉取，然后只读核对已安装`rwkv==0.8.32`源码digest、23项设计检查和9个锁定文件digest。不得导入`rwkv.model`/`torch`、访问权重、创建真实adapter或执行模型。复验通过后停下；D2 off-only adapter本地实现需下一轮重新确认。以下保留此前 EXP-001B 轨迹作为历史记录。
+> 2026-08-11 当前下一步：等待项目负责人确认是否进入D2“off-only adapter本地实现”。D2只创建项目内wrapper、静态来源锁、默认拒绝active和无模型fake base验证；不得复制instrumented RWKV循环、不得导入/加载真实模型、不得访问权重或选择真实层。D3服务器无模型静态复验与D4真实2.9B off执行仍需后续独立确认。以下保留此前 EXP-001B 轨迹作为历史记录。
 
 截至2026-08-04，项目负责人已经确认EXP-001B设计草案中的B1–B7。
 新增范围仍锁在11,008条控制记录，并明确不重跑EXP-001、不重估E1–E3、
@@ -699,3 +699,4 @@ trial-condition单元；只允许全量完成且完整性验证后观察结果�
 | 2026-08-11 | Self Model v0.1无权重双路径残差回调壳本地完成：新增纯Python3层×4维fake runtime，`forward_one`与`forward_seq`共享`post_ffn_residual`回调协议；off与scale=0完全绕过callback并与无callback基线逐位一致，active路径保留shape/dtype/device，输入state在运行前clone且callback请求不暴露recurrent state。fake `broadcast_all_tokens`和`fake-layer-01`均明确不冻结真实策略/层。8项专项及全项目281项测试通过；没有导入模型、访问权重、修改`site-packages`或运行效果实验，等待云端复验 | `docs/self_model_v0_1_fake_callback_contract.md`；`src/psa/self_model/fake_callback_runtime.py` |
 | 2026-08-11 | 无权重双路径残差回调壳在服务器提交`1f3064e`上复验通过：旧离线manifest、RWKV静态审计和fake callback共12项跨阶段测试通过；报告`valid=true`、digest=`42717dac…a456`。独立重算确认16项检查、6个锁定源码digest和`forward_one/forward_seq`两条active路径全部有效；9个安全字段全部为false，包括未导入`rwkv.model`/`torch`、未访问权重、未加载/执行模型、未修改`site-packages`、未实现真实hook或选择真实层、未运行Self效果实验。本轮到此停止 | 远程`results/development/self_model_v0_1_fake_callback/report.json` |
 | 2026-08-11 | 真实2.9B coupling-off adapter设计本地完成：固定项目内未来路径并禁止修改`site-packages`，设置OFF-G1直接委托原始forward与OFF-G2双路径instrumented-off两级门；未来模型门要求同进程、同shape预热1次、单token/序列、None/restored state、`full_output=false/true`，logits及全部state必须`torch.equal`，失败即停止且不能换容差/top-1。D1–D5授权分离，当前仅D1；真实adapter目标文件不存在，active、模型执行、真实层和效果实验均为false。8项专项及全项目289项通过，等待云端只读设计复验 | `docs/self_model_v0_1_real_adapter_off_design.md`；`configs/development/self_model_v0_1_real_adapter_off_design.draft.json` |
+| 2026-08-11 | 真实2.9B coupling-off adapter设计在服务器提交`f72e0cf`上复验通过：19项Phase 3组合测试通过；报告`valid=true`、digest=`dbd64e9a…f585`。独立重算确认23项设计检查、9个锁定文件digest、OFF-G1/OFF-G2顺序及未来adapter文件缺失全部有效；11个安全字段全为false，包括未导入模型/torch、未访问权重、未加载/执行模型、未修改`site-packages`、未实现adapter/active、未选真实层、未运行效果实验和未授权自动重跑。本轮到此停止 | 远程`results/development/self_model_v0_1_real_adapter_off_design/report.json` |
