@@ -583,3 +583,7 @@ EXP-001已完成320组、40,960条记录的冻结确认性运行、独立完整�
 8. Phase 3可以继续框架和接口设计，但在Gate 4闭合前不启动显式Self Model的
    正式确认性实验；
 9. EXP-001B完整运行、验证和冻结分析后，再作一次明确的Phase 2 Go / Revise / Stop决策。
+10. EXP-001C v02 Stage A prompt-visible 非Core正控制已在一次性授权下完成：32条中
+    28条正确，label-marginalized accuracy=0.875，最大单一代码占比=0.28125，
+    prefix greedy/roundtrip均为1.0，预设门槛全部通过。该授权已关闭且禁止重跑；
+    Stage B、正式测试集和正式运行仍需新的独立授权。

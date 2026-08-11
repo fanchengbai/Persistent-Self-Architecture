@@ -170,8 +170,10 @@ formal-shape 非 Core fixture 执行一次 development pilot，并要求 manifes
 获得只读结果观察授权；观察结论记录在
 `docs/exp001c_noncore_pilot_v01_observation.md`。
 
-v01 执行权限现已关闭。当前只授权离线设计 v02 prompt-visible 正控制 manifest，以及
-Stage A 的锁定 runner/backend、未来授权与结果 Schema、假适配器测试；v02
-执行前还必须通过只读 preflight，并将授权绑定到当前 manifest、服务器环境、Git 提交和
-模型资产摘要；
+v01 执行权限已经关闭。v02 Stage A 在绑定 manifest、服务器环境、Git 提交和模型资产
+摘要的只读 preflight 通过后，获得一次性的 prompt-visible 非 Core 32 条执行与结果观察
+授权。该次运行以 28/32、label-marginalized accuracy 0.875 通过正控制门槛，prefix
+greedy/roundtrip 均为 32/32，且没有单一代码塌缩。授权已随单次运行完成而关闭，禁止
+自动重跑。Stage B、正式测试集和正式运行仍未授权；Stage A 通过只表示可以进入新的
+Stage B 独立授权审查，不构成 recurrent-state 结论。
 模型执行、recurrent-state 阶段、正式测试集生成、正式运行和正式结果观察均未授权。
