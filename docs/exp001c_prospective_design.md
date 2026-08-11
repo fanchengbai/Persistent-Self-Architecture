@@ -187,6 +187,8 @@ v02 Stage B 的第一版离线设计于 2026-08-11 完成。Stage A 的 32 条�
 和 `random_matched` 只作为诊断控制，不设置状态语义正确项。完整风险边界见
 `docs/exp001c_v02_stage_b_risk_review.md`。
 
-当前只批准离线 design config、schema、确定性 manifest builder/verifier 和单元测试。
-Stage B runner/backend 集成、服务器 preflight 与任何模型执行仍需后续分轮完成；模型执行、
-recurrent-state 实跑、正式测试集生成、正式运行和正式结果观察均未授权。
+当前已完成离线 design config、schema、确定性 manifest builder/verifier，以及只接受未
+加载 fake adapter 的 224 条离线 runner/backend 契约。synthetic 输出固定声明不能作为
+研究证据，真实模型入口无条件失败关闭。真实 RWKV backend 工厂、服务器 preflight 与
+任何模型执行仍需后续分轮完成；模型执行、recurrent-state 实跑、正式测试集生成、
+正式运行和正式结果观察均未授权。

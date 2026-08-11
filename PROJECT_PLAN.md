@@ -591,3 +591,7 @@ EXP-001已完成320组、40,960条记录的冻结确认性运行、独立完整�
     不在Stage B中重跑；七个状态条件各32条，共224条。交换条件的预期答案跟随实际
     注入状态重新映射，reset/random仅作诊断控制。下一步须经负责人确认后才能进入
     纯离线runner/backend集成；Stage B模型执行仍需更后的独立授权和live preflight。
+12. 负责人已确认Stage B纯离线runner/backend集成；224条fake-adapter路由、原子结果
+    包和失败关闭契约已实现，全项目241项测试通过。所有synthetic输出明确不能作为
+    研究证据，真实模型入口无条件关闭。下一步等待确认是否实现真实RWKV backend工厂
+    与fake-RWKV-adapter测试；该步骤仍只写代码，不加载模型。

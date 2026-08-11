@@ -1,0 +1,101 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://persistent-self-architecture.local/schemas/exp001c_v02_stage_b_offline_result.schema.json",
+  "title": "EXP-001C v02 Stage B fake-adapter offline contract result",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "result_version",
+    "experiment_id",
+    "status",
+    "development_only",
+    "non_core",
+    "offline_fake_adapter_only",
+    "synthetic_output_not_research_evidence",
+    "model_loaded",
+    "model_executed",
+    "stage_a_rerun",
+    "formal_test_set_accessed",
+    "formal_run",
+    "contains_confirmatory_decision",
+    "automatic_rerun_authorized",
+    "design_manifest_digest_sha256",
+    "condition_count",
+    "record_count",
+    "records"
+  ],
+  "properties": {
+    "result_version": {"const": "0.1-offline-contract"},
+    "experiment_id": {"const": "EXP-001C"},
+    "status": {"const": "stage_b_offline_fake_contract_complete"},
+    "development_only": {"const": true},
+    "non_core": {"const": true},
+    "offline_fake_adapter_only": {"const": true},
+    "synthetic_output_not_research_evidence": {"const": true},
+    "model_loaded": {"const": false},
+    "model_executed": {"const": false},
+    "stage_a_rerun": {"const": false},
+    "formal_test_set_accessed": {"const": false},
+    "formal_run": {"const": false},
+    "contains_confirmatory_decision": {"const": false},
+    "automatic_rerun_authorized": {"const": false},
+    "design_manifest_digest_sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+    "condition_count": {"const": 7},
+    "record_count": {"const": 224},
+    "records": {
+      "type": "array",
+      "minItems": 224,
+      "maxItems": 224,
+      "items": {
+        "type": "object",
+        "required": [
+          "record_id",
+          "condition",
+          "condition_role",
+          "query_sample_id",
+          "semantic_case_id",
+          "rotation_index",
+          "state_source_sample_id",
+          "state_source_fields",
+          "reference_stage_a_target_code",
+          "expected_state_semantic_target_code",
+          "semantic_endpoint_role",
+          "option_log_probabilities",
+          "predicted_code",
+          "answer_boundary_evidence",
+          "synthetic_output"
+        ],
+        "properties": {
+          "record_id": {"type": "string", "minLength": 1},
+          "condition": {
+            "enum": ["continuous", "restored", "swapped_I", "swapped_G", "swapped_both", "reset", "random_matched"]
+          },
+          "condition_role": {"type": "string", "minLength": 1},
+          "query_sample_id": {"type": "string", "minLength": 1},
+          "semantic_case_id": {"type": "string", "minLength": 1},
+          "rotation_index": {"type": "integer", "minimum": 0, "maximum": 3},
+          "state_source_sample_id": {"type": ["string", "null"]},
+          "state_source_fields": {"type": ["object", "null"]},
+          "reference_stage_a_target_code": {"enum": ["A", "B", "C", "D"]},
+          "expected_state_semantic_target_code": {"type": ["string", "null"], "enum": ["A", "B", "C", "D", null]},
+          "semantic_endpoint_role": {"enum": ["state_faithful_primary", "diagnostic_control"]},
+          "option_log_probabilities": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["A", "B", "C", "D"],
+            "properties": {
+              "A": {"type": "number"},
+              "B": {"type": "number"},
+              "C": {"type": "number"},
+              "D": {"type": "number"}
+            }
+          },
+          "predicted_code": {"enum": ["A", "B", "C", "D"]},
+          "answer_boundary_evidence": {"type": ["object", "null"]},
+          "synthetic_output": {"const": true}
+        },
+        "additionalProperties": false
+      }
+    }
+  }
+}
