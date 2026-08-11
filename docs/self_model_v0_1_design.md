@@ -73,13 +73,8 @@ embedding dimension=16 仅用于离线夹具，不是未来真实 RWKV coupling 
 - scale：检查效应是否能够随注入强度变化；
 - layer mask：未来定位作用层，当前只验证接口。
 
-## 6. RWKV接口调查后的下一授权门
+## 6. 下一授权门
 
-只读接口调查已经完成，见
-`docs/self_model_v0_1_rwkv_coupling_audit.md`。当前包没有逐block子模块hook；最小可审计路线
-是在项目内为RWKV-7的单token和序列路径同时增加显式残差回调壳，优先接口族为每层FFN残差
-之后，但具体层尚未选择。
-
-下一轮若继续，只实现“无权重fake runtime + 双路径回调契约测试”，仍不得导入/加载真实模型、
-不得修改服务器`site-packages`、不得选择最终层或运行Self效果实验。任何真实2.9B加载、层注入
-或非Core效果测试仍需要新的明确授权。
+本轮完成后仍不能加载模型。下一步若继续，应先做“真实 RWKV coupling 接口调查”：只读
+确认可用 hook/activation/state 接口并设计最小 real adapter，同时冻结非 Core A–E 对照和
+通用能力副指标。任何真实模型加载、层注入或效果实验需要新的明确授权。
