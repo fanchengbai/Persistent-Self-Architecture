@@ -125,7 +125,7 @@ def build_instrumented_method_asts(
     tree = ast.parse(upstream_source)
     classes = [
         node
-        for node in tree.body
+        for node in ast.walk(tree)
         if isinstance(node, ast.ClassDef) and node.name == TARGET_CLASS
     ]
     if len(classes) != 1:

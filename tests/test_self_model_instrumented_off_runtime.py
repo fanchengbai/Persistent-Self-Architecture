@@ -3,6 +3,7 @@ from __future__ import annotations
 import hashlib
 from pathlib import Path
 import sys
+import textwrap
 import unittest
 from unittest import mock
 
@@ -96,6 +97,13 @@ class InstrumentedOffRuntimeTests(unittest.TestCase):
         inspection = inspect_instrumented_source(source)
         self.assertTrue(inspection["valid"])
         self.assertTrue(all(inspection["checks"].values()))
+
+    def test_ast_transform_finds_class_inside_upstream_feature_guard(self) -> None:
+        source, _, _ = _base_class()
+        guarded_source = "if FEATURE_ENABLED:\n" + textwrap.indent(source, "    ")
+        methods, counts = build_instrumented_method_asts(guarded_source)
+        self.assertEqual(set(methods), {"forward_one", "forward_seq"})
+        self.assertEqual(counts, {"forward_one": 1, "forward_seq": 1})
 
     def test_off_runtime_matches_original_for_both_dispatch_paths(self) -> None:
         runtime, model = _runtime()
