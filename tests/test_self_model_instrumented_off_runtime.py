@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import ast
 import hashlib
 from pathlib import Path
 import sys
@@ -105,6 +106,27 @@ class InstrumentedOffRuntimeTests(unittest.TestCase):
         self.assertEqual(set(methods), {"forward_one", "forward_seq"})
         self.assertEqual(counts, {"forward_one": 1, "forward_seq": 1})
 
+    def test_ast_transform_finds_methods_inside_class_feature_guard(self) -> None:
+        source, _, _ = _base_class()
+        tree = ast.parse(source)
+        class_node = next(
+            node for node in tree.body if isinstance(node, ast.ClassDef)
+        )
+        methods = [
+            node for node in class_node.body if isinstance(node, ast.FunctionDef)
+        ]
+        class_node.body = [
+            ast.If(
+                test=ast.Name(id="FEATURE_ENABLED", ctx=ast.Load()),
+                body=methods,
+                orelse=[],
+            )
+        ]
+        guarded_source = ast.unparse(ast.fix_missing_locations(tree))
+        transformed, counts = build_instrumented_method_asts(guarded_source)
+        self.assertEqual(set(transformed), {"forward_one", "forward_seq"})
+        self.assertEqual(counts, {"forward_one": 1, "forward_seq": 1})
+
     def test_off_runtime_matches_original_for_both_dispatch_paths(self) -> None:
         runtime, model = _runtime()
         baseline_one = model.forward([3], _state(), False)
@@ -187,8 +209,6 @@ class InstrumentedOffRuntimeTests(unittest.TestCase):
         before_rwkv = "rwkv.model" in sys.modules
         before_torch = "torch" in sys.modules
         source = RUNTIME_SOURCE.read_text(encoding="utf-8")
-        import ast
-
         tree = ast.parse(source)
         imported = set()
         for node in ast.walk(tree):

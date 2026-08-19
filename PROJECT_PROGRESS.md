@@ -1,8 +1,8 @@
 # Persistent Self Architecture 项目进度表
 
 > 最后更新：2026-08-19
-> 当前节点：Phase 3 D3B首次云端静态门有效失败；嵌套类AST修复已完成，等待服务器复验
-> 研究状态：首次远程13项fake测试通过，但真实源码类位于feature guard内导致静态门失败且无报告；修复后14项专项及全项目317项通过，真实模型等价仍未执行
+> 当前节点：Phase 3 D3B第二次云端静态门有效失败；类内条件方法修复已完成，等待服务器复验
+> 研究状态：第二次远程14项fake测试通过，但真实forward方法也位于类内条件分支导致静态门失败且无报告；修复后15项专项及全项目318项通过，真实模型等价仍未执行
 
 ## 1. 这张表怎么使用
 
@@ -113,14 +113,14 @@
 | 38p. EXP-001C v02 Stage B只读live preflight与机器授权锁 | ✅ 云端通过 | 在模型加载前绑定干净main提交、设计/protocol digest、Stage A原始结果、模型配置与资产哈希、主机环境、224条计划和空输出目录；授权只接受固定逐字文本并绑定preflight digest | 防止把“继续”解释成模型执行授权，也防止代码、证据、模型或输出目录变化后复用旧授权 | Stage B 29项远程测试通过，云端只读preflight全部检查为true且失败项为空；`model_loaded=false`、`model_executed=false`、执行/观察均为false。最终digest以本轮最终文档提交后的服务器v02证据为准 | Codex |
 | 38q. EXP-001C v02 Stage B项目负责人单次授权 | ✅ 已逐字确认并消费 | 负责人使用冻结原文授权224条recurrent-state非Core pilot及本轮结果观察，同时明确排除Stage A重跑、正式测试集、正式运行、确认性决定和自动重跑 | 模型执行和结果观察是新的不可逆边界，不能由此前“继续”推断 | 授权绑定preflight_v03与Stage A/result digest，机器记录和single-use claim均已消费；224条运行及观察完成后禁止重跑 | 项目负责人；Codex执行 |
 | 38r. EXP-001C v02 Stage B冻结只读观察 | ✅ 云端完成 | 对五个状态语义条件按8个语义案例×4代码轮换平均log score，记录联合/字段准确率与margin；reset/random只记录参考匹配率，不定义正确答案 | 原始code top-1容易受A–D先验影响；同时不能把诊断控制事后改成主要端点或临时添加通过阈值 | 五个主要条件均联合7/8、domain 8/8、operation 7/8；continuous/restored预测8/8一致，三种swap均7/8跟随注入state。reset/random参考匹配均2/8；无确认性决定或重跑 | Codex；云端只读分析 |
-| 39. Phase 3：显式 Self Model | 🟡 D3B首次云端失败，嵌套类修复待复验 | 实现静态Self Store、Self Encoder和可关闭/缩放gated injection，并建立字段mask/swap/random/coupling-off消融 | 先证明接口可审计、可干预、失败关闭，再决定真实RWKV注入位置和效果实验 | 服务器已拉取`395d5e2`且13项fake测试通过；静态门因只搜索模块顶层、未找到feature guard内的`RWKV_x070`而有效失败，无报告生成。现已改为整棵AST中必须恰好一个目标类，新增嵌套结构回归；14项专项及全项目317项本地通过，等待服务器复验 | Codex |
+| 39. Phase 3：显式 Self Model | 🟡 D3B第二次云端失败，类内方法修复待复验 | 实现静态Self Store、Self Encoder和可关闭/缩放gated injection，并建立字段mask/swap/random/coupling-off消融 | 先证明接口可审计、可干预、失败关闭，再决定真实RWKV注入位置和效果实验 | 第一次修复后服务器14项fake测试通过；静态门已找到`RWKV_x070`，但因只搜索类体第一层、未找到类内feature guard中的forward方法再次有效失败，无报告生成。现已改为目标类子树中每个方法必须恰好一个，新增双层guard回归；15项专项及全项目318项本地通过 | Codex |
 | 40. Self 更新与演化 | ⏳ 未开始 | 让 Self State 根据经历受控更新、回滚和分化 | 这是“持续自我”真正更深入的部分 | 尚未开始 | 后续阶段 |
 | 41. 内生调节与自主审议 | ⏳ 未开始 | 让 Self/冲突决定是否检索、回放、模拟或停止，并在零新外部观察条件下受控更新 | 检验系统是否不仅“有状态”，还会因内部状态选择继续计算；同时排除定时器和随机回放解释 | 设计说明已完成；必须等待显式 Self 因果价值和受约束更新两道前置门，不创建空壳代码 | 后续阶段 |
 | 42. 最终研究结论 | ⏳ 未开始 | 汇总统计结果、失败案例和替代解释 | 最终回答项目假设是否得到支持，而不是只展示几个有趣案例 | 尚未开始 | 共同完成 |
 
 ## 3. 当前所在位置
 
-> 2026-08-19 当前状态：此前Phase 3离线接口、静态调查、fake双路径回调、OFF设计、D2 OFF-G1和D3服务器源码静态门均已通过。项目负责人恢复服务器后，在提交`395d5e2`上拉取并运行D3B：13项fake测试通过，但静态脚本在读取真实源码后以`locked upstream source must contain one RWKV_x070 class`失败，未生成报告。诊断确认真实类位于上游feature guard内，而v01只检查模块顶层。当前修复改为遍历整棵AST并仍要求目标类唯一，新增嵌套类回归；14项专项及全项目317项本地通过，等待重新推送和服务器复验。模型/权重未访问，真实2.9B逐位等价、active injection、真实层选择和Self效果证据仍不存在。以下保留完整历史路径；如与旧阶段描述冲突，以本段和顶部“当前节点”为准。
+> 2026-08-19 当前状态：此前Phase 3离线接口、静态调查、fake双路径回调、OFF设计、D2 OFF-G1和D3服务器源码静态门均已通过。D3B已有两次保留的服务器静态失败：v01只在模块顶层寻找类；v02能找到feature guard内的`RWKV_x070`，但只检查类体第一层，因此以`locked upstream source must contain forward_one`失败。两次都先通过全部fake测试、均未生成报告或导入/执行模型。当前v03把方法搜索扩展为目标类整棵子树，同时继续要求`forward_one/forward_seq`各自唯一；新增类内feature guard回归，15项专项及全项目318项本地通过，等待推送和复验。真实2.9B逐位等价、active injection、真实层选择和Self效果证据仍不存在。以下保留完整历史路径；如与旧阶段描述冲突，以本段和顶部“当前节点”为准。
 
 ```text
 理论设计
@@ -239,7 +239,7 @@ EXP-001B补充控制
 
 ## 4. 当前下一步
 
-> 2026-08-19 当前下一步：推送嵌套类AST修复；服务器快进拉取后运行14项无模型测试并让实际安装`model.py`重新通过41项静态检查。必须保留首次无报告失败，不覆盖；D3B云端证据通过后停止。D4真实2.9B OFF逐位等价仍需再次单独授权，不得由本轮自动升级。以下保留此前 EXP-001B 轨迹作为历史记录。
+> 2026-08-19 当前下一步：推送类内条件方法修复；服务器快进拉取后运行15项无模型测试并让实际安装`model.py`重新通过41项静态检查。两次无报告失败都必须保留；D3B云端证据通过后停止。D4真实2.9B OFF逐位等价仍需再次单独授权，不得由本轮自动升级。以下保留此前 EXP-001B 轨迹作为历史记录。
 
 截至2026-08-04，项目负责人已经确认EXP-001B设计草案中的B1–B7。
 新增范围仍锁在11,008条控制记录，并明确不重跑EXP-001、不重估E1–E3、
@@ -707,3 +707,5 @@ trial-condition单元；只允许全量完成且完整性验证后观察结果�
 | 2026-08-19 | D3B OFF-G2 instrumented-off项目内实现并推送：不复制或修改`site-packages`，而是对固定上游源码AST定位`RWKV_x070`两条forward方法，在每条CMix后的残差加法处要求恰好一个None-guarded post-FFN分支；运行时callback固定为None，临时方法在成功/异常后均恢复，active/非精确off请求失败关闭。13项专项及全项目316项本地测试通过，提交`4733f90`已在main；服务器SSH三次在握手前拒绝，端口诊断确认30587/TCP关闭，故尚未拉取或生成云端静态报告，也未加载/执行模型 | `src/psa/self_model/rwkv7_instrumented_off_runtime.py`；`docs/self_model_v0_1_instrumented_off_runtime.md`；`Test-NetConnection`诊断 |
 | 2026-08-19 | D3B首次服务器静态门有效失败：服务器成功快进到`395d5e2`，13项fake专项全部通过；真实源码探针未导入模型，但AST变换器只在模块顶层寻找`RWKV_x070`，未覆盖上游feature guard内的类定义，抛出`RuntimeError`并未生成report。该失败不是模型结果，也没有权重/模型执行 | 项目负责人粘贴的远程终端输出；缺失的`results/development/self_model_v0_1_instrumented_off_runtime/report.json` |
 | 2026-08-19 | D3B嵌套类AST修复本地完成：目标类搜索从模块顶层扩展为整棵AST，但仍要求恰好一个`RWKV_x070`；新增feature guard嵌套类回归测试，runtime新digest=`386f2410…1877`同步进冻结配置。14项专项及全项目317项通过，等待推送与服务器复验；首次失败保留 | `src/psa/self_model/rwkv7_instrumented_off_runtime.py`；`tests/test_self_model_instrumented_off_runtime.py` |
+| 2026-08-19 | D3B第二次服务器静态门有效失败：嵌套类修复后的14项fake专项全部通过，静态探针也已找到目标类；但真实`forward_one/forward_seq`定义位于类体内部条件分支，v02只查类体第一层，因缺少`forward_one`抛出`RuntimeError`且无report。仍未导入模型、访问权重或执行模型 | 项目负责人粘贴的第二次远程终端输出；缺失的D3B report |
+| 2026-08-19 | D3B类内条件方法修复本地完成：方法搜索扩展为`RWKV_x070`子树并继续要求两条方法各自唯一；新增类外与类内双层feature guard回归，runtime新digest=`ca8c1385…7572`同步进冻结配置。15项专项及全项目318项通过，等待推送与服务器第三次复验；两次失败均保留 | `src/psa/self_model/rwkv7_instrumented_off_runtime.py`；`tests/test_self_model_instrumented_off_runtime.py` |

@@ -120,7 +120,7 @@ def validate_instrumented_off_config(
             implementation.get("path")
             == "src/psa/self_model/rwkv7_instrumented_off_runtime.py"
             and implementation.get("sha256")
-            == "386f241035b0ea080f801780dbb413b875ff21f396d59e871d8bb8922e791877"
+            == "ca8c1385dae8c4c9ff8794fb1688adf375f5bb4595f4bc0abbd4886569907572"
         ),
         "project_local_ast_transform_frozen": (
             implementation.get("project_local_only") is True

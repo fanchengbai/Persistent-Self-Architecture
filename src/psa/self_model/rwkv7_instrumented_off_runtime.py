@@ -136,7 +136,7 @@ def build_instrumented_method_asts(
     for method_name in TARGET_METHODS:
         matches = [
             node
-            for node in class_node.body
+            for node in ast.walk(class_node)
             if isinstance(node, ast.FunctionDef) and node.name == method_name
         ]
         if len(matches) != 1:
