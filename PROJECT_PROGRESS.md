@@ -1,8 +1,8 @@
 # Persistent Self Architecture 项目进度表
 
 > 最后更新：2026-08-19
-> 当前节点：Phase 3 D3B第四次云端静态门有效失败；路径专用CMix名称修复已完成，等待服务器复验
-> 研究状态：DE双variant选择已正确，但真实调用为单token `_CMix_one`、序列`_CMix_seq`，旧通用名称锁导致拒绝；v05按路径精确锁定，16项专项及全项目319项通过
+> 当前节点：Phase 3 D3B OFF-G2服务器无模型静态复验通过；等待D4独立授权
+> 研究状态：OFF-G2代码、真实安装源码双variant结构和关闭态路径静态门已闭合；真实2.9B逐位等价尚未执行，active/Self效果仍无授权或证据
 
 ## 1. 这张表怎么使用
 
@@ -113,14 +113,14 @@
 | 38p. EXP-001C v02 Stage B只读live preflight与机器授权锁 | ✅ 云端通过 | 在模型加载前绑定干净main提交、设计/protocol digest、Stage A原始结果、模型配置与资产哈希、主机环境、224条计划和空输出目录；授权只接受固定逐字文本并绑定preflight digest | 防止把“继续”解释成模型执行授权，也防止代码、证据、模型或输出目录变化后复用旧授权 | Stage B 29项远程测试通过，云端只读preflight全部检查为true且失败项为空；`model_loaded=false`、`model_executed=false`、执行/观察均为false。最终digest以本轮最终文档提交后的服务器v02证据为准 | Codex |
 | 38q. EXP-001C v02 Stage B项目负责人单次授权 | ✅ 已逐字确认并消费 | 负责人使用冻结原文授权224条recurrent-state非Core pilot及本轮结果观察，同时明确排除Stage A重跑、正式测试集、正式运行、确认性决定和自动重跑 | 模型执行和结果观察是新的不可逆边界，不能由此前“继续”推断 | 授权绑定preflight_v03与Stage A/result digest，机器记录和single-use claim均已消费；224条运行及观察完成后禁止重跑 | 项目负责人；Codex执行 |
 | 38r. EXP-001C v02 Stage B冻结只读观察 | ✅ 云端完成 | 对五个状态语义条件按8个语义案例×4代码轮换平均log score，记录联合/字段准确率与margin；reset/random只记录参考匹配率，不定义正确答案 | 原始code top-1容易受A–D先验影响；同时不能把诊断控制事后改成主要端点或临时添加通过阈值 | 五个主要条件均联合7/8、domain 8/8、operation 7/8；continuous/restored预测8/8一致，三种swap均7/8跟随注入state。reset/random参考匹配均2/8；无确认性决定或重跑 | Codex；云端只读分析 |
-| 39. Phase 3：显式 Self Model | 🟡 D3B第四次云端失败，CMix名称修复待复验 | 实现静态Self Store、Self Encoder和可关闭/缩放gated injection，并建立字段mask/swap/random/coupling-off消融 | 先证明接口可审计、可干预、失败关闭，再决定真实RWKV注入位置和效果实验 | v04已正确识别两套DE variant，但仍用旧审计的通用`RWKV_x070_CMix`名称，真实源码分别使用`RWKV_x070_CMix_one/seq`，故每variant注入点检查有效失败。v05按路径锁定精确函数名并拒绝交叉名称；16项专项及全项目319项通过，等待复验 | Codex |
+| 39. Phase 3：显式 Self Model | 🟡 D3B服务器静态门通过，等待D4授权 | 实现静态Self Store、Self Encoder和可关闭/缩放gated injection，并建立字段mask/swap/random/coupling-off消融 | 先证明接口可审计、可干预、失败关闭，再决定真实RWKV注入位置和效果实验 | v05在服务器提交`96b18cd`上通过：16项测试、48项静态检查和10个源码digest有效；两条路径各有两个DE variant、每版一个注入点，未设置DE时选择else行336/458。OFF-G2实现为true，但真实模型等价仍为false，模型/torch/权重/active均未执行 | Codex |
 | 40. Self 更新与演化 | ⏳ 未开始 | 让 Self State 根据经历受控更新、回滚和分化 | 这是“持续自我”真正更深入的部分 | 尚未开始 | 后续阶段 |
 | 41. 内生调节与自主审议 | ⏳ 未开始 | 让 Self/冲突决定是否检索、回放、模拟或停止，并在零新外部观察条件下受控更新 | 检验系统是否不仅“有状态”，还会因内部状态选择继续计算；同时排除定时器和随机回放解释 | 设计说明已完成；必须等待显式 Self 因果价值和受约束更新两道前置门，不创建空壳代码 | 后续阶段 |
 | 42. 最终研究结论 | ⏳ 未开始 | 汇总统计结果、失败案例和替代解释 | 最终回答项目假设是否得到支持，而不是只展示几个有趣案例 | 尚未开始 | 共同完成 |
 
 ## 3. 当前所在位置
 
-> 2026-08-19 当前状态：此前Phase 3离线接口、静态调查、fake双路径回调、OFF设计、D2 OFF-G1和D3服务器源码静态门均已通过。D3B已有四次保留的服务器静态失败：前三次依次暴露模块条件类、类内条件方法和DE双variant；v04已同时检查两套variant并选择未设置DE变量时的else，但注入器仍按旧审计标记寻找通用`RWKV_x070_CMix`。最新只读上下文证明四个真实方法都保持CMix赋值后紧跟`x=x+xx`，差异只是单token使用`RWKV_x070_CMix_one`、序列使用`RWKV_x070_CMix_seq`。v05现按路径精确锁定这两个名称且交叉名称失败关闭；16项专项及全项目319项本地通过，等待推送和复验。四次均无报告、无模型/torch导入、无权重或模型执行；真实2.9B等价和Self效果证据仍不存在。以下保留完整历史路径；如与旧阶段描述冲突，以本段和顶部“当前节点”为准。
+> 2026-08-19 当前状态：此前Phase 3离线接口、静态调查、fake双路径回调、OFF设计、D2 OFF-G1和D3服务器源码静态门均已通过。D3B保留四次无报告静态失败，依次暴露模块条件类、类内条件方法、DE双variant和路径专用CMix名称；v05随后在服务器提交`96b18cd`上通过。16项fake/manifest测试通过，真实`model.py`的两条路径各有两个DE variant且每版一个post-FFN注入点，冻结环境选择else行336/458；报告48项检查、10个源码digest及自digest独立重算有效，digest=`46f05bd8…e57a`。安全字段明确没有导入模型/torch、访问权重、加载或执行模型，也没有构造callback/Self projection或实现active。OFF-G2代码与静态门已闭合，但真实2.9B逐位等价和Self效果证据仍不存在。以下保留完整历史路径；如与旧阶段描述冲突，以本段和顶部“当前节点”为准。
 
 ```text
 理论设计
@@ -239,7 +239,7 @@ EXP-001B补充控制
 
 ## 4. 当前下一步
 
-> 2026-08-19 当前下一步：推送路径专用CMix名称修复；服务器快进拉取后运行16项无模型测试并让实际安装`model.py`通过48项静态检查。四次无报告失败都必须保留；D3B云端证据通过后停止。D4真实2.9B OFF逐位等价仍需再次单独授权，不得由本轮自动升级。以下保留此前 EXP-001B 轨迹作为历史记录。
+> 2026-08-19 当前下一步：本轮在D3B云端证据闭合后停止，等待项目负责人确认。下一步若授权D4，才允许设计并运行真实2.9B OFF逐位等价门；必须覆盖OFF-G1/OFF-G2、单token/序列、None/restored state和`full_output`模式，并用`torch.equal`比较logits及全部state。D4授权不包含active injection、Self效果实验或自动重跑。以下保留此前 EXP-001B 轨迹作为历史记录。
 
 截至2026-08-04，项目负责人已经确认EXP-001B设计草案中的B1–B7。
 新增范围仍锁在11,008条控制记录，并明确不重跑EXP-001、不重估E1–E3、
@@ -713,3 +713,4 @@ trial-condition单元；只允许全量完成且完整性验证后观察结果�
 | 2026-08-19 | D3B DE双variant v04修复本地完成：两条路径的body/else版本都必须各有一个post-FFN注入点；冻结环境要求`RWKV_DE_VERSION`未设置并只选择else版，非空值在runtime构造阶段拒绝。配置与Schema增加variant证据，runtime新digest=`df4da07c…7cd2`；16项专项及全项目319项通过，等待服务器复验，前三次失败保留 | `src/psa/self_model/rwkv7_instrumented_off_runtime.py`；`schemas/self_model_v0_1_instrumented_off_report.schema.json` |
 | 2026-08-19 | D3B第四次服务器静态门有效失败：v04能识别两套DE variant，但每variant注入点仍为0，因为真实函数名不是旧审计标记`RWKV_x070_CMix`。只读上下文确认单token两版均为`RWKV_x070_CMix_one`、序列两版均为`RWKV_x070_CMix_seq`，且四处都紧跟`x=x+xx`；无report、无模型/torch/权重执行 | 项目负责人粘贴的第四次错误及四方法CMix上下文 |
 | 2026-08-19 | D3B路径专用CMix v05修复本地完成：`forward_one`只接受`RWKV_x070_CMix_one`，`forward_seq`只接受`RWKV_x070_CMix_seq`，错误交叉名称同样失败关闭；报告增至48项静态检查并记录路径映射，runtime新digest=`ce9862b6…aea5`。16项专项及全项目319项通过，等待服务器复验，前四次失败保留 | `src/psa/self_model/rwkv7_instrumented_off_runtime.py`；冻结配置与report Schema |
+| 2026-08-19 | D3B OFF-G2服务器无模型静态门在提交`96b18cd`上通过：16项专项测试成功，报告`valid=true`、digest=`46f05bd8…e57a`；48项检查、10个源码digest和报告自digest独立重算有效。真实源码`forward_one`两版在306/336、`forward_seq`两版在426/458，每版均一个注入点，冻结环境选择else行336/458；`off_g2_implemented=true`但`real_model_equivalence_executed=false`，模型/torch/权重/active/Self projection/效果实验均未发生。本轮停止，四次先前失败永久保留 | 远程`results/development/self_model_v0_1_instrumented_off_runtime/report.json`；项目负责人终端输出 |
