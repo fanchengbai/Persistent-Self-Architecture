@@ -15,6 +15,7 @@ from psa.self_model.rwkv7_coupling_adapter import (
 CALLBACK_ATTRIBUTE = "_psa_post_ffn_residual_callback"
 TARGET_CLASS = "RWKV_x070"
 TARGET_METHODS = ("forward_one", "forward_seq")
+RWKV_DE_VERSION_CONDITION = "os.environ.get('RWKV_DE_VERSION') == '1'"
 
 
 @dataclass(frozen=True)
@@ -119,9 +120,17 @@ class _PostFFNInjector(ast.NodeTransformer):
         return node
 
 
-def build_instrumented_method_asts(
+def _build_instrumented_method_plan(
     upstream_source: str,
-) -> tuple[dict[str, ast.FunctionDef], dict[str, int]]:
+    *,
+    rwkv_de_version: str | None,
+) -> tuple[
+    dict[str, ast.FunctionDef],
+    dict[str, int],
+    dict[str, dict[str, Any]],
+]:
+    if rwkv_de_version is not None:
+        raise PermissionError("OFF-G2 requires RWKV_DE_VERSION to be unset")
     tree = ast.parse(upstream_source)
     classes = [
         node
@@ -131,35 +140,105 @@ def build_instrumented_method_asts(
     if len(classes) != 1:
         raise RuntimeError("locked upstream source must contain one RWKV_x070 class")
     class_node = classes[0]
+    parent_by_node = {
+        child: parent
+        for parent in ast.walk(class_node)
+        for child in ast.iter_child_nodes(parent)
+    }
     transformed: dict[str, ast.FunctionDef] = {}
     counts: dict[str, int] = {}
+    variants: dict[str, dict[str, Any]] = {}
     for method_name in TARGET_METHODS:
         matches = [
             node
             for node in ast.walk(class_node)
             if isinstance(node, ast.FunctionDef) and node.name == method_name
         ]
-        if len(matches) != 1:
+        if len(matches) not in {1, 2}:
             raise RuntimeError(f"locked upstream source must contain {method_name}")
-        method = matches[0]
-        method.decorator_list = []
-        injector = _PostFFNInjector(method_name)
-        transformed_method = injector.visit(method)
-        if not isinstance(transformed_method, ast.FunctionDef):
-            raise AssertionError("instrumented method must remain a function")
-        if injector.injection_count != 1:
-            raise RuntimeError(
-                f"{method_name} must have exactly one post-FFN injection site"
-            )
-        transformed[method_name] = transformed_method
-        counts[method_name] = injector.injection_count
-    return transformed, counts
+        selected = matches[0]
+        selected_branch = "only_definition"
+        condition = None
+        if len(matches) == 2:
+            parents = [parent_by_node.get(method) for method in matches]
+            if (
+                not all(isinstance(parent, ast.If) for parent in parents)
+                or parents[0] is not parents[1]
+            ):
+                raise RuntimeError(
+                    f"{method_name} variants must share one source condition"
+                )
+            variant_if = parents[0]
+            if not isinstance(variant_if, ast.If):
+                raise AssertionError("variant parent must be an if statement")
+            condition = ast.unparse(variant_if.test)
+            if condition != RWKV_DE_VERSION_CONDITION:
+                raise RuntimeError(
+                    f"{method_name} variants use an unexpected condition"
+                )
+            body_matches = [item for item in variant_if.body if item in matches]
+            else_matches = [item for item in variant_if.orelse if item in matches]
+            if len(body_matches) != 1 or len(else_matches) != 1:
+                raise RuntimeError(
+                    f"{method_name} variants must occupy body and else branches"
+                )
+            selected = else_matches[0]
+            selected_branch = "else_rwkv_de_version_unset"
+
+        injection_counts = []
+        selected_method = None
+        selected_count = None
+        source_lines = []
+        for method in matches:
+            source_lines.append(method.lineno)
+            method.decorator_list = []
+            injector = _PostFFNInjector(method_name)
+            transformed_method = injector.visit(method)
+            if not isinstance(transformed_method, ast.FunctionDef):
+                raise AssertionError("instrumented method must remain a function")
+            if injector.injection_count != 1:
+                raise RuntimeError(
+                    f"{method_name} variants must each have one post-FFN site"
+                )
+            injection_counts.append(injector.injection_count)
+            if method is selected:
+                selected_method = transformed_method
+                selected_count = injector.injection_count
+        if selected_method is None or selected_count is None:
+            raise AssertionError("selected method variant was not transformed")
+        transformed[method_name] = selected_method
+        counts[method_name] = selected_count
+        variants[method_name] = {
+            "candidate_count": len(matches),
+            "condition": condition,
+            "selected_branch": selected_branch,
+            "source_lines": sorted(source_lines),
+            "injection_counts": injection_counts,
+            "selected_source_line": selected.lineno,
+        }
+    return transformed, counts, variants
+
+
+def build_instrumented_method_asts(
+    upstream_source: str,
+    *,
+    rwkv_de_version: str | None = None,
+) -> tuple[dict[str, ast.FunctionDef], dict[str, int]]:
+    methods, counts, _ = _build_instrumented_method_plan(
+        upstream_source, rwkv_de_version=rwkv_de_version
+    )
+    return methods, counts
 
 
 def compile_instrumented_methods(
-    *, upstream_source: str, upstream_globals: Mapping[str, Any]
+    *,
+    upstream_source: str,
+    upstream_globals: Mapping[str, Any],
+    rwkv_de_version: str | None,
 ) -> tuple[dict[str, Any], dict[str, int]]:
-    methods, counts = build_instrumented_method_asts(upstream_source)
+    methods, counts = build_instrumented_method_asts(
+        upstream_source, rwkv_de_version=rwkv_de_version
+    )
     module = ast.Module(body=list(methods.values()), type_ignores=[])
     ast.fix_missing_locations(module)
     namespace = dict(upstream_globals)
@@ -171,7 +250,9 @@ def compile_instrumented_methods(
 
 
 def inspect_instrumented_source(upstream_source: str) -> dict[str, Any]:
-    methods, counts = build_instrumented_method_asts(upstream_source)
+    methods, counts, variants = _build_instrumented_method_plan(
+        upstream_source, rwkv_de_version=None
+    )
     rendered = {}
     for name, method in methods.items():
         module = ast.Module(body=[method], type_ignores=[])
@@ -201,11 +282,22 @@ def inspect_instrumented_source(upstream_source: str) -> dict[str, Any]:
             f"self.{CALLBACK_ATTRIBUTE} is not None" in source
             for source in rendered.values()
         ),
+        "rwkv_de_version_is_unset": True,
+        "variant_selection_is_consistent": all(
+            details["selected_branch"]
+            in {"only_definition", "else_rwkv_de_version_unset"}
+            for details in variants.values()
+        ),
+        "all_variants_have_one_injection": all(
+            all(count == 1 for count in details["injection_counts"])
+            for details in variants.values()
+        ),
     }
     return {
         "valid": all(checks.values()),
         "checks": checks,
         "injection_counts": counts,
+        "variant_selection": variants,
         "method_source_sha256": {
             name: hashlib.sha256(source.encode("utf-8")).hexdigest()
             for name, source in rendered.items()
@@ -231,19 +323,24 @@ class RWKV7InstrumentedOffRuntime:
         upstream_source_bytes: bytes,
         upstream_globals: Mapping[str, Any],
         upstream_package_version: str,
+        upstream_de_version: str | None,
     ) -> None:
         if upstream_package_version != EXPECTED_RWKV_PACKAGE_VERSION:
             raise RuntimeError("RWKV package version differs from the OFF-G2 lock")
         source_digest = hashlib.sha256(upstream_source_bytes).hexdigest()
         if source_digest != EXPECTED_RWKV_MODEL_SOURCE_SHA256:
             raise RuntimeError("RWKV model source differs from the OFF-G2 lock")
+        if upstream_de_version is not None:
+            raise PermissionError("OFF-G2 requires RWKV_DE_VERSION to be unset")
         if not callable(getattr(base_model, "forward", None)):
             raise TypeError("base_model must expose a callable forward")
         if CALLBACK_ATTRIBUTE in getattr(base_model, "__dict__", {}):
             raise RuntimeError("base_model already owns the PSA callback attribute")
         source = upstream_source_bytes.decode("utf-8")
         methods, counts = compile_instrumented_methods(
-            upstream_source=source, upstream_globals=upstream_globals
+            upstream_source=source,
+            upstream_globals=upstream_globals,
+            rwkv_de_version=upstream_de_version,
         )
         self._base_model = base_model
         self._methods = methods

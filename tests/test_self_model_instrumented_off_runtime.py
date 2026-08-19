@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import ast
+import copy
 import hashlib
 from pathlib import Path
 import sys
@@ -81,6 +82,7 @@ def _runtime(base=None):
             upstream_source_bytes=source.encode("utf-8"),
             upstream_globals=namespace,
             upstream_package_version="0.8.32",
+            upstream_de_version=None,
         )
     return runtime, model
 
@@ -126,6 +128,49 @@ class InstrumentedOffRuntimeTests(unittest.TestCase):
         transformed, counts = build_instrumented_method_asts(guarded_source)
         self.assertEqual(set(transformed), {"forward_one", "forward_seq"})
         self.assertEqual(counts, {"forward_one": 1, "forward_seq": 1})
+
+    def test_rwkv_de_variants_are_both_checked_and_unset_selects_else(self) -> None:
+        source, _, _ = _base_class()
+        tree = ast.parse(source)
+        class_node = next(
+            node for node in tree.body if isinstance(node, ast.ClassDef)
+        )
+        public_forward = next(
+            node
+            for node in class_node.body
+            if isinstance(node, ast.FunctionDef) and node.name == "forward"
+        )
+        guarded_methods = []
+        for name in ("forward_one", "forward_seq"):
+            method = next(
+                node
+                for node in class_node.body
+                if isinstance(node, ast.FunctionDef) and node.name == name
+            )
+            guarded_methods.append(
+                ast.If(
+                    test=ast.parse(
+                        "os.environ.get('RWKV_DE_VERSION') == '1'",
+                        mode="eval",
+                    ).body,
+                    body=[copy.deepcopy(method)],
+                    orelse=[copy.deepcopy(method)],
+                )
+            )
+        class_node.body = [public_forward, *guarded_methods]
+        guarded_source = ast.unparse(ast.fix_missing_locations(tree))
+        inspection = inspect_instrumented_source(guarded_source)
+        self.assertTrue(inspection["valid"])
+        for details in inspection["variant_selection"].values():
+            self.assertEqual(details["candidate_count"], 2)
+            self.assertEqual(
+                details["condition"],
+                "os.environ.get('RWKV_DE_VERSION') == '1'",
+            )
+            self.assertEqual(
+                details["selected_branch"], "else_rwkv_de_version_unset"
+            )
+            self.assertEqual(details["injection_counts"], [1, 1])
 
     def test_off_runtime_matches_original_for_both_dispatch_paths(self) -> None:
         runtime, model = _runtime()
@@ -199,6 +244,15 @@ class InstrumentedOffRuntimeTests(unittest.TestCase):
                     upstream_source_bytes=source.encode("utf-8"),
                     upstream_globals=namespace,
                     upstream_package_version="0.8.33",
+                    upstream_de_version=None,
+                )
+            with self.assertRaises(PermissionError):
+                RWKV7InstrumentedOffRuntime(
+                    base_model=base_class(),
+                    upstream_source_bytes=source.encode("utf-8"),
+                    upstream_globals=namespace,
+                    upstream_package_version="0.8.32",
+                    upstream_de_version="1",
                 )
         with self.assertRaises(RuntimeError):
             build_instrumented_method_asts(

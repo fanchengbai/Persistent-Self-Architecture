@@ -115,12 +115,13 @@ def validate_instrumented_off_config(
             ),
             "model_source_size_bytes": 85425,
             "target_class": "RWKV_x070",
+            "rwkv_de_version_environment": "unset",
         },
         "implementation_path_and_digest_frozen": (
             implementation.get("path")
             == "src/psa/self_model/rwkv7_instrumented_off_runtime.py"
             and implementation.get("sha256")
-            == "ca8c1385dae8c4c9ff8794fb1688adf375f5bb4595f4bc0abbd4886569907572"
+            == "df4da07cc7c182abc716ca85e18377538e1af4ba0d28b5d8068e4ba7ac0d7cd2"
         ),
         "project_local_ast_transform_frozen": (
             implementation.get("project_local_only") is True
@@ -130,6 +131,13 @@ def validate_instrumented_off_config(
             == ["forward_one", "forward_seq"]
             and implementation.get("phase") == "post_ffn_residual"
             and implementation.get("required_injection_count_per_path") == 1
+            and implementation.get("source_variants_per_path") == 2
+            and implementation.get("source_variant_condition")
+            == "os.environ.get('RWKV_DE_VERSION') == '1'"
+            and implementation.get("selected_source_variant")
+            == "else_rwkv_de_version_unset"
+            and implementation.get("all_source_variants_statically_checked")
+            is True
             and implementation.get("callback_attribute") == CALLBACK_ATTRIBUTE
             and implementation.get("callback_value_in_off_runtime") is None
         ),
@@ -280,6 +288,26 @@ def build_instrumented_off_report(
         f"upstream_transform_{name}": valid
         for name, valid in transformation["checks"].items()
     }
+    variant_selection = transformation["variant_selection"]
+    transform_checks.update(
+        {
+            "installed_two_de_variants_per_path": all(
+                variant_selection[name]["candidate_count"] == 2
+                for name in TARGET_METHODS
+            ),
+            "installed_de_variant_condition_frozen": all(
+                variant_selection[name]["condition"]
+                == "os.environ.get('RWKV_DE_VERSION') == '1'"
+                for name in TARGET_METHODS
+            ),
+            "installed_unset_de_selects_else_and_checks_both": all(
+                variant_selection[name]["selected_branch"]
+                == "else_rwkv_de_version_unset"
+                and variant_selection[name]["injection_counts"] == [1, 1]
+                for name in TARGET_METHODS
+            ),
+        }
+    )
     d3_checks = d3_report.get("checks")
     d3_sources = d3_report.get("source_digests")
     d3_safety = d3_report.get("safety")
@@ -340,6 +368,7 @@ def build_instrumented_off_report(
             "target_class": TARGET_CLASS,
             "execution_paths": list(TARGET_METHODS),
             "injection_counts": transformation["injection_counts"],
+            "variant_selection": variant_selection,
             "method_source_sha256": transformation["method_source_sha256"],
         },
         "checks": all_checks,

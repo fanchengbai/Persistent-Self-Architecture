@@ -40,6 +40,9 @@ def main() -> int:
                 "valid": report["valid"],
                 "report_digest_sha256": report["report_digest_sha256"],
                 "injection_counts": report["transformation"]["injection_counts"],
+                "variant_selection": report["transformation"][
+                    "variant_selection"
+                ],
                 "rwkv_model_imported": report["safety"]["rwkv_model_imported"],
                 "torch_imported": report["safety"]["torch_imported"],
                 "model_loaded": report["safety"]["model_loaded"],

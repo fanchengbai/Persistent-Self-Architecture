@@ -19,9 +19,11 @@ OFF-G2必须让同一个调用经过带有instrumentation的`forward_one`或`for
 1. 用Python AST找到`RWKV_x070.forward_one`和`forward_seq`；
 2. 每条路径必须恰好出现一次`RWKV_x070_CMix(...)`后紧跟`x = x + xx`；
 3. 只在该post-FFN残差位置插入一个`callback is not None`分支；
-4. OFF-G2运行时把项目命名空间下的callback属性固定为`None`；
-5. 临时把两条变换后方法绑定到同一base model实例，让原始公开`forward`继续负责dispatch；
-6. 无论成功还是异常，都在`finally`中删除临时方法和callback属性。
+4. 上游每条路径各有`RWKV_DE_VERSION=="1"`和else两版实现；两版都必须各有一个
+   注入点，但项目冻结环境要求`RWKV_DE_VERSION`未设置，因此只选择else版；
+5. OFF-G2运行时把项目命名空间下的callback属性固定为`None`；
+6. 临时把两条变换后方法绑定到同一base model实例，让原始公开`forward`继续负责dispatch；
+7. 无论成功还是异常，都在`finally`中删除临时方法和callback属性。
 
 任一类名、方法、CMix位置、残差加法、源码摘要或临时属性冲突都会失败关闭。runtime模块自身不
 导入`rwkv`或`torch`；当前服务器门只读取源码字节并执行AST变换，不编译或调用真实方法。
@@ -29,7 +31,8 @@ OFF-G2必须让同一个调用经过带有instrumentation的`forward_one`或`for
 ## 3. 本轮能证明与不能证明的内容
 
 纯fake测试覆盖单token、序列`full_output=false/true`、state结果、异常恢复、active拒绝和临时
-绑定清理。服务器静态门将确认真实安装源码能产生`forward_one=1`、`forward_seq=1`两个注入点。
+绑定清理。服务器静态门将确认真实安装源码的两种DE版本都可变换，每个variant恰好一个
+注入点，并记录未设置`RWKV_DE_VERSION`时选中的else源码行。
 
 本轮不能证明真实2.9B的logits和96个state组件逐位一致，因为模型没有加载或执行。因此：
 

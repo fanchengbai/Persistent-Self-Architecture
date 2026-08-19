@@ -15,16 +15,21 @@
     "model_source_path": "rwkv/model.py",
     "model_source_sha256": "75482aee89a08d2a8c8dbe628110b317fc8d0974ddffbaa52aa19190667305e0",
     "model_source_size_bytes": 85425,
-    "target_class": "RWKV_x070"
+    "target_class": "RWKV_x070",
+    "rwkv_de_version_environment": "unset"
   },
   "implementation": {
     "path": "src/psa/self_model/rwkv7_instrumented_off_runtime.py",
-    "sha256": "ca8c1385dae8c4c9ff8794fb1688adf375f5bb4595f4bc0abbd4886569907572",
+    "sha256": "df4da07cc7c182abc716ca85e18377538e1af4ba0d28b5d8068e4ba7ac0d7cd2",
     "project_local_only": true,
     "technique": "locked_source_ast_transform_and_temporary_instance_method_binding",
     "execution_paths": ["forward_one", "forward_seq"],
     "phase": "post_ffn_residual",
     "required_injection_count_per_path": 1,
+    "source_variants_per_path": 2,
+    "source_variant_condition": "os.environ.get('RWKV_DE_VERSION') == '1'",
+    "selected_source_variant": "else_rwkv_de_version_unset",
+    "all_source_variants_statically_checked": true,
     "callback_attribute": "_psa_post_ffn_residual_callback",
     "callback_value_in_off_runtime": null,
     "base_methods_restored_after_call": true,

@@ -33,19 +33,35 @@ EXPECTED_UPSTREAM_DIGEST = (
 )
 SYNTHETIC_UPSTREAM = b"""
 class RWKV_x070:
-    def forward_one(self, idx, state):
-        x = idx
-        for i in range(2):
-            xx, state[i*3+2] = RWKV_x070_CMix(x, state[i*3+2], i)
-            x = x + xx
-        return x, state
+    if os.environ.get('RWKV_DE_VERSION') == '1':
+        def forward_one(self, idx, state):
+            x = idx
+            for i in range(2):
+                xx, state[i*3+2] = RWKV_x070_CMix(x, state[i*3+2], i)
+                x = x + xx
+            return x, state
+    else:
+        def forward_one(self, idx, state):
+            x = idx
+            for i in range(2):
+                xx, state[i*3+2] = RWKV_x070_CMix(x, state[i*3+2], i)
+                x = x + xx
+            return x, state
 
-    def forward_seq(self, idx, state, full_output=False):
-        x = idx
-        for i in range(2):
-            xx, state[i*3+2] = RWKV_x070_CMix(x, state[i*3+2], i)
-            x = x + xx
-        return x, state
+    if os.environ.get('RWKV_DE_VERSION') == '1':
+        def forward_seq(self, idx, state, full_output=False):
+            x = idx
+            for i in range(2):
+                xx, state[i*3+2] = RWKV_x070_CMix(x, state[i*3+2], i)
+                x = x + xx
+            return x, state
+    else:
+        def forward_seq(self, idx, state, full_output=False):
+            x = idx
+            for i in range(2):
+                xx, state[i*3+2] = RWKV_x070_CMix(x, state[i*3+2], i)
+                x = x + xx
+            return x, state
 """
 SYNTHETIC_UPSTREAM += b"#" * (85425 - len(SYNTHETIC_UPSTREAM))
 _REAL_SHA256 = hashlib.sha256
@@ -116,7 +132,7 @@ class InstrumentedOffManifestTests(unittest.TestCase):
         self.assertEqual(
             report["status"], "instrumented_off_runtime_static_verified"
         )
-        self.assertEqual(len(report["checks"]), 41)
+        self.assertEqual(len(report["checks"]), 47)
         self.assertTrue(all(report["checks"].values()))
         self.assertEqual(len(report["source_digests"]), 10)
         self.assertEqual(
@@ -129,6 +145,12 @@ class InstrumentedOffManifestTests(unittest.TestCase):
             report["transformation"]["injection_counts"],
             {"forward_one": 1, "forward_seq": 1},
         )
+        for details in report["transformation"]["variant_selection"].values():
+            self.assertEqual(details["candidate_count"], 2)
+            self.assertEqual(
+                details["selected_branch"], "else_rwkv_de_version_unset"
+            )
+            self.assertEqual(details["injection_counts"], [1, 1])
         self.assertTrue(report["safety"]["instrumented_runtime_implemented"])
         self.assertTrue(report["safety"]["off_g2_implemented"])
         self.assertFalse(report["safety"]["real_model_equivalence_executed"])
