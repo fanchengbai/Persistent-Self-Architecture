@@ -1,0 +1,83 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://persistent-self-architecture.local/schemas/self_model_v0_1_instrumented_off_report.schema.json",
+  "title": "Self Model v0.1 instrumented-off implementation report",
+  "type": "object",
+  "required": [
+    "implementation_version", "stage", "status", "valid", "development_only",
+    "installed_source", "transformation", "checks", "off_gates", "source_digests",
+    "safety", "report_digest_sha256"
+  ],
+  "properties": {
+    "implementation_version": {"const": "0.1-instrumented-off"},
+    "stage": {"const": "D3B_off_g2_instrumented_off_implementation_without_model"},
+    "status": {"const": "instrumented_off_runtime_static_verified"},
+    "valid": {"const": true},
+    "development_only": {"const": true},
+    "installed_source": {
+      "type": "object",
+      "required": ["package", "version", "model_source_path", "model_source_sha256", "model_source_size_bytes", "access_method"],
+      "properties": {
+        "package": {"const": "rwkv"},
+        "version": {"const": "0.8.32"},
+        "model_source_path": {"const": "rwkv/model.py"},
+        "model_source_sha256": {"const": "75482aee89a08d2a8c8dbe628110b317fc8d0974ddffbaa52aa19190667305e0"},
+        "model_source_size_bytes": {"const": 85425},
+        "access_method": {"const": "importlib.metadata_and_read_bytes"}
+      },
+      "additionalProperties": false
+    },
+    "transformation": {
+      "type": "object",
+      "required": ["target_class", "execution_paths", "injection_counts", "method_source_sha256"],
+      "properties": {
+        "target_class": {"const": "RWKV_x070"},
+        "execution_paths": {"const": ["forward_one", "forward_seq"]},
+        "injection_counts": {"const": {"forward_one": 1, "forward_seq": 1}}
+      },
+      "additionalProperties": true
+    },
+    "checks": {"type": "object", "minProperties": 41, "additionalProperties": {"const": true}},
+    "off_gates": {
+      "const": {
+        "off_g1_implemented": true,
+        "off_g2_implemented": true,
+        "real_model_equivalence_executed": false
+      }
+    },
+    "source_digests": {"type": "object", "minProperties": 10},
+    "safety": {
+      "type": "object",
+      "required": [
+        "installed_rwkv_source_probed", "rwkv_model_imported", "torch_imported",
+        "weights_accessed", "model_loaded", "model_executed", "site_packages_modified",
+        "off_only_adapter_implemented", "instrumented_runtime_implemented", "off_g2_implemented",
+        "real_model_equivalence_executed", "callback_constructed", "self_projection_constructed",
+        "active_injection_implemented", "real_layers_selected", "self_effect_experiment_run",
+        "automatic_rerun_authorized"
+      ],
+      "properties": {
+        "installed_rwkv_source_probed": {"const": true},
+        "rwkv_model_imported": {"const": false},
+        "torch_imported": {"const": false},
+        "weights_accessed": {"const": false},
+        "model_loaded": {"const": false},
+        "model_executed": {"const": false},
+        "site_packages_modified": {"const": false},
+        "off_only_adapter_implemented": {"const": true},
+        "instrumented_runtime_implemented": {"const": true},
+        "off_g2_implemented": {"const": true},
+        "real_model_equivalence_executed": {"const": false},
+        "callback_constructed": {"const": false},
+        "self_projection_constructed": {"const": false},
+        "active_injection_implemented": {"const": false},
+        "real_layers_selected": {"const": false},
+        "self_effect_experiment_run": {"const": false},
+        "automatic_rerun_authorized": {"const": false}
+      },
+      "additionalProperties": false
+    },
+    "report_digest_sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"}
+  },
+  "additionalProperties": true
+}
