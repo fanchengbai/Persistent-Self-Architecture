@@ -121,7 +121,7 @@ def validate_instrumented_off_config(
             implementation.get("path")
             == "src/psa/self_model/rwkv7_instrumented_off_runtime.py"
             and implementation.get("sha256")
-            == "df4da07cc7c182abc716ca85e18377538e1af4ba0d28b5d8068e4ba7ac0d7cd2"
+            == "ce9862b6739980305f854c9a63a08a5b872e73d53ae6098f626998ee0324aea5"
         ),
         "project_local_ast_transform_frozen": (
             implementation.get("project_local_only") is True
@@ -129,6 +129,11 @@ def validate_instrumented_off_config(
             == "locked_source_ast_transform_and_temporary_instance_method_binding"
             and implementation.get("execution_paths")
             == ["forward_one", "forward_seq"]
+            and implementation.get("cmix_call_by_path")
+            == {
+                "forward_one": "RWKV_x070_CMix_one",
+                "forward_seq": "RWKV_x070_CMix_seq",
+            }
             and implementation.get("phase") == "post_ffn_residual"
             and implementation.get("required_injection_count_per_path") == 1
             and implementation.get("source_variants_per_path") == 2
@@ -367,6 +372,7 @@ def build_instrumented_off_report(
         "transformation": {
             "target_class": TARGET_CLASS,
             "execution_paths": list(TARGET_METHODS),
+            "cmix_call_by_path": transformation["cmix_call_by_path"],
             "injection_counts": transformation["injection_counts"],
             "variant_selection": variant_selection,
             "method_source_sha256": transformation["method_source_sha256"],

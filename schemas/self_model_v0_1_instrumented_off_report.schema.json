@@ -29,10 +29,16 @@
     },
     "transformation": {
       "type": "object",
-      "required": ["target_class", "execution_paths", "injection_counts", "variant_selection", "method_source_sha256"],
+      "required": ["target_class", "execution_paths", "cmix_call_by_path", "injection_counts", "variant_selection", "method_source_sha256"],
       "properties": {
         "target_class": {"const": "RWKV_x070"},
         "execution_paths": {"const": ["forward_one", "forward_seq"]},
+        "cmix_call_by_path": {
+          "const": {
+            "forward_one": "RWKV_x070_CMix_one",
+            "forward_seq": "RWKV_x070_CMix_seq"
+          }
+        },
         "injection_counts": {"const": {"forward_one": 1, "forward_seq": 1}},
         "variant_selection": {
           "type": "object",
@@ -63,7 +69,7 @@
       },
       "additionalProperties": true
     },
-    "checks": {"type": "object", "minProperties": 47, "additionalProperties": {"const": true}},
+    "checks": {"type": "object", "minProperties": 48, "additionalProperties": {"const": true}},
     "off_gates": {
       "const": {
         "off_g1_implemented": true,

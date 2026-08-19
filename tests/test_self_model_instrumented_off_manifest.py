@@ -37,14 +37,14 @@ class RWKV_x070:
         def forward_one(self, idx, state):
             x = idx
             for i in range(2):
-                xx, state[i*3+2] = RWKV_x070_CMix(x, state[i*3+2], i)
+                xx, state[i*3+2] = RWKV_x070_CMix_one(x, state[i*3+2], i)
                 x = x + xx
             return x, state
     else:
         def forward_one(self, idx, state):
             x = idx
             for i in range(2):
-                xx, state[i*3+2] = RWKV_x070_CMix(x, state[i*3+2], i)
+                xx, state[i*3+2] = RWKV_x070_CMix_one(x, state[i*3+2], i)
                 x = x + xx
             return x, state
 
@@ -52,14 +52,14 @@ class RWKV_x070:
         def forward_seq(self, idx, state, full_output=False):
             x = idx
             for i in range(2):
-                xx, state[i*3+2] = RWKV_x070_CMix(x, state[i*3+2], i)
+                xx, state[i*3+2] = RWKV_x070_CMix_seq(x, state[i*3+2], i)
                 x = x + xx
             return x, state
     else:
         def forward_seq(self, idx, state, full_output=False):
             x = idx
             for i in range(2):
-                xx, state[i*3+2] = RWKV_x070_CMix(x, state[i*3+2], i)
+                xx, state[i*3+2] = RWKV_x070_CMix_seq(x, state[i*3+2], i)
                 x = x + xx
             return x, state
 """
@@ -132,7 +132,7 @@ class InstrumentedOffManifestTests(unittest.TestCase):
         self.assertEqual(
             report["status"], "instrumented_off_runtime_static_verified"
         )
-        self.assertEqual(len(report["checks"]), 47)
+        self.assertEqual(len(report["checks"]), 48)
         self.assertTrue(all(report["checks"].values()))
         self.assertEqual(len(report["source_digests"]), 10)
         self.assertEqual(
@@ -144,6 +144,13 @@ class InstrumentedOffManifestTests(unittest.TestCase):
         self.assertEqual(
             report["transformation"]["injection_counts"],
             {"forward_one": 1, "forward_seq": 1},
+        )
+        self.assertEqual(
+            report["transformation"]["cmix_call_by_path"],
+            {
+                "forward_one": "RWKV_x070_CMix_one",
+                "forward_seq": "RWKV_x070_CMix_seq",
+            },
         )
         for details in report["transformation"]["variant_selection"].values():
             self.assertEqual(details["candidate_count"], 2)

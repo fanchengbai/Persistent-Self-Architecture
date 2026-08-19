@@ -17,7 +17,8 @@ OFF-G2必须让同一个调用经过带有instrumentation的`forward_one`或`for
 与冻结值完全一致，然后：
 
 1. 用Python AST找到`RWKV_x070.forward_one`和`forward_seq`；
-2. 每条路径必须恰好出现一次`RWKV_x070_CMix(...)`后紧跟`x = x + xx`；
+2. 单token路径必须使用`RWKV_x070_CMix_one(...)`，序列路径必须使用
+   `RWKV_x070_CMix_seq(...)`，且每个源码variant中的调用后都紧跟`x = x + xx`；
 3. 只在该post-FFN残差位置插入一个`callback is not None`分支；
 4. 上游每条路径各有`RWKV_DE_VERSION=="1"`和else两版实现；两版都必须各有一个
    注入点，但项目冻结环境要求`RWKV_DE_VERSION`未设置，因此只选择else版；

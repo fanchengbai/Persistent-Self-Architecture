@@ -16,6 +16,10 @@ CALLBACK_ATTRIBUTE = "_psa_post_ffn_residual_callback"
 TARGET_CLASS = "RWKV_x070"
 TARGET_METHODS = ("forward_one", "forward_seq")
 RWKV_DE_VERSION_CONDITION = "os.environ.get('RWKV_DE_VERSION') == '1'"
+CMIX_CALL_BY_PATH = {
+    "forward_one": "RWKV_x070_CMix_one",
+    "forward_seq": "RWKV_x070_CMix_seq",
+}
 
 
 @dataclass(frozen=True)
@@ -37,11 +41,11 @@ def _call_name(node: ast.AST) -> str | None:
     return None
 
 
-def _is_cmix_assignment(node: ast.stmt) -> bool:
+def _is_cmix_assignment(node: ast.stmt, *, expected_call_name: str) -> bool:
     return bool(
         isinstance(node, ast.Assign)
         and isinstance(node.value, ast.Call)
-        and _call_name(node.value.func) == "RWKV_x070_CMix"
+        and _call_name(node.value.func) == expected_call_name
     )
 
 
@@ -78,7 +82,10 @@ if self.{CALLBACK_ATTRIBUTE} is not None:
 
 class _PostFFNInjector(ast.NodeTransformer):
     def __init__(self, execution_path: str) -> None:
+        if execution_path not in CMIX_CALL_BY_PATH:
+            raise ValueError("unsupported instrumented execution path")
         self.execution_path = execution_path
+        self.expected_cmix_call = CMIX_CALL_BY_PATH[execution_path]
         self.injection_count = 0
 
     def _instrument_body(self, body: list[ast.stmt]) -> list[ast.stmt]:
@@ -87,7 +94,9 @@ class _PostFFNInjector(ast.NodeTransformer):
         while index < len(body):
             current = body[index]
             rewritten.append(current)
-            if _is_cmix_assignment(current):
+            if _is_cmix_assignment(
+                current, expected_call_name=self.expected_cmix_call
+            ):
                 if index + 1 >= len(body) or not _is_x_plus_xx_assignment(
                     body[index + 1]
                 ):
@@ -292,12 +301,18 @@ def inspect_instrumented_source(upstream_source: str) -> dict[str, Any]:
             all(count == 1 for count in details["injection_counts"])
             for details in variants.values()
         ),
+        "cmix_call_names_are_path_specific": CMIX_CALL_BY_PATH
+        == {
+            "forward_one": "RWKV_x070_CMix_one",
+            "forward_seq": "RWKV_x070_CMix_seq",
+        },
     }
     return {
         "valid": all(checks.values()),
         "checks": checks,
         "injection_counts": counts,
         "variant_selection": variants,
+        "cmix_call_by_path": dict(CMIX_CALL_BY_PATH),
         "method_source_sha256": {
             name: hashlib.sha256(source.encode("utf-8")).hexdigest()
             for name, source in rendered.items()

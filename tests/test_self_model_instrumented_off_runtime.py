@@ -30,14 +30,14 @@ class RWKV_x070:
     def forward_one(self, idx, state):
         x = float(idx)
         for i in range(2):
-            xx, state[i * 3 + 2] = RWKV_x070_CMix(x, state[i * 3 + 2], i)
+            xx, state[i * 3 + 2] = RWKV_x070_CMix_one(x, state[i * 3 + 2], i)
             x = x + xx
         return x, state
 
     def forward_seq(self, idx, state, full_output=False):
         x = [float(value) for value in idx]
         for i in range(2):
-            xx, state[i * 3 + 2] = RWKV_x070_CMix(x, state[i * 3 + 2], i)
+            xx, state[i * 3 + 2] = RWKV_x070_CMix_seq(x, state[i * 3 + 2], i)
             x = x + xx
         return (x if full_output else x[-1]), state
 """
@@ -50,7 +50,7 @@ class FakeVector(list):
         return NotImplemented
 
 
-def RWKV_x070_CMix(x, state_value, layer_index):
+def fake_cmix(x, state_value, layer_index):
     if isinstance(x, list):
         delta = FakeVector((layer_index + 1) / 10.0 for _ in x)
     else:
@@ -63,7 +63,11 @@ def _base_class():
         "x = [float(value) for value in idx]",
         "x = FakeVector(float(value) for value in idx)",
     )
-    namespace = {"FakeVector": FakeVector, "RWKV_x070_CMix": RWKV_x070_CMix}
+    namespace = {
+        "FakeVector": FakeVector,
+        "RWKV_x070_CMix_one": fake_cmix,
+        "RWKV_x070_CMix_seq": fake_cmix,
+    }
     exec(source, namespace)
     return source, namespace, namespace["RWKV_x070"]
 
@@ -257,6 +261,10 @@ class InstrumentedOffRuntimeTests(unittest.TestCase):
         with self.assertRaises(RuntimeError):
             build_instrumented_method_asts(
                 source.replace("x = x + xx", "x = xx + x", 1)
+            )
+        with self.assertRaises(RuntimeError):
+            build_instrumented_method_asts(
+                source.replace("RWKV_x070_CMix_one", "RWKV_x070_CMix_seq", 1)
             )
 
     def test_runtime_module_has_no_rwkv_or_torch_import(self) -> None:
