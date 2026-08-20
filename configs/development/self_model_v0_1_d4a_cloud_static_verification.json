@@ -1,0 +1,50 @@
+{
+  "verification_version": "0.1-d4a-cloud-static",
+  "stage": "D4A_cloud_static_verification_without_model",
+  "status": "installed_source_bytes_and_project_runtime_only",
+  "development_only": true,
+  "upstream": {
+    "package": "rwkv",
+    "version": "0.8.32",
+    "model_source_path": "rwkv/model.py",
+    "model_source_sha256": "75482aee89a08d2a8c8dbe628110b317fc8d0974ddffbaa52aa19190667305e0",
+    "model_source_size_bytes": 85425,
+    "rwkv_de_version_environment": "unset"
+  },
+  "runtime_prerequisite": {
+    "config_path": "configs/development/self_model_v0_1_d4a_failure_diagnostic_runtime.json",
+    "config_sha256": "b7249496806f3eeaa2f07409753d7263ab4320e6bddc62630f57cc5bff3d6c4f",
+    "runtime_path": "src/psa/self_model/d4a_failure_diagnostic_runtime.py",
+    "runtime_sha256": "91001bc29aa404cd371d01aa78458440e90b1867fa9bf94cb8262d89f3ff967e",
+    "manifest_path": "src/psa/self_model/d4a_failure_diagnostic_manifest.py",
+    "manifest_sha256": "ae729d442b6eca2146faf4e8a0dcd62fb96ec82ca193585354ecba3d7ff06e24"
+  },
+  "verification": {
+    "installed_package_metadata_read": true,
+    "installed_model_source_bytes_read": true,
+    "g0_unmodified_ast_selection_included": true,
+    "g2_instrumented_ast_selection_included": true,
+    "real_decorator_inventory_included": true,
+    "real_variant_alignment_included": true,
+    "rwkv_model_import_included": false,
+    "torch_import_included": false,
+    "weights_access_included": false,
+    "model_load_included": false,
+    "model_execution_included": false,
+    "real_execution_entry_included": false,
+    "execution_claim_included": false
+  },
+  "authority": {
+    "installed_source_static_verification_authorized": true,
+    "rwkv_model_import_authorized": false,
+    "torch_import_authorized": false,
+    "weights_access_authorized": false,
+    "model_execution_authorized": false,
+    "real_execution_entry_implementation_authorized": false,
+    "execution_claim_authorized": false,
+    "d4_rerun_authorized": false,
+    "active_injection_authorized": false,
+    "self_effect_experiment_authorized": false,
+    "automatic_rerun_authorized": false
+  }
+}
