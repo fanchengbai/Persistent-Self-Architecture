@@ -1,0 +1,92 @@
+{
+  "design_version": "0.1-d4b-steady-state-off-design",
+  "stage": "D4B_prospective_steady_state_off_equivalence_design",
+  "status": "design_only_runtime_absent_execution_not_authorized",
+  "development_only": true,
+  "diagnostic_closure": {
+    "d4_status": "failed_preserved",
+    "d4_report_digest_sha256": "39d4611a6d50791f1677f9eb27e6fb2ea702151a26236fa4094699b821ca721a",
+    "d4_execution_claim_sha256": "2900bf111031f878bf18004d3f7123439fdfea62dabf8da0a67eefb54e7479de",
+    "d4a_status": "d4a_real_diagnostic_complete",
+    "d4a_report_digest_sha256": "d6b0602a85553fddae184e2accb3ef06ed280a925ebc4d90a9e13032726b2e88",
+    "d4a_execution_claim_sha256": "21055ee608973bad5db60b75351d42cff0ba69e71e1c7a45303bac6b28677754",
+    "d4a_classification": "within_route_instability_observed",
+    "stable_cluster_call_count": 7,
+    "first_original_vs_first_g0_mismatched_state_components": 92,
+    "first_original_vs_first_g0_mismatch_range": [4, 95],
+    "d4_failed_state_component_range": [4, 95],
+    "shared_location_signature_is_association_not_identity_proof": true,
+    "d4_off_g2_warmup_was_present": true,
+    "d4_warmup_outputs_unavailable": true,
+    "d4a_reproduced_d4_prefix_and_schedule": false,
+    "recorded_global_method_family_preconditioning_previously_tested": false,
+    "d4b_preconditioning_is_prospective_control_not_causal_fix": true,
+    "exact_low_level_cache_mechanism_identified": false
+  },
+  "model_config_path": "configs/models/rwkv7_g1h_2.9b.candidate.json",
+  "model_config_sha256": "959143ab13eb9f86ad40e87a9164194ddb1fe6a74dbfdd4cb04bda354b0dae75",
+  "model_id": "rwkv7-g1h-2.9b-20260710",
+  "reused_d4_evidence": {
+    "off_g1_all_six_cells_exact": true,
+    "off_g2_other_five_cells_exact": true,
+    "cells_rerun": false
+  },
+  "target_cell": {
+    "cell_id": "forward_one__none__full_output_false",
+    "token_ids": [2764],
+    "state_input": "none",
+    "full_output": false
+  },
+  "prefix_snapshot_reproduced_before_preconditioning": true,
+  "prefix_snapshot_token_ids": [187, 931],
+  "prefix_snapshot_output_recorded_not_scored": true,
+  "routes": [
+    "original_baseline",
+    "off_g1_passthrough",
+    "g0_recompiled_unmodified",
+    "off_g2_instrumented"
+  ],
+  "method_families": {
+    "original_baseline": "upstream_original",
+    "off_g1_passthrough": "upstream_original",
+    "g0_recompiled_unmodified": "recompiled_unmodified",
+    "off_g2_instrumented": "recompiled_instrumented"
+  },
+  "fixed_recorded_preconditioning_order": [
+    "original_baseline",
+    "off_g1_passthrough",
+    "g0_recompiled_unmodified",
+    "off_g2_instrumented"
+  ],
+  "preconditioning_calls_per_route": 1,
+  "preconditioning_outputs_recorded": true,
+  "preconditioning_outputs_scored": false,
+  "adaptive_convergence_or_extra_warmup_allowed": false,
+  "scored_rounds": [
+    ["original_baseline", "off_g1_passthrough", "g0_recompiled_unmodified", "off_g2_instrumented"],
+    ["off_g1_passthrough", "g0_recompiled_unmodified", "off_g2_instrumented", "original_baseline"],
+    ["g0_recompiled_unmodified", "off_g2_instrumented", "original_baseline", "off_g1_passthrough"],
+    ["off_g2_instrumented", "original_baseline", "off_g1_passthrough", "g0_recompiled_unmodified"]
+  ],
+  "scored_calls_per_route": 4,
+  "scored_model_forward_call_count": 16,
+  "total_model_forward_call_count_including_prefix_and_preconditioning": 21,
+  "within_route_comparison_count": 24,
+  "cross_route_comparison_count": 96,
+  "comparison": "torch.equal",
+  "pass_requires_all_scored_within_and_cross_route_pairs_exact": true,
+  "cross_run_digest_comparison_prohibited": true,
+  "d4_status_can_change": false,
+  "d4b_pass_effect": "steady_state_off_qualification_candidate_allows_d5_review_only",
+  "design_authorized": true,
+  "runtime_implementation_authorized": false,
+  "model_execution_authorized": false,
+  "result_observation_authorized": false,
+  "d4_rerun_authorized": false,
+  "active_injection_authorized": false,
+  "self_effect_experiment_authorized": false,
+  "d5_authorized": false,
+  "confirmatory_decision_authorized": false,
+  "automatic_rerun_authorized": false,
+  "failure_action": "stop_without_rerun_or_design_revision"
+}
