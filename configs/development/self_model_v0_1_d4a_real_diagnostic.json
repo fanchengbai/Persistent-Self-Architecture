@@ -1,0 +1,53 @@
+{
+  "protocol_version": "0.1-d4a-real-diagnostic",
+  "stage": "D4A_real_2_9b_minimal_diagnostic_entry",
+  "status": "entry_implemented_execution_not_authorized",
+  "development_only": true,
+  "diagnostic_only": true,
+  "prerequisite": {
+    "d4_status": "failed_preserved",
+    "d4a_cloud_static_status": "d4a_cloud_static_verified",
+    "d4a_cloud_static_report_digest_sha256": "f8e74653ecb170c5a5bcd870b1c8efc90cbd311417f43adf3ed61f3658386e57"
+  },
+  "model_config_path": "configs/models/rwkv7_g1h_2.9b.candidate.json",
+  "model_config_sha256": "959143ab13eb9f86ad40e87a9164194ddb1fe6a74dbfdd4cb04bda354b0dae75",
+  "model_id": "rwkv7-g1h-2.9b-20260710",
+  "fixture": {
+    "token_ids": [2764],
+    "state_input": "none",
+    "full_output": false
+  },
+  "routes": [
+    "original_baseline",
+    "g0_recompiled_unmodified",
+    "off_g2_instrumented"
+  ],
+  "recorded_rounds": [
+    ["original_baseline", "g0_recompiled_unmodified", "off_g2_instrumented"],
+    ["g0_recompiled_unmodified", "off_g2_instrumented", "original_baseline"],
+    ["off_g2_instrumented", "original_baseline", "g0_recompiled_unmodified"]
+  ],
+  "model_forward_call_count": 9,
+  "discarded_warmup_call_count": 0,
+  "within_route_comparison_count": 9,
+  "cross_route_comparison_count": 27,
+  "execution_lock_env": "PSA_SELF_MODEL_D4A_REAL_DIAGNOSTIC",
+  "execution_lock_value": "AUTHORIZED_D4A_REAL_2_9B_DIAGNOSTIC_ONCE",
+  "required_owner_authorization_text": "授权执行 Self Model v0.1 D4A 真实2.9B最小诊断一次，并授权观察本次诊断结果；不授权重跑D4、自动重跑、D5、active injection或Self效果实验。",
+  "entry_implementation_authorized": true,
+  "no_model_verification_authorized": true,
+  "execution_authorized_at_implementation": false,
+  "future_exact_owner_authorization_required": true,
+  "future_machine_authorization_required": true,
+  "single_use_claim_required": true,
+  "claim_consumed_before_weights_or_model": true,
+  "result_observation_requires_same_authorization": true,
+  "d4_status_can_change": false,
+  "d4_rerun_authorized": false,
+  "active_injection_authorized": false,
+  "self_effect_experiment_authorized": false,
+  "d5_authorized": false,
+  "confirmatory_decision_authorized": false,
+  "automatic_rerun_authorized": false,
+  "failure_action": "persist_failure_and_stop_claim_consumed"
+}

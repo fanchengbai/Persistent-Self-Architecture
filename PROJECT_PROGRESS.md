@@ -1,8 +1,8 @@
 # Persistent Self Architecture 项目进度表
 
 > 最后更新：2026-08-20
-> 当前节点：Phase 3 D4A服务器无模型静态复验通过；等待确认是否实现真实诊断入口（不执行模型）
-> 研究状态：D4失败保持不变；真实RWKV源码的G0/G2 variant、decorator与注入点25/25检查通过，但尚未定位数值不等价原因，真实诊断入口、模型执行和active均不存在
+> 当前节点：Phase 3 D4A真实诊断入口本地完成；等待服务器无模型静态复验
+> 研究状态：D4失败保持不变；真实入口、精确授权、single-use claim与失败记录已实现并通过352项测试，但机器授权/claim未创建，权重/模型执行/active均未触及
 
 ## 1. 这张表怎么使用
 
@@ -113,14 +113,14 @@
 | 38p. EXP-001C v02 Stage B只读live preflight与机器授权锁 | ✅ 云端通过 | 在模型加载前绑定干净main提交、设计/protocol digest、Stage A原始结果、模型配置与资产哈希、主机环境、224条计划和空输出目录；授权只接受固定逐字文本并绑定preflight digest | 防止把“继续”解释成模型执行授权，也防止代码、证据、模型或输出目录变化后复用旧授权 | Stage B 29项远程测试通过，云端只读preflight全部检查为true且失败项为空；`model_loaded=false`、`model_executed=false`、执行/观察均为false。最终digest以本轮最终文档提交后的服务器v02证据为准 | Codex |
 | 38q. EXP-001C v02 Stage B项目负责人单次授权 | ✅ 已逐字确认并消费 | 负责人使用冻结原文授权224条recurrent-state非Core pilot及本轮结果观察，同时明确排除Stage A重跑、正式测试集、正式运行、确认性决定和自动重跑 | 模型执行和结果观察是新的不可逆边界，不能由此前“继续”推断 | 授权绑定preflight_v03与Stage A/result digest，机器记录和single-use claim均已消费；224条运行及观察完成后禁止重跑 | 项目负责人；Codex执行 |
 | 38r. EXP-001C v02 Stage B冻结只读观察 | ✅ 云端完成 | 对五个状态语义条件按8个语义案例×4代码轮换平均log score，记录联合/字段准确率与margin；reset/random只记录参考匹配率，不定义正确答案 | 原始code top-1容易受A–D先验影响；同时不能把诊断控制事后改成主要端点或临时添加通过阈值 | 五个主要条件均联合7/8、domain 8/8、operation 7/8；continuous/restored预测8/8一致，三种swap均7/8跟随注入state。reset/random参考匹配均2/8；无确认性决定或重跑 | Codex；云端只读分析 |
-| 39. Phase 3：显式 Self Model | 🟡 D4A服务器静态门通过，等待真实诊断入口实现确认 | 实现静态Self Store、Self Encoder和可关闭/缩放gated injection，并建立字段mask/swap/random/coupling-off消融 | 先证明接口可审计、可干预、失败关闭，再决定真实RWKV注入位置和效果实验 | D4失败保持。服务器提交`9203aaf`上D4A组合16项通过，真实`rwkv==0.8.32`源码的G0/G2 variant选择、`MyFunction` decorator、G0 decorator清除及G2每variant单注入点25/25检查通过；报告digest=`f8e74653…e57`并独立复算一致。未导入模型/Torch、访问权重或执行模型，真实入口、claim、active和D5仍为false | Codex |
+| 39. Phase 3：显式 Self Model | 🟡 D4A真实入口完成，等待服务器无模型复验 | 实现静态Self Store、Self Encoder和可关闭/缩放gated injection，并建立字段mask/swap/random/coupling-off消融 | 先证明接口可审计、可干预、失败关闭，再决定真实RWKV注入位置和效果实验 | D4失败保持。真实D4A入口固定原始/G0/OFF-G2三路3×3拉丁九调用，新增独立逐字授权、机器授权、结果目录、claim和失败记录；claim位于权重/模型访问前。11项新增测试、D4A组合27项及全项目352项通过，入口静态报告24/24检查全真，digest=`c743a9f9…eae1`。执行在实现时明确未授权，未创建授权/claim、未加载或执行模型，active和D5仍为false | Codex |
 | 40. Self 更新与演化 | ⏳ 未开始 | 让 Self State 根据经历受控更新、回滚和分化 | 这是“持续自我”真正更深入的部分 | 尚未开始 | 后续阶段 |
 | 41. 内生调节与自主审议 | ⏳ 未开始 | 让 Self/冲突决定是否检索、回放、模拟或停止，并在零新外部观察条件下受控更新 | 检验系统是否不仅“有状态”，还会因内部状态选择继续计算；同时排除定时器和随机回放解释 | 设计说明已完成；必须等待显式 Self 因果价值和受约束更新两道前置门，不创建空壳代码 | 后续阶段 |
 | 42. 最终研究结论 | ⏳ 未开始 | 汇总统计结果、失败案例和替代解释 | 最终回答项目假设是否得到支持，而不是只展示几个有趣案例 | 尚未开始 | 共同完成 |
 
 ## 3. 当前所在位置
 
-> 2026-08-20 当前状态：D4真实2.9B失败永久保持；D4A服务器无模型静态复验已在提交`9203aaf`上通过。16项组合测试成功，已安装`rwkv==0.8.32`的锁定源码版本、大小和digest一致；G0与G2均选择DE-unset else variant（`forward_one`行336、`forward_seq`行458），真实原始decorator均为`MyFunction`、G0编译后decorator为空、G2每个variant恰一个注入点。报告25/25检查全真，digest=`f8e74653…e57`并由贴回原文独立复算一致。该证据只证明静态计划与真实源码兼容，不解释D4数值失败；模型/Torch导入、权重访问、加载/执行、真实诊断入口、claim、active、Self效果与D5授权全部为false。下一步需单独确认是否只实现真实D4A入口。以下保留完整历史路径；如与旧阶段描述冲突，以本段和顶部“当前节点”为准。
+> 2026-08-20 当前状态：D4真实2.9B失败永久保持；D4A真实最小诊断入口已本地完成，但尚未授权或执行。入口只使用原失败token `[2764]`、`state=None`、`full_output=false`，复用原始/G0/OFF-G2三路3×3拉丁九调用核心；机器授权必须匹配新的逐字文本并绑定干净main提交与配置digest，独立claim在权重校验、模型加载和推理前创建，claim后异常持久化`failure.json`且禁止自动重跑。11项新增入口测试、D4A组合27项及全项目352项通过；无模型静态报告24/24检查全真，digest=`c743a9f9…eae1`。当前`execution_authorized_at_implementation=false`，本地未创建机器授权或claim，未导入RWKV/Torch、访问权重、加载或执行模型；D4状态、active、Self效果和D5均不变。下一步只可推送并在服务器无模型复验。以下保留完整历史路径；如与旧阶段描述冲突，以本段和顶部“当前节点”为准。
 
 ```text
 理论设计
@@ -219,7 +219,7 @@ EXP-001B补充控制
 正式 state 因果实验
    🟡 EXP-001主实验完成；等待EXP-001B控制闭合后作最终阶段决策
 显式 Self Model
-   🟡 D4A服务器无模型静态门25/25通过；等待真实诊断入口实现确认
+   🟡 D4A真实入口与352项测试通过；等待服务器无模型静态复验
 受约束 Self 更新
    ⏳
 内生调节与自主审议
@@ -239,7 +239,7 @@ EXP-001B补充控制
 
 ## 4. 当前下一步
 
-> 2026-08-20 当前下一步：等待项目负责人确认是否进入“真实D4A诊断入口实现”轮。若确认，只实现原始/G0/OFF-G2三路3×3拉丁诊断的真实2.9B loader、single-use claim、冻结配置和失败记录；本地及服务器首先只运行无模型测试，不得直接执行模型。实现与静态复验完成后，真实诊断还必须取得新的单次执行授权，不能复用已消费的D4 claim。D4保持失败，D5 active injection、Self效果实验、正式测试集和确认性决定全部暂停。以下保留此前 EXP-001B 轨迹作为历史记录。
+> 2026-08-20 当前下一步：将D4A真实诊断入口推送到`main`，服务器启用网络加速后快进拉取，只运行D4A组合27项无模型测试和入口静态验证器。不得设置执行环境锁，不得运行真实入口，不得创建机器授权或claim，不得访问权重或执行模型。服务器静态报告返回后本轮停止；只有项目负责人随后逐字确认配置中的新授权文本，才可创建机器授权并单次运行真实2.9B诊断。不能复用D4 claim，D4保持失败，D5 active injection、Self效果实验、正式测试集和确认性决定全部暂停。以下保留此前 EXP-001B 轨迹作为历史记录。
 
 截至2026-08-04，项目负责人已经确认EXP-001B设计草案中的B1–B7。
 新增范围仍锁在11,008条控制记录，并明确不重跑EXP-001、不重估E1–E3、
@@ -721,3 +721,4 @@ trial-condition单元；只允许全量完成且完整性验证后观察结果�
 | 2026-08-20 | D4A fake-only诊断runtime完成：G0按与OFF-G2相同的variant选择、decorator清空、globals复制和双方法临时绑定执行未注入方法；9次平衡记录器保存每次logits/state digest并生成9个同路线、27个跨路线的精确与误差比较。fake覆盖全等、仅G2扰动分类、绑定恢复及active/source lock拒绝；8项新增测试、D4A组合12项和全项目337项通过。14项实现静态检查全真，digest=`b9f27cd2…4a08`；没有真实入口、installed-source探针、RWKV/Torch导入、权重、模型执行、claim或D5授权 | `src/psa/self_model/d4a_failure_diagnostic_runtime.py`；`configs/development/self_model_v0_1_d4a_failure_diagnostic_runtime.json`；`docs/self_model_v0_1_d4a_failure_diagnostic_runtime.md` |
 | 2026-08-20 | D4A服务器无模型静态复验工具本地完成：只通过包元数据读取已安装`rwkv==0.8.32`锁定源码字节，要求G0/G2选择同一DE-unset else variant，核对真实原始`MyFunction` decorator、G0清除decorator及G2每variant单注入点，并记录源码/方法digest。4项新增静态测试、D4A组合16项和全项目341项通过；本机无目标installed-source，尚无真实静态报告。未导入RWKV/Torch，未访问权重、加载或执行模型，未创建真实诊断入口/claim，也未授权D5 | `src/psa/self_model/d4a_cloud_static_verification.py`；`scripts/verify_self_model_v0_1_d4a_cloud_static.py`；`configs/development/self_model_v0_1_d4a_cloud_static_verification.json` |
 | 2026-08-20 | D4A服务器无模型静态复验在提交`9203aaf`上通过：16项组合测试成功，真实`rwkv==0.8.32`源码的版本/digest/大小、G0/G2同variant选择、原始`MyFunction` decorator、G0 decorator清除及G2每variant单注入点共25/25检查全真。报告`valid=true`、digest=`f8e74653…e57`，由贴回完整JSON独立复算一致。该结果不改变D4失败；模型/Torch未导入，权重/模型未访问或执行，真实入口/claim/active/D5均不存在 | 远程`results/development/self_model_v0_1_d4a_cloud_static_verification/report.json`；`docs/self_model_v0_1_d4a_cloud_static_observation.md` |
+| 2026-08-20 | D4A真实2.9B最小诊断入口本地完成：固定原失败夹具与三路3×3拉丁九调用，新增独立逐字授权、机器授权文件、受控结果路径、模型访问前single-use claim和claim后失败记录。普通“下一轮”不能生成授权；实现时执行明确为false。11项新增测试（含CLI缺锁和越界路径失败关闭）、D4A组合27项及全项目352项通过；入口无模型静态报告24/24检查全真，digest=`c743a9f9…eae1`。未创建机器授权/claim，未导入RWKV/Torch、访问权重、加载或执行模型，D4/active/Self效果/D5均不变 | `src/psa/self_model/d4a_real_diagnostic.py`；`configs/development/self_model_v0_1_d4a_real_diagnostic.json`；`docs/self_model_v0_1_d4a_real_diagnostic_entry.md` |
