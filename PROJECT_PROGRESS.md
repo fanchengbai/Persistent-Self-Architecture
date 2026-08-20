@@ -1,8 +1,8 @@
 # Persistent Self Architecture 项目进度表
 
 > 最后更新：2026-08-20
-> 当前节点：Phase 3 D4A单次真实2.9B诊断及结果观察已逐字授权；等待服务器拉取最终提交并执行一次
-> 研究状态：D4失败保持不变；授权仅覆盖原失败夹具的三路九调用诊断，尚未创建机器授权/claim或执行模型，D4重跑/自动重跑/active/D5均未授权
+> 当前节点：Phase 3 D4A单次真实2.9B诊断完成；等待离线闭合首次调用瞬态与D4失败的关系
+> 研究状态：D4失败保持不变；后续original/G0与全部G2共7次逐位一致，但original和G0各自第一次调用形成瞬态，分类为within_route_instability_observed
 
 ## 1. 这张表怎么使用
 
@@ -113,14 +113,14 @@
 | 38p. EXP-001C v02 Stage B只读live preflight与机器授权锁 | ✅ 云端通过 | 在模型加载前绑定干净main提交、设计/protocol digest、Stage A原始结果、模型配置与资产哈希、主机环境、224条计划和空输出目录；授权只接受固定逐字文本并绑定preflight digest | 防止把“继续”解释成模型执行授权，也防止代码、证据、模型或输出目录变化后复用旧授权 | Stage B 29项远程测试通过，云端只读preflight全部检查为true且失败项为空；`model_loaded=false`、`model_executed=false`、执行/观察均为false。最终digest以本轮最终文档提交后的服务器v02证据为准 | Codex |
 | 38q. EXP-001C v02 Stage B项目负责人单次授权 | ✅ 已逐字确认并消费 | 负责人使用冻结原文授权224条recurrent-state非Core pilot及本轮结果观察，同时明确排除Stage A重跑、正式测试集、正式运行、确认性决定和自动重跑 | 模型执行和结果观察是新的不可逆边界，不能由此前“继续”推断 | 授权绑定preflight_v03与Stage A/result digest，机器记录和single-use claim均已消费；224条运行及观察完成后禁止重跑 | 项目负责人；Codex执行 |
 | 38r. EXP-001C v02 Stage B冻结只读观察 | ✅ 云端完成 | 对五个状态语义条件按8个语义案例×4代码轮换平均log score，记录联合/字段准确率与margin；reset/random只记录参考匹配率，不定义正确答案 | 原始code top-1容易受A–D先验影响；同时不能把诊断控制事后改成主要端点或临时添加通过阈值 | 五个主要条件均联合7/8、domain 8/8、operation 7/8；continuous/restored预测8/8一致，三种swap均7/8跟随注入state。reset/random参考匹配均2/8；无确认性决定或重跑 | Codex；云端只读分析 |
-| 39. Phase 3：显式 Self Model | 🟡 D4A单次真实诊断已逐字授权，等待服务器执行 | 实现静态Self Store、Self Encoder和可关闭/缩放gated injection，并建立字段mask/swap/random/coupling-off消融 | 先证明接口可审计、可干预、失败关闭，再决定真实RWKV注入位置和效果实验 | D4失败保持。服务器入口静态门已通过；项目负责人已逐字授权一次原始/G0/OFF-G2三路九调用真实2.9B诊断并观察本次结果。授权不含D4重跑、自动重跑、D5、active injection或Self效果实验。机器授权/claim尚未创建，模型尚未执行 | 共同完成 |
+| 39. Phase 3：显式 Self Model | 🟡 D4A真实诊断完成，等待离线诊断闭环 | 实现静态Self Store、Self Encoder和可关闭/缩放gated injection，并建立字段mask/swap/random/coupling-off消融 | 先证明接口可审计、可干预、失败关闭，再决定真实RWKV注入位置和效果实验 | D4A在提交`63a1878`上完成，14/14完整性检查通过，digest=`d6b0602a…2e88`独立复算一致。original与G0各自第一次调用不同，后续original/G0及全部G2共7次逐位一致；首轮original/G0彼此恰在`state[4..95]`共92组件不同，与D4失败位置签名一致。分类为`within_route_instability_observed`；D4仍失败，D5未授权 | 共同完成 |
 | 40. Self 更新与演化 | ⏳ 未开始 | 让 Self State 根据经历受控更新、回滚和分化 | 这是“持续自我”真正更深入的部分 | 尚未开始 | 后续阶段 |
 | 41. 内生调节与自主审议 | ⏳ 未开始 | 让 Self/冲突决定是否检索、回放、模拟或停止，并在零新外部观察条件下受控更新 | 检验系统是否不仅“有状态”，还会因内部状态选择继续计算；同时排除定时器和随机回放解释 | 设计说明已完成；必须等待显式 Self 因果价值和受约束更新两道前置门，不创建空壳代码 | 后续阶段 |
 | 42. 最终研究结论 | ⏳ 未开始 | 汇总统计结果、失败案例和替代解释 | 最终回答项目假设是否得到支持，而不是只展示几个有趣案例 | 尚未开始 | 共同完成 |
 
 ## 3. 当前所在位置
 
-> 2026-08-20 当前状态：D4真实2.9B失败永久保持；D4A真实最小诊断入口服务器无模型复验已通过，并已取得项目负责人逐字单次执行与结果观察授权。授权文本与冻结配置完全一致，只覆盖原失败token `[2764]`、`state=None`、`full_output=false`下原始/G0/OFF-G2三路3×3拉丁九调用；明确不授权重跑D4、自动重跑、D5、active injection或Self效果实验。当前尚未在服务器拉取本授权记录提交，机器授权/claim尚未创建，权重未访问、模型未加载或执行。下一步只允许服务器拉取最终干净main后由一次性入口独占创建机器授权和claim并运行；完成或失败立即停止。以下保留完整历史路径；如与旧阶段描述冲突，以本段和顶部“当前节点”为准。
+> 2026-08-20 当前状态：D4真实2.9B失败永久保持；D4A真实最小诊断已在提交`63a1878`上单次完成并观察。14/14执行检查、九次调用、九个同路线和二十七个跨路线比较完整，报告digest=`d6b0602a…2e88`由粘贴原文独立复算一致；claim=`21055ee6…7754`已消费，运行约14.90秒，峰值显存6,124,028,416字节。结果形成三个簇：original第一次独立、G0第一次独立，其余后续original/G0与全部三个G2共7次共享完全相同的logits及96组件state digest。original和G0第一次彼此从`state[4]`到`state[95]`共92组件不同，与D4唯一失败单元的位置签名一致；冻结分类为`within_route_instability_observed`。这是首次调用瞬态相关的强证据，但D4A未复现D4完整prefix/预热轨迹，不能改写D4失败或直接进入D5。下一步只做离线调用轨迹闭环和未来稳态门设计，不执行模型。以下保留完整历史路径；如与旧阶段描述冲突，以本段和顶部“当前节点”为准。
 
 ```text
 理论设计
@@ -219,7 +219,7 @@ EXP-001B补充控制
 正式 state 因果实验
    🟡 EXP-001主实验完成；等待EXP-001B控制闭合后作最终阶段决策
 显式 Self Model
-   🟡 D4A单次真实2.9B诊断已逐字授权；等待服务器一次性执行
+   🟡 D4A真实诊断完成；7次稳态跨路线逐位一致，等待离线闭环D4调用轨迹
 受约束 Self 更新
    ⏳
 内生调节与自主审议
@@ -239,7 +239,7 @@ EXP-001B补充控制
 
 ## 4. 当前下一步
 
-> 2026-08-20 当前下一步：服务器启用网络加速并快进拉取包含本授权记录的最终`main`，确认工作树干净且目标机器授权与结果目录均不存在；随后设置冻结单次环境锁，通过唯一入口独占创建绑定最终commit/配置digest的机器授权和claim，执行一次九调用真实2.9B诊断并读取本次报告。无论完成或异常都立即停止并清除环境锁；不得再次运行命令、复用D4 claim、重跑D4、自动重试或进入D5。以下保留此前 EXP-001B 轨迹作为历史记录。
+> 2026-08-20 当前下一步：等待项目负责人确认是否进入“D4A诊断闭环与稳态OFF门设计”离线轮。该轮只读取D4/D4A已有代码和报告，逐项映射D4的prefix snapshot、六单元顺序、每路线预热/计分次数与D4A三个输出簇，先解释为何D4已有一次预热仍失败；只有闭环成立后才设计固定、路线平衡、非自适应的新稳态等价门草案。不得执行或重跑模型，不得创建新claim，不得改写D4失败、授权D5、active injection或Self效果实验。以下保留此前 EXP-001B 轨迹作为历史记录。
 
 截至2026-08-04，项目负责人已经确认EXP-001B设计草案中的B1–B7。
 新增范围仍锁在11,008条控制记录，并明确不重跑EXP-001、不重估E1–E3、
@@ -724,3 +724,4 @@ trial-condition单元；只允许全量完成且完整性验证后观察结果�
 | 2026-08-20 | D4A真实2.9B最小诊断入口本地完成：固定原失败夹具与三路3×3拉丁九调用，新增独立逐字授权、机器授权文件、受控结果路径、模型访问前single-use claim和claim后失败记录。普通“下一轮”不能生成授权；实现时执行明确为false。11项新增测试（含CLI缺锁和越界路径失败关闭）、D4A组合27项及全项目352项通过；入口无模型静态报告24/24检查全真，digest=`c743a9f9…eae1`。未创建机器授权/claim，未导入RWKV/Torch、访问权重、加载或执行模型，D4/active/Self效果/D5均不变 | `src/psa/self_model/d4a_real_diagnostic.py`；`configs/development/self_model_v0_1_d4a_real_diagnostic.json`；`docs/self_model_v0_1_d4a_real_diagnostic_entry.md` |
 | 2026-08-20 | D4A真实入口在服务器完成无模型静态复验：27项组合测试通过，入口24/24检查与8个源码digest完整，报告`valid=true`、digest=`c743a9f9…eae1`并由本地同源报告独立复算一致。机器授权/claim未创建，RWKV/Torch未导入，权重/模型未访问或执行；D4、active、Self效果、D5和自动重跑均不变。下一步只等待冻结文本的逐字单次执行及结果观察授权，普通“下一轮”无效 | 远程`results/development/self_model_v0_1_d4a_real_diagnostic_entry/report.json`；`docs/self_model_v0_1_d4a_real_entry_cloud_observation.md` |
 | 2026-08-20 | 项目负责人逐字授权执行一次Self Model v0.1 D4A真实2.9B最小诊断，并授权观察本次结果；授权文本与冻结配置完全一致，明确排除D4重跑、自动重跑、D5、active injection和Self效果实验。当前只记录人类授权，服务器机器授权/claim尚未创建，模型尚未执行；下一步在最终干净main上通过唯一入口单次运行，完成或失败均停止 | 项目负责人授权原文；`configs/development/self_model_v0_1_d4a_real_diagnostic.json` |
+| 2026-08-20 | D4A真实2.9B最小诊断在提交`63a1878`上单次完成：14/14完整性检查、9次调用、9个同路线与27个跨路线比较完整，报告`valid=true`、digest=`d6b0602a…2e88`独立复算一致，claim=`21055ee6…7754`已消费。original与G0各自第一次调用独立，后续original/G0及全部G2共7次逐位一致；首轮original/G0从`state[4]`到`state[95]`共92组件不同，与D4失败位置签名一致。分类`within_route_instability_observed`，但不改写D4或授权D5；下一步只离线闭合D4完整调用轨迹 | 远程`results/development/self_model_v0_1_d4a_real_diagnostic_v01/report.json`；`docs/self_model_v0_1_d4a_real_diagnostic_observation.md` |
