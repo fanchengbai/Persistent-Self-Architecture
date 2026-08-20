@@ -1,0 +1,28 @@
+{
+  "protocol_version": "0.1-d4-real-off-equivalence",
+  "stage": "D4_real_2_9b_off_equivalence",
+  "development_only": true,
+  "model_config_path": "configs/models/rwkv7_g1h_2.9b.candidate.json",
+  "model_config_sha256": "959143ab13eb9f86ad40e87a9164194ddb1fe6a74dbfdd4cb04bda354b0dae75",
+  "model_id": "rwkv7-g1h-2.9b-20260710",
+  "same_process": true,
+  "warmup_count_per_route_per_cell": 1,
+  "comparison": "torch.equal",
+  "non_core_token_ids": {
+    "snapshot_prefix": [187, 931],
+    "single": [2764],
+    "sequence": [2764, 492, 1603]
+  },
+  "paths": ["forward_one", "forward_seq"],
+  "state_inputs": ["none", "cloned_restored_snapshot"],
+  "sequence_full_output_modes": [false, true],
+  "execution_authorized": true,
+  "authorization_scope": "real_2_9b_off_equivalence_only",
+  "execution_lock_env": "PSA_SELF_MODEL_D4_OFF_EQUIVALENCE",
+  "execution_lock_value": "AUTHORIZED_D4_REAL_2_9B_OFF_EQUIVALENCE_ONCE",
+  "active_injection_authorized": false,
+  "self_effect_experiment_authorized": false,
+  "confirmatory_decision_authorized": false,
+  "automatic_rerun_authorized": false,
+  "failure_action": "stop_without_rerun_or_tolerance_revision"
+}
