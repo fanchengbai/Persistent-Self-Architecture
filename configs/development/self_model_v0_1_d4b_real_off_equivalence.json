@@ -1,0 +1,69 @@
+{
+  "protocol_version": "0.1-d4b-real-off-equivalence",
+  "stage": "D4B_real_2_9b_steady_state_off_entry",
+  "status": "entry_implemented_execution_not_authorized",
+  "development_only": true,
+  "prerequisite": {
+    "d4_status": "failed_preserved",
+    "d4b_design_static_report_digest_sha256": "7f3cfb7fecf6892532f9ecdb27f528716b363077e37e288f8940d8e883ef658d",
+    "d4b_runtime_static_status": "d4b_fake_first_runtime_static_verified",
+    "d4b_runtime_static_report_digest_sha256": "261325c459c08e5fa2c8d3e9ff08574c36e49ab36eccfabcf89e0045b7abae46"
+  },
+  "model_config_path": "configs/models/rwkv7_g1h_2.9b.candidate.json",
+  "model_config_sha256": "959143ab13eb9f86ad40e87a9164194ddb1fe6a74dbfdd4cb04bda354b0dae75",
+  "model_id": "rwkv7-g1h-2.9b-20260710",
+  "prefix_token_ids": [187, 931],
+  "target_fixture": {
+    "token_ids": [2764],
+    "state_input": "none",
+    "full_output": false
+  },
+  "routes": [
+    "original_baseline",
+    "off_g1_passthrough",
+    "g0_recompiled_unmodified",
+    "off_g2_instrumented"
+  ],
+  "fixed_preconditioning_order": [
+    "original_baseline",
+    "off_g1_passthrough",
+    "g0_recompiled_unmodified",
+    "off_g2_instrumented"
+  ],
+  "scored_rounds": [
+    ["original_baseline", "off_g1_passthrough", "g0_recompiled_unmodified", "off_g2_instrumented"],
+    ["off_g1_passthrough", "g0_recompiled_unmodified", "off_g2_instrumented", "original_baseline"],
+    ["g0_recompiled_unmodified", "off_g2_instrumented", "original_baseline", "off_g1_passthrough"],
+    ["off_g2_instrumented", "original_baseline", "off_g1_passthrough", "g0_recompiled_unmodified"]
+  ],
+  "prefix_call_count": 1,
+  "preconditioning_call_count": 4,
+  "scored_call_count": 16,
+  "model_forward_call_count": 21,
+  "within_route_comparison_count": 24,
+  "cross_route_comparison_count": 96,
+  "comparison": "torch.equal",
+  "execution_lock_env": "PSA_SELF_MODEL_D4B_REAL_OFF_GATE",
+  "execution_lock_value": "AUTHORIZED_D4B_REAL_2_9B_STEADY_OFF_ONCE",
+  "authorization_schema_path": "schemas/self_model_v0_1_d4b_real_authorization.schema.json",
+  "authorization_path": "results/authorizations/self_model_v0_1_d4b_real_off_equivalence_v01.json",
+  "output_dir": "results/development/self_model_v0_1_d4b_real_off_equivalence_v01",
+  "required_owner_authorization_text": "授权执行 Self Model v0.1 D4B 真实2.9B稳态OFF等价门一次，并授权观察本次结果；不授权重跑D4或D4B、自动重跑、D5、active injection或Self效果实验。",
+  "entry_implementation_authorized": true,
+  "no_model_verification_authorized": true,
+  "execution_authorized_at_implementation": false,
+  "future_exact_owner_authorization_required": true,
+  "future_machine_authorization_required": true,
+  "single_use_claim_required": true,
+  "claim_consumed_before_model_config_or_weights_or_load": true,
+  "result_observation_requires_same_authorization": true,
+  "d4_status_can_change": false,
+  "d4_rerun_authorized": false,
+  "d4b_rerun_authorized": false,
+  "active_injection_authorized": false,
+  "self_effect_experiment_authorized": false,
+  "d5_authorized": false,
+  "confirmatory_decision_authorized": false,
+  "automatic_rerun_authorized": false,
+  "failure_action": "persist_failure_and_stop_claim_consumed"
+}

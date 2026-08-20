@@ -1,8 +1,8 @@
 # Persistent Self Architecture 项目进度表
 
 > 最后更新：2026-08-20
-> 当前节点：Phase 3 D4B fake-first runtime服务器无模型静态复验通过；等待确认是否实现真实入口安全外壳
-> 研究状态：D4失败保持不变；D4B runtime核心已跨主机源码级验证，真实入口/机器授权/claim/模型执行/D5均未实现或未授权
+> 当前节点：Phase 3 D4B真实执行入口安全外壳本地完成；等待服务器无模型静态复验
+> 研究状态：D4失败保持不变；D4B入口已实现但执行未授权，机器授权/claim/模型加载与执行均未发生，D5继续关闭
 
 ## 1. 这张表怎么使用
 
@@ -113,14 +113,14 @@
 | 38p. EXP-001C v02 Stage B只读live preflight与机器授权锁 | ✅ 云端通过 | 在模型加载前绑定干净main提交、设计/protocol digest、Stage A原始结果、模型配置与资产哈希、主机环境、224条计划和空输出目录；授权只接受固定逐字文本并绑定preflight digest | 防止把“继续”解释成模型执行授权，也防止代码、证据、模型或输出目录变化后复用旧授权 | Stage B 29项远程测试通过，云端只读preflight全部检查为true且失败项为空；`model_loaded=false`、`model_executed=false`、执行/观察均为false。最终digest以本轮最终文档提交后的服务器v02证据为准 | Codex |
 | 38q. EXP-001C v02 Stage B项目负责人单次授权 | ✅ 已逐字确认并消费 | 负责人使用冻结原文授权224条recurrent-state非Core pilot及本轮结果观察，同时明确排除Stage A重跑、正式测试集、正式运行、确认性决定和自动重跑 | 模型执行和结果观察是新的不可逆边界，不能由此前“继续”推断 | 授权绑定preflight_v03与Stage A/result digest，机器记录和single-use claim均已消费；224条运行及观察完成后禁止重跑 | 项目负责人；Codex执行 |
 | 38r. EXP-001C v02 Stage B冻结只读观察 | ✅ 云端完成 | 对五个状态语义条件按8个语义案例×4代码轮换平均log score，记录联合/字段准确率与margin；reset/random只记录参考匹配率，不定义正确答案 | 原始code top-1容易受A–D先验影响；同时不能把诊断控制事后改成主要端点或临时添加通过阈值 | 五个主要条件均联合7/8、domain 8/8、operation 7/8；continuous/restored预测8/8一致，三种swap均7/8跟随注入state。reset/random参考匹配均2/8；无确认性决定或重跑 | Codex；云端只读分析 |
-| 39. Phase 3：显式 Self Model | 🟡 D4B runtime服务器静态复验通过，等待真实入口确认 | 实现静态Self Store、Self Encoder和可关闭/缩放gated injection，并建立字段mask/swap/random/coupling-off消融 | 先证明接口可审计、可干预、失败关闭，再决定真实RWKV注入位置和效果实验 | 服务器完整报告17/17检查全真，九个冻结源码digest与本地一致，报告digest=`261325c4…ae46`匹配，所有真实执行安全字段为假且工作区为空。本次贴回未含HEAD、9项和46项测试输出，故只确认runtime源码级跨主机静态门。D4仍失败，真实入口/claim/模型执行/D5均未授权 | 共同完成 |
+| 39. Phase 3：显式 Self Model | 🟡 D4B真实入口完成，等待服务器无模型复验 | 实现静态Self Store、Self Encoder和可关闭/缩放gated injection，并建立字段mask/swap/random/coupling-off消融 | 先证明接口可审计、可干预、失败关闭，再决定真实RWKV注入位置和效果实验 | 入口冻结唯一授权文本/Schema/授权路径/结果目录和21次核心；精确锁、干净main、机器授权及installed-source通过后，claim必须先于模型配置资产验证、加载和forward。11项新增、57项Phase 3组合与全项目376项通过；27项静态检查全真，digest=`3c03a87e…24d2`。当前未生成授权/claim，模型未加载/执行，D5未授权 | 共同完成 |
 | 40. Self 更新与演化 | ⏳ 未开始 | 让 Self State 根据经历受控更新、回滚和分化 | 这是“持续自我”真正更深入的部分 | 尚未开始 | 后续阶段 |
 | 41. 内生调节与自主审议 | ⏳ 未开始 | 让 Self/冲突决定是否检索、回放、模拟或停止，并在零新外部观察条件下受控更新 | 检验系统是否不仅“有状态”，还会因内部状态选择继续计算；同时排除定时器和随机回放解释 | 设计说明已完成；必须等待显式 Self 因果价值和受约束更新两道前置门，不创建空壳代码 | 后续阶段 |
 | 42. 最终研究结论 | ⏳ 未开始 | 汇总统计结果、失败案例和替代解释 | 最终回答项目假设是否得到支持，而不是只展示几个有趣案例 | 尚未开始 | 共同完成 |
 
 ## 3. 当前所在位置
 
-> 2026-08-20 当前状态：D4真实2.9B失败永久保持；D4A报告digest=`d6b0602a…2e88`、claim=`21055ee6…7754`和`within_route_instability_observed`分类均冻结，D4B设计服务器源码级静态门已通过。D4B fake-first runtime固定21次调用及120项严格比较，并已完成服务器源码级跨主机静态复验：贴回完整报告17/17检查全真，九个冻结源码digest与本地逐项一致，报告digest=`261325c4…ae46`匹配，除`runtime_core_implemented=true`外所有真实执行安全字段均为假，服务器工作区状态为空。本次贴回没有HEAD、9项新增测试和46项Phase 3组合测试输出，因此不补写未观察到的服务器提交号或测试计数。fake通过仍只表示`runtime_core_verification_only`，不是2.9B结果或D5候选。当前未实现真实入口，未导入真实RWKV/Torch、访问权重、创建机器授权或claim、执行/观察D4B；D5/active/Self效果实验继续关闭。以下保留完整历史路径；如与旧阶段描述冲突，以本段和顶部“当前节点”为准。
+> 2026-08-20 当前状态：D4真实2.9B失败永久保持；D4A报告digest=`d6b0602a…2e88`、claim=`21055ee6…7754`和`within_route_instability_observed`分类均冻结，D4B设计及runtime服务器源码级静态门均已通过。D4B真实2.9B稳态OFF入口安全外壳现已本地完成：唯一未来授权文本明确只允许一次D4B执行与本次结果观察，排除D4/D4B重跑、自动重跑、D5、active和Self效果；机器授权Schema禁止额外字段并绑定干净main、配置digest与runtime静态digest；授权文件和结果目录均为唯一固定路径。入口先核对精确环境锁、授权、Git和installed-source，再独占创建claim；claim严格先于模型配置/权重验证、模型加载和21次forward，claim后异常写`failure.json`并永久阻止重跑。外层报告会把真实执行上下文与fake核心模板安全字段分开；通过只形成D5审阅候选，不授权D5。11项新增测试、57项Phase 3组合和全项目376项通过；27项无模型静态检查全真，报告digest=`3c03a87e…24d2`。当前`execution_authorized_at_implementation=false`，没有生成机器授权或claim，没有导入/加载/执行2.9B模型，也没有结果观察授权生效。以下保留完整历史路径；如与旧阶段描述冲突，以本段和顶部“当前节点”为准。
 
 ```text
 理论设计
@@ -219,7 +219,7 @@ EXP-001B补充控制
 正式 state 因果实验
    🟡 EXP-001主实验完成；等待EXP-001B控制闭合后作最终阶段决策
 显式 Self Model
-   🟡 D4B runtime服务器无模型静态复验通过；等待确认真实入口安全外壳
+   🟡 D4B真实入口安全外壳完成；等待服务器无模型静态复验
 受约束 Self 更新
    ⏳
 内生调节与自主审议
@@ -239,7 +239,7 @@ EXP-001B补充控制
 
 ## 4. 当前下一步
 
-> 2026-08-20 当前下一步：等待项目负责人确认是否进入D4B真实执行入口安全外壳实现轮。若确认，只实现逐字授权校验、机器授权Schema、干净main和冻结digest绑定、模型访问前single-use claim、受控结果路径、claim后失败记录以及无模型静态验证；实现时不得生成真实授权或claim，不得导入/加载/执行2.9B模型。真实D4B执行和结果观察仍需之后独立逐字授权，且不得自动升级为D5、active injection或Self效果实验。以下保留此前 EXP-001B 轨迹作为历史记录。
+> 2026-08-20 当前下一步：服务器先启用`network_turbo`并拉取本轮main，只运行D4B入口11项测试、Phase 3共57项无模型组合测试和27项入口静态验证，核对调用时序、源码digest及安全字段；必须确保执行锁未设置，不得运行真实runner、创建机器授权或claim、访问权重、加载/执行2.9B模型。服务器静态结果确认后停止。真实D4B单次执行与观察只有项目负责人之后逐字发送配置中的完整授权文本才可进入；普通“确认/下一轮”无效，也不授权D5、active injection或Self效果实验。以下保留此前 EXP-001B 轨迹作为历史记录。
 
 截至2026-08-04，项目负责人已经确认EXP-001B设计草案中的B1–B7。
 新增范围仍锁在11,008条控制记录，并明确不重跑EXP-001、不重估E1–E3、
@@ -729,3 +729,4 @@ trial-condition单元；只允许全量完成且完整性验证后观察结果�
 | 2026-08-20 | D4B服务器无模型静态复验通过：贴回完整报告22/22检查全真，D4 37次与D4A 9次重建轨迹完整，八个冻结源码digest与本地一致；报告digest=`7f3cfb7f…658d`从完整JSON独立复算匹配，所有安全字段为假，`git status --short`为空。贴回片段未包含HEAD与37项测试输出，因此只确认源码级跨主机静态门，不补写服务器提交号或测试计数。D4失败不变；runtime、真实授权/claim、模型执行、D5、active和Self效果均未授权 | 项目负责人贴回的`results/development/self_model_v0_1_d4b_steady_state_off_design/report.json`；`docs/self_model_v0_1_d4b_cloud_static_observation.md` |
 | 2026-08-20 | D4B fake-first runtime核心本地完成：复用现有OFF-G1、G0和OFF-G2边界，固定执行并记录1次prefix、4次预条件与16次拉丁计分，共21次调用；只对计分输出生成24个同路线和96个跨路线严格`torch.equal`比较。fake全等只产生`runtime_core_verification_only`，不形成D5候选；单路线扰动固定失败且不加调用，异常只传播一次并恢复临时绑定。9项新增、46项Phase 3组合和全项目365项测试通过；17项静态检查全真，digest=`261325c4…ae46`。runtime源码不导入RWKV/Torch，真实入口、机器授权、claim、权重/模型执行、D5、active和Self效果均不存在或未授权 | `src/psa/self_model/d4b_steady_state_off_runtime.py`；`configs/development/self_model_v0_1_d4b_steady_state_off_runtime.json`；`docs/self_model_v0_1_d4b_steady_state_off_runtime.md` |
 | 2026-08-20 | D4B runtime服务器无模型静态复验通过：完整报告17/17检查全真，九个配置/文档/脚本/源码/测试digest与本地最终报告一致，报告digest=`261325c4…ae46`匹配；除runtime核心已实现外，RWKV/Torch导入、installed-source探针、权重、模型加载/执行、真实入口、机器授权、claim、D4变化、D5、active、Self效果和自动重跑全部为假，服务器工作区为空。贴回内容未含HEAD及9项/46项测试输出，因此只确认源码级跨主机静态门。下一步需另行确认真实入口安全外壳，仍不等于模型执行授权 | 项目负责人贴回的`results/development/self_model_v0_1_d4b_steady_state_off_runtime/report.json`；`docs/self_model_v0_1_d4b_runtime_cloud_static_observation.md` |
+| 2026-08-20 | D4B真实2.9B稳态OFF入口安全外壳本地完成：冻结唯一逐字授权、机器授权Schema、授权/结果唯一路径、干净main及配置/runtime digest绑定；精确环境锁和授权通过后先核对installed-source，再在模型配置资产验证、加载及任何forward前独占消费claim。claim后成功/失败均消耗机会，异常持久化且不重跑。真实外层报告区分fake模板安全字段，D4B通过只形成D5审阅候选而不授权D5。11项新增、57项Phase 3组合和全项目376项测试通过；27项静态检查全真，digest=`3c03a87e…24d2`。实现时机器授权/claim/RWKV/Torch/权重/模型执行/结果观察均未发生 | `src/psa/self_model/d4b_real_off_equivalence.py`；`configs/development/self_model_v0_1_d4b_real_off_equivalence.json`；`schemas/self_model_v0_1_d4b_real_authorization.schema.json`；`docs/self_model_v0_1_d4b_real_off_equivalence_entry.md` |
