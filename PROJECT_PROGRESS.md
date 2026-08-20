@@ -1,8 +1,8 @@
 # Persistent Self Architecture 项目进度表
 
 > 最后更新：2026-08-20
-> 当前节点：Phase 3 D4B稳态OFF等价门服务器无模型静态复验通过；等待确认是否实现纯离线runtime
-> 研究状态：D4失败保持不变；D4B设计跨主机源码级验证完成，首次调用瞬态与失败位置签名相关但低层机制仍未识别，runtime/模型执行/D5均未授权
+> 当前节点：Phase 3 D4B fake-first runtime核心本地完成；等待服务器无模型静态复验
+> 研究状态：D4失败保持不变；D4B固定21次调用与120项严格比较已实现并通过fake测试，真实入口/claim/模型执行/D5均未授权
 
 ## 1. 这张表怎么使用
 
@@ -113,14 +113,14 @@
 | 38p. EXP-001C v02 Stage B只读live preflight与机器授权锁 | ✅ 云端通过 | 在模型加载前绑定干净main提交、设计/protocol digest、Stage A原始结果、模型配置与资产哈希、主机环境、224条计划和空输出目录；授权只接受固定逐字文本并绑定preflight digest | 防止把“继续”解释成模型执行授权，也防止代码、证据、模型或输出目录变化后复用旧授权 | Stage B 29项远程测试通过，云端只读preflight全部检查为true且失败项为空；`model_loaded=false`、`model_executed=false`、执行/观察均为false。最终digest以本轮最终文档提交后的服务器v02证据为准 | Codex |
 | 38q. EXP-001C v02 Stage B项目负责人单次授权 | ✅ 已逐字确认并消费 | 负责人使用冻结原文授权224条recurrent-state非Core pilot及本轮结果观察，同时明确排除Stage A重跑、正式测试集、正式运行、确认性决定和自动重跑 | 模型执行和结果观察是新的不可逆边界，不能由此前“继续”推断 | 授权绑定preflight_v03与Stage A/result digest，机器记录和single-use claim均已消费；224条运行及观察完成后禁止重跑 | 项目负责人；Codex执行 |
 | 38r. EXP-001C v02 Stage B冻结只读观察 | ✅ 云端完成 | 对五个状态语义条件按8个语义案例×4代码轮换平均log score，记录联合/字段准确率与margin；reset/random只记录参考匹配率，不定义正确答案 | 原始code top-1容易受A–D先验影响；同时不能把诊断控制事后改成主要端点或临时添加通过阈值 | 五个主要条件均联合7/8、domain 8/8、operation 7/8；continuous/restored预测8/8一致，三种swap均7/8跟随注入state。reset/random参考匹配均2/8；无确认性决定或重跑 | Codex；云端只读分析 |
-| 39. Phase 3：显式 Self Model | 🟡 D4B设计服务器静态复验通过，等待纯离线runtime确认 | 实现静态Self Store、Self Encoder和可关闭/缩放gated injection，并建立字段mask/swap/random/coupling-off消融 | 先证明接口可审计、可干预、失败关闭，再决定真实RWKV注入位置和效果实验 | D4B服务器报告22/22检查全真，D4 37次与D4A 9次轨迹完整，digest=`7f3cfb7f…658d`独立复算一致，八个源码digest与本地一致；所有安全字段为假。贴回片段未包含HEAD和37项测试输出，故只确认源码级跨主机静态门。D4仍失败，runtime/模型执行/D5均未授权 | 共同完成 |
+| 39. Phase 3：显式 Self Model | 🟡 D4B fake-first runtime完成，等待服务器无模型复验 | 实现静态Self Store、Self Encoder和可关闭/缩放gated injection，并建立字段mask/swap/random/coupling-off消融 | 先证明接口可审计、可干预、失败关闭，再决定真实RWKV注入位置和效果实验 | runtime固定记录1次prefix、4次预条件和16次拉丁计分，生成24个同路线与96个跨路线严格比较；fake全等只标记`runtime_core_verification_only`，扰动/异常均失败关闭且不追加调用。9项新增、46项Phase 3组合与全项目365项通过，17项静态检查全真，digest=`261325c4…ae46`。D4仍失败，真实入口/claim/模型执行/D5均未授权 | 共同完成 |
 | 40. Self 更新与演化 | ⏳ 未开始 | 让 Self State 根据经历受控更新、回滚和分化 | 这是“持续自我”真正更深入的部分 | 尚未开始 | 后续阶段 |
 | 41. 内生调节与自主审议 | ⏳ 未开始 | 让 Self/冲突决定是否检索、回放、模拟或停止，并在零新外部观察条件下受控更新 | 检验系统是否不仅“有状态”，还会因内部状态选择继续计算；同时排除定时器和随机回放解释 | 设计说明已完成；必须等待显式 Self 因果价值和受约束更新两道前置门，不创建空壳代码 | 后续阶段 |
 | 42. 最终研究结论 | ⏳ 未开始 | 汇总统计结果、失败案例和替代解释 | 最终回答项目假设是否得到支持，而不是只展示几个有趣案例 | 尚未开始 | 共同完成 |
 
 ## 3. 当前所在位置
 
-> 2026-08-20 当前状态：D4真实2.9B失败永久保持；D4A报告digest=`d6b0602a…2e88`、claim=`21055ee6…7754`和`within_route_instability_observed`分类均冻结。D4B离线闭环与前瞻设计已经完成，本地22项静态检查、37项Phase 3组合测试和全项目356项测试通过。服务器贴回完整D4B报告：22/22检查全真，D4 37次和D4A 9次重建轨迹完整，八个冻结源码digest与本地一致，报告digest=`7f3cfb7f…658d`从粘贴JSON独立复算一致，全部安全字段为假，工作区状态为空。本次片段没有包含`git rev-parse HEAD`和37项测试输出，因此只确认源码级跨主机静态门，不补写未观察到的提交号或服务器测试计数。D4B仍只是前瞻控制设计，不是已证实修复；当前没有runtime、claim、模型执行或结果观察授权，D5/active/Self效果实验继续关闭。以下保留完整历史路径；如与旧阶段描述冲突，以本段和顶部“当前节点”为准。
+> 2026-08-20 当前状态：D4真实2.9B失败永久保持；D4A报告digest=`d6b0602a…2e88`、claim=`21055ee6…7754`和`within_route_instability_observed`分类均冻结，D4B设计服务器源码级静态门已通过。D4B fake-first runtime核心现已本地实现：按冻结顺序记录1次original prefix、四路线各1次预条件和4×4拉丁16次计分，共21次调用；全部输出保存tensor inventory，只对计分区生成24个同路线和96个跨路线`torch.equal`比较。fake全等报告的效果严格限定为`runtime_core_verification_only`；单路线扰动会在固定21次后失败，异常只传播一次且G0/G2临时绑定恢复，不存在自适应预热、容差或自动重跑。9项新增测试、46项Phase 3组合和全项目365项通过；17项runtime静态检查全真，报告digest=`261325c4…ae46`，`model_executed=false`且真实入口不存在。当前未导入真实RWKV/Torch、未访问权重、未创建机器授权或claim、未执行/观察2.9B D4B，D5/active/Self效果实验继续关闭。以下保留完整历史路径；如与旧阶段描述冲突，以本段和顶部“当前节点”为准。
 
 ```text
 理论设计
@@ -219,7 +219,7 @@ EXP-001B补充控制
 正式 state 因果实验
    🟡 EXP-001主实验完成；等待EXP-001B控制闭合后作最终阶段决策
 显式 Self Model
-   🟡 D4B服务器无模型静态复验通过；等待确认纯离线runtime，模型执行未授权
+   🟡 D4B fake-first runtime核心完成；等待服务器无模型静态复验
 受约束 Self 更新
    ⏳
 内生调节与自主审议
@@ -239,7 +239,7 @@ EXP-001B补充控制
 
 ## 4. 当前下一步
 
-> 2026-08-20 当前下一步：等待项目负责人确认是否进入D4B runtime纯离线/fake-first实现轮。若确认，只实现固定21次调用计划、四路线绑定、完整输出记录、120项严格比较、失败关闭和fake测试，并准备未来无模型静态入口；不得创建真实机器授权或claim，不得导入/加载/执行2.9B模型，不得运行D4/D4B、授权D5、active injection或Self效果实验。以下保留此前 EXP-001B 轨迹作为历史记录。
+> 2026-08-20 当前下一步：服务器先启用`network_turbo`并拉取本轮main，只运行D4B runtime的9项fake/manifest测试、46项Phase 3无模型组合测试和17项静态验证器，核对报告digest与安全字段。该轮不得导入真实RWKV/Torch、访问权重、创建机器授权或claim、执行2.9B模型。服务器结果确认后必须停止；后续是否实现真实D4B入口仍需新的独立确认，普通“下一轮”不等于模型执行、结果观察、D5、active injection或Self效果实验授权。以下保留此前 EXP-001B 轨迹作为历史记录。
 
 截至2026-08-04，项目负责人已经确认EXP-001B设计草案中的B1–B7。
 新增范围仍锁在11,008条控制记录，并明确不重跑EXP-001、不重估E1–E3、
@@ -727,3 +727,4 @@ trial-condition单元；只允许全量完成且完整性验证后观察结果�
 | 2026-08-20 | D4A真实2.9B最小诊断在提交`63a1878`上单次完成：14/14完整性检查、9次调用、9个同路线与27个跨路线比较完整，报告`valid=true`、digest=`d6b0602a…2e88`独立复算一致，claim=`21055ee6…7754`已消费。original与G0各自第一次调用独立，后续original/G0及全部G2共7次逐位一致；首轮original/G0从`state[4]`到`state[95]`共92组件不同，与D4失败位置签名一致。分类`within_route_instability_observed`，但不改写D4或授权D5；下一步只离线闭合D4完整调用轨迹 | 远程`results/development/self_model_v0_1_d4a_real_diagnostic_v01/report.json`；`docs/self_model_v0_1_d4a_real_diagnostic_observation.md` |
 | 2026-08-20 | D4/D4A离线诊断闭环与D4B前瞻设计完成：重建确认D4共37次调用，G2确实有一次预热，但全部预热输出均被丢弃、矩阵没有G0；D4A的9次全记录调用显示original和G0各自首次瞬态后七次共享稳态，却没有复现D4的prefix和完整调度。因此不能逐调用对齐，共享`state[4..95]`位置签名只作为关联证据，不宣称已定位低层缓存机制。D4B只补测原失败单元，复现并记录prefix后固定四路线各预条件一次，再按4×4拉丁顺序计分16次，共21次调用、24个同路线和96个跨路线严格`torch.equal`比较；这是一项前瞻控制而非已证实修复，禁止自适应预热、容差、跨运行digest替代和自动重跑。本地4项新增、37项Phase 3组合及全项目356项测试通过；22项设计静态检查通过，digest=`7f3cfb7f…658d`。当前仅设计，模型/权重/runtime/claim/执行/观察/D5/active/Self效果均未授权 | `configs/development/self_model_v0_1_d4b_steady_state_off_design.json`；`docs/self_model_v0_1_d4b_steady_state_off_design.md`；`src/psa/self_model/d4b_steady_state_off_design.py` |
 | 2026-08-20 | D4B服务器无模型静态复验通过：贴回完整报告22/22检查全真，D4 37次与D4A 9次重建轨迹完整，八个冻结源码digest与本地一致；报告digest=`7f3cfb7f…658d`从完整JSON独立复算匹配，所有安全字段为假，`git status --short`为空。贴回片段未包含HEAD与37项测试输出，因此只确认源码级跨主机静态门，不补写服务器提交号或测试计数。D4失败不变；runtime、真实授权/claim、模型执行、D5、active和Self效果均未授权 | 项目负责人贴回的`results/development/self_model_v0_1_d4b_steady_state_off_design/report.json`；`docs/self_model_v0_1_d4b_cloud_static_observation.md` |
+| 2026-08-20 | D4B fake-first runtime核心本地完成：复用现有OFF-G1、G0和OFF-G2边界，固定执行并记录1次prefix、4次预条件与16次拉丁计分，共21次调用；只对计分输出生成24个同路线和96个跨路线严格`torch.equal`比较。fake全等只产生`runtime_core_verification_only`，不形成D5候选；单路线扰动固定失败且不加调用，异常只传播一次并恢复临时绑定。9项新增、46项Phase 3组合和全项目365项测试通过；17项静态检查全真，digest=`261325c4…ae46`。runtime源码不导入RWKV/Torch，真实入口、机器授权、claim、权重/模型执行、D5、active和Self效果均不存在或未授权 | `src/psa/self_model/d4b_steady_state_off_runtime.py`；`configs/development/self_model_v0_1_d4b_steady_state_off_runtime.json`；`docs/self_model_v0_1_d4b_steady_state_off_runtime.md` |

@@ -1,0 +1,73 @@
+{
+  "implementation_version": "0.1-d4b-steady-state-off-runtime",
+  "stage": "D4B_steady_state_off_runtime_fake_first",
+  "status": "runtime_core_implemented_real_entry_absent",
+  "development_only": true,
+  "prerequisite_design": {
+    "path": "configs/development/self_model_v0_1_d4b_steady_state_off_design.json",
+    "sha256": "e3f5cd05f9e5bc7bb282bd82f543c0893d175f51805e56a3e8d53bbbabbe353f",
+    "static_report_sha256": "7f3cfb7fecf6892532f9ecdb27f528716b363077e37e288f8940d8e883ef658d"
+  },
+  "implementation": {
+    "path": "src/psa/self_model/d4b_steady_state_off_runtime.py",
+    "project_local_only": true,
+    "real_model_entry_present": false,
+    "routes": [
+      "original_baseline",
+      "off_g1_passthrough",
+      "g0_recompiled_unmodified",
+      "off_g2_instrumented"
+    ],
+    "prefix_token_ids": [187, 931],
+    "target_token_ids": [2764],
+    "fixed_preconditioning_order": [
+      "original_baseline",
+      "off_g1_passthrough",
+      "g0_recompiled_unmodified",
+      "off_g2_instrumented"
+    ],
+    "scored_rounds": [
+      ["original_baseline", "off_g1_passthrough", "g0_recompiled_unmodified", "off_g2_instrumented"],
+      ["off_g1_passthrough", "g0_recompiled_unmodified", "off_g2_instrumented", "original_baseline"],
+      ["g0_recompiled_unmodified", "off_g2_instrumented", "original_baseline", "off_g1_passthrough"],
+      ["off_g2_instrumented", "original_baseline", "off_g1_passthrough", "g0_recompiled_unmodified"]
+    ],
+    "prefix_call_count": 1,
+    "preconditioning_call_count": 4,
+    "scored_call_count": 16,
+    "total_forward_call_count": 21,
+    "within_route_comparison_count": 24,
+    "cross_route_comparison_count": 96,
+    "comparison": "torch.equal",
+    "all_outputs_recorded": true,
+    "adaptive_or_extra_calls_allowed": false,
+    "d4_status_can_change": false,
+    "d5_can_be_authorized": false
+  },
+  "current_verification": {
+    "fake_model_only": true,
+    "installed_source_probe_included": false,
+    "rwkv_model_import_included": false,
+    "torch_import_included": false,
+    "weights_access_included": false,
+    "real_model_execution_included": false,
+    "real_execution_claim_implemented": false,
+    "real_result_observation_included": false
+  },
+  "authority": {
+    "runtime_core_implementation_authorized": true,
+    "fake_test_authorized": true,
+    "server_no_model_static_verification_authorized": true,
+    "real_execution_entry_implementation_authorized": false,
+    "rwkv_model_import_authorized": false,
+    "torch_import_authorized": false,
+    "weights_access_authorized": false,
+    "model_execution_authorized": false,
+    "result_observation_authorized": false,
+    "d4_rerun_authorized": false,
+    "active_injection_authorized": false,
+    "self_effect_experiment_authorized": false,
+    "d5_authorized": false,
+    "automatic_rerun_authorized": false
+  }
+}
