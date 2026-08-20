@@ -1,0 +1,60 @@
+{
+  "implementation_version": "0.1-d4a-diagnostic-runtime",
+  "stage": "D4A_failure_diagnostic_runtime_fake_only",
+  "status": "runtime_implemented_real_entry_absent",
+  "development_only": true,
+  "prerequisite_design": {
+    "path": "configs/development/self_model_v0_1_d4a_failure_diagnostic_design.json",
+    "sha256": "3e4286ece9c78b5c2d8a9f7a347f6906cc08590c4e2196aae0f8391596545277"
+  },
+  "implementation": {
+    "path": "src/psa/self_model/d4a_failure_diagnostic_runtime.py",
+    "project_local_only": true,
+    "real_model_entry_present": false,
+    "g0_recompiled_unmodified_implemented": true,
+    "g0_callback_attribute_constructed": false,
+    "g0_instrumentation_branch_present": false,
+    "off_g2_reused_without_modification": true,
+    "routes": [
+      "original_baseline",
+      "g0_recompiled_unmodified",
+      "off_g2_instrumented"
+    ],
+    "recorded_rounds": [
+      ["original_baseline", "g0_recompiled_unmodified", "off_g2_instrumented"],
+      ["g0_recompiled_unmodified", "off_g2_instrumented", "original_baseline"],
+      ["off_g2_instrumented", "original_baseline", "g0_recompiled_unmodified"]
+    ],
+    "model_forward_call_count": 9,
+    "discarded_warmup_call_count": 0,
+    "within_route_comparison_count": 9,
+    "cross_route_comparison_count": 27,
+    "d4_status_can_change": false,
+    "d5_can_be_authorized": false
+  },
+  "current_verification": {
+    "fake_model_only": true,
+    "installed_source_probe_included": false,
+    "rwkv_model_import_included": false,
+    "torch_import_included": false,
+    "weights_access_included": false,
+    "real_model_execution_included": false,
+    "real_execution_claim_implemented": false,
+    "real_result_observation_included": false
+  },
+  "authority": {
+    "diagnostic_runtime_implementation_authorized": true,
+    "fake_test_authorized": true,
+    "installed_source_static_verification_authorized": false,
+    "real_execution_entry_implementation_authorized": false,
+    "rwkv_model_import_authorized": false,
+    "torch_import_authorized": false,
+    "weights_access_authorized": false,
+    "model_execution_authorized": false,
+    "diagnostic_result_observation_authorized": false,
+    "d4_rerun_authorized": false,
+    "active_injection_authorized": false,
+    "self_effect_experiment_authorized": false,
+    "automatic_rerun_authorized": false
+  }
+}
