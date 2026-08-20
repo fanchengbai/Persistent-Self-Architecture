@@ -1,0 +1,116 @@
+{
+  "design_version": "0.1-d4a-failure-diagnostic-design",
+  "stage": "D4A_post_failure_minimal_diagnostic_design",
+  "status": "design_only_unimplemented_unexecuted",
+  "development_only": true,
+  "d4_failure_evidence": {
+    "executed_git_commit": "a4d110c5de5a8e638137c0559a15de8941172eed",
+    "report_path_on_server": "results/development/self_model_v0_1_d4_real_off_equivalence_v01/report.json",
+    "report_digest_sha256": "39d4611a6d50791f1677f9eb27e6fb2ea702151a26236fa4094699b821ca721a",
+    "execution_claim_sha256": "2900bf111031f878bf18004d3f7123439fdfea62dabf8da0a67eefb54e7479de",
+    "valid": false,
+    "passing_cell_count": 5,
+    "total_cell_count": 6,
+    "failed_cell_id": "forward_one__none__full_output_false",
+    "failed_state_component_first": 4,
+    "failed_state_component_last": 95,
+    "failed_state_component_count": 92,
+    "automatic_rerun_authorized": false
+  },
+  "offline_audit_findings": {
+    "d4_cell_order": [
+      "forward_one__none__full_output_false",
+      "forward_one__restored__full_output_false",
+      "forward_seq__none__full_output_false",
+      "forward_seq__none__full_output_true",
+      "forward_seq__restored__full_output_false",
+      "forward_seq__restored__full_output_true"
+    ],
+    "d4_route_order": [
+      "original_baseline",
+      "off_g1_passthrough",
+      "off_g2_instrumented"
+    ],
+    "warmup_outputs_recorded": false,
+    "within_route_repeatability_recorded": false,
+    "numeric_error_magnitude_recorded": false,
+    "per_tensor_content_digest_recorded": false,
+    "state_mode_and_route_age_separated": false,
+    "off_g2_recompiles_selected_method_ast": true,
+    "off_g2_removes_method_decorators": true,
+    "off_g2_copies_upstream_globals": true,
+    "off_g2_temporarily_binds_both_methods": true,
+    "off_g2_temporarily_sets_none_callback": true,
+    "d4_observed_deterministic_algorithms_enabled": false
+  },
+  "retained_explanations": [
+    "route_or_code_object_cold_call_effect",
+    "ast_recompile_or_temporary_binding_boundary",
+    "none_guarded_instrumentation_branch",
+    "persistent_forward_one_state_none_difference"
+  ],
+  "minimal_future_diagnostic": {
+    "diagnostic_only_not_d4_retest": true,
+    "model_id": "rwkv7-g1h-2.9b-20260710",
+    "model_config_path": "configs/models/rwkv7_g1h_2.9b.candidate.json",
+    "non_core_token_ids": [2764],
+    "state_input": "none",
+    "full_output": false,
+    "routes": [
+      "original_baseline",
+      "g0_recompiled_unmodified",
+      "off_g2_instrumented"
+    ],
+    "g0_boundary": "same_selected_ast_decorator_removal_copied_globals_and_temporary_binding_as_g2_but_no_callback_attribute_or_injected_branch",
+    "recorded_rounds": [
+      ["original_baseline", "g0_recompiled_unmodified", "off_g2_instrumented"],
+      ["g0_recompiled_unmodified", "off_g2_instrumented", "original_baseline"],
+      ["off_g2_instrumented", "original_baseline", "g0_recompiled_unmodified"]
+    ],
+    "model_forward_call_count": 9,
+    "discarded_warmup_call_count": 0,
+    "each_route_occupies_each_order_position_once": true,
+    "required_per_call_records": [
+      "route",
+      "round_index",
+      "order_position",
+      "logits_shape_dtype_device",
+      "logits_sha256",
+      "state_component_count",
+      "state_component_shape_dtype_device",
+      "state_component_sha256"
+    ],
+    "required_comparisons": [
+      "all_within_route_pairs_torch_equal",
+      "all_cross_route_pairs_torch_equal",
+      "unequal_element_count",
+      "max_abs_error",
+      "mean_abs_error",
+      "first_mismatch_component"
+    ],
+    "interpretation_only": true,
+    "cannot_change_d4_status": true,
+    "cannot_authorize_d5": true
+  },
+  "future_stop_rules": {
+    "always_stop_after_one_complete_or_failed_attempt": true,
+    "no_automatic_rerun": true,
+    "no_tolerance_as_pass_criterion": true,
+    "no_top1_as_pass_criterion": true,
+    "no_active_injection": true,
+    "no_self_effect_experiment": true
+  },
+  "authority": {
+    "offline_failure_audit_authorized": true,
+    "diagnostic_design_authorized": true,
+    "diagnostic_runtime_implementation_authorized": false,
+    "rwkv_model_import_authorized": false,
+    "weights_access_authorized": false,
+    "model_execution_authorized": false,
+    "diagnostic_result_observation_authorized": false,
+    "d4_rerun_authorized": false,
+    "active_injection_authorized": false,
+    "self_effect_experiment_authorized": false,
+    "automatic_rerun_authorized": false
+  }
+}
