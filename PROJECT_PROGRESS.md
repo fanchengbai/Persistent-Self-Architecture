@@ -1,8 +1,8 @@
 # Persistent Self Architecture 项目进度表
 
 > 最后更新：2026-08-20
-> 当前节点：Phase 3 D4真实2.9B OFF逐位等价runner已推送；等待服务器拉取并单次执行
-> 研究状态：D4实现提交`36f903d`已进入main，325项本地测试通过；真实模型尚未在本轮执行，active/Self效果仍无授权或证据
+> 当前节点：Phase 3 D4真实2.9B OFF逐位等价门有效失败；停止重跑并进入离线失败分析
+> 研究状态：OFF-G1在6/6单元逐位一致；OFF-G2在5/6一致，仅单token+state=None失败。single-use claim已消费，active/Self效果继续暂停
 
 ## 1. 这张表怎么使用
 
@@ -113,14 +113,14 @@
 | 38p. EXP-001C v02 Stage B只读live preflight与机器授权锁 | ✅ 云端通过 | 在模型加载前绑定干净main提交、设计/protocol digest、Stage A原始结果、模型配置与资产哈希、主机环境、224条计划和空输出目录；授权只接受固定逐字文本并绑定preflight digest | 防止把“继续”解释成模型执行授权，也防止代码、证据、模型或输出目录变化后复用旧授权 | Stage B 29项远程测试通过，云端只读preflight全部检查为true且失败项为空；`model_loaded=false`、`model_executed=false`、执行/观察均为false。最终digest以本轮最终文档提交后的服务器v02证据为准 | Codex |
 | 38q. EXP-001C v02 Stage B项目负责人单次授权 | ✅ 已逐字确认并消费 | 负责人使用冻结原文授权224条recurrent-state非Core pilot及本轮结果观察，同时明确排除Stage A重跑、正式测试集、正式运行、确认性决定和自动重跑 | 模型执行和结果观察是新的不可逆边界，不能由此前“继续”推断 | 授权绑定preflight_v03与Stage A/result digest，机器记录和single-use claim均已消费；224条运行及观察完成后禁止重跑 | 项目负责人；Codex执行 |
 | 38r. EXP-001C v02 Stage B冻结只读观察 | ✅ 云端完成 | 对五个状态语义条件按8个语义案例×4代码轮换平均log score，记录联合/字段准确率与margin；reset/random只记录参考匹配率，不定义正确答案 | 原始code top-1容易受A–D先验影响；同时不能把诊断控制事后改成主要端点或临时添加通过阈值 | 五个主要条件均联合7/8、domain 8/8、operation 7/8；continuous/restored预测8/8一致，三种swap均7/8跟随注入state。reset/random参考匹配均2/8；无确认性决定或重跑 | Codex；云端只读分析 |
-| 39. Phase 3：显式 Self Model | 🟡 D4 runner已推送，等待服务器单次执行 | 实现静态Self Store、Self Encoder和可关闭/缩放gated injection，并建立字段mask/swap/random/coupling-off消融 | 先证明接口可审计、可干预、失败关闭，再决定真实RWKV注入位置和效果实验 | D3B已闭合；D4真实2.9B一次性门已由提交`36f903d`推送main，固定6个计分单元、三条同进程路径、每route/cell一次同形状预热，并只接受logits及全部state的`torch.equal`。6项新增测试及全项目325项通过；尚未在服务器加载或执行本轮模型，active/Self效果继续关闭 | Codex |
+| 39. Phase 3：显式 Self Model | ⚠️ D4有效失败，停止重跑并离线诊断 | 实现静态Self Store、Self Encoder和可关闭/缩放gated injection，并建立字段mask/swap/random/coupling-off消融 | 先证明接口可审计、可干预、失败关闭，再决定真实RWKV注入位置和效果实验 | 真实2.9B单次门有效运行：OFF-G1为6/6逐位一致；OFF-G2为5/6一致，唯一失败是单token+`state=None`，logits及`state[4:96]`共92组件不等。报告digest=`39d4611a…721a`独立重算有效；claim已消费，不自动重跑、不改容差。D5 active/Self效果继续暂停 | 共同完成 |
 | 40. Self 更新与演化 | ⏳ 未开始 | 让 Self State 根据经历受控更新、回滚和分化 | 这是“持续自我”真正更深入的部分 | 尚未开始 | 后续阶段 |
 | 41. 内生调节与自主审议 | ⏳ 未开始 | 让 Self/冲突决定是否检索、回放、模拟或停止，并在零新外部观察条件下受控更新 | 检验系统是否不仅“有状态”，还会因内部状态选择继续计算；同时排除定时器和随机回放解释 | 设计说明已完成；必须等待显式 Self 因果价值和受约束更新两道前置门，不创建空壳代码 | 后续阶段 |
 | 42. 最终研究结论 | ⏳ 未开始 | 汇总统计结果、失败案例和替代解释 | 最终回答项目假设是否得到支持，而不是只展示几个有趣案例 | 尚未开始 | 共同完成 |
 
 ## 3. 当前所在位置
 
-> 2026-08-20 当前状态：此前Phase 3离线接口、静态调查、fake双路径回调、OFF设计、D2 OFF-G1和D3服务器源码静态门均已通过；D3B的四次静态失败和最终成功均永久保留。项目负责人现已独立授权D4真实2.9B OFF等价门。提交`36f903d`已将一次性runner推送main：固定同一模型实例中的原始baseline、OFF-G1、OFF-G2三路，覆盖单token/序列、None/克隆恢复态及序列`full_output=false/true`共6个计分单元；每route/cell只做一次同形状预热，logits和全部state只接受`torch.equal`。入口要求干净main、固定模型/源码digest及逐字环境锁，并在加载模型前消费single-use claim；失败不自动重跑。6项新增测试及全项目325项通过。服务器尚未执行D4，所以真实等价结论仍不存在；active injection、Self projection、效果实验和确认性决定均未授权。以下保留完整历史路径；如与旧阶段描述冲突，以本段和顶部“当前节点”为准。
+> 2026-08-20 当前状态：D4已在服务器提交`a4d110c`上单次执行，24项组合测试先通过，真实2.9B运行有效但总门`valid=false`。原始baseline与OFF-G1在6/6单元的logits及96个state组件全部`torch.equal`；OFF-G2在5/6单元逐位一致，唯一失败为`forward_one + state=None + full_output=false`，其中logits不等且`state[4]`至`state[95]`共92组件不等，shape/dtype/device仍一致。恢复态单token和四个序列单元全部通过，来源state不变、callback为0、projection未构造、临时绑定已恢复。报告digest=`39d4611a…721a`已从粘贴报告独立重算一致，single-use claim digest=`2900bf11…9de`且已消费。现有报告不含误差幅度/逐次轨迹，不能在首次数值效应、方法绑定预热和真实`state=None`差异之间作结论；D4失败保留，不自动重跑、不改容差，D5 active/Self效果继续暂停。以下保留完整历史路径；如与旧阶段描述冲突，以本段和顶部“当前节点”为准。
 
 ```text
 理论设计
@@ -219,7 +219,7 @@ EXP-001B补充控制
 正式 state 因果实验
    🟡 EXP-001主实验完成；等待EXP-001B控制闭合后作最终阶段决策
 显式 Self Model
-   🟡 D4真实2.9B OFF等价runner已推送；等待服务器拉取并单次执行
+   ⚠️ D4有效失败：OFF-G1 6/6通过，OFF-G2 5/6通过；停止重跑并离线诊断
 受约束 Self 更新
    ⏳
 内生调节与自主审议
@@ -239,7 +239,7 @@ EXP-001B补充控制
 
 ## 4. 当前下一步
 
-> 2026-08-20 当前下一步：服务器先执行`source /etc/network_turbo`并快进拉取main，确认包含D4代码提交`36f903d`及本进度提交；随后先跑不加载模型的24项Phase 3组合测试，再只执行一次固定D4命令。若6个单元全部逐位相等，D4关闭并进入D5新设计/新授权；若任一单元失败或入口异常，保留claim/failure并停止，不自动重跑、不改容差。D4明确不包含active injection、Self效果实验、正式测试集或确认性决定。以下保留此前 EXP-001B 轨迹作为历史记录。
+> 2026-08-20 当前下一步：只做离线失败分析和新诊断设计，审计现有runner的调用顺序、预热定义和OFF-G2临时绑定边界，不运行模型。若离线证据支持新的最小诊断，必须先冻结需记录的逐次轨迹、误差字段、调用顺序、停止规则和新输出目录，再由项目负责人单独授权；不得复用已消费的D4授权。D4当前保持失败，D5 active injection、Self效果实验、正式测试集和确认性决定全部暂停。以下保留此前 EXP-001B 轨迹作为历史记录。
 
 截至2026-08-04，项目负责人已经确认EXP-001B设计草案中的B1–B7。
 新增范围仍锁在11,008条控制记录，并明确不重跑EXP-001、不重估E1–E3、
@@ -716,3 +716,4 @@ trial-condition单元；只允许全量完成且完整性验证后观察结果�
 | 2026-08-19 | D3B OFF-G2服务器无模型静态门在提交`96b18cd`上通过：16项专项测试成功，报告`valid=true`、digest=`46f05bd8…e57a`；48项检查、10个源码digest和报告自digest独立重算有效。真实源码`forward_one`两版在306/336、`forward_seq`两版在426/458，每版均一个注入点，冻结环境选择else行336/458；`off_g2_implemented=true`但`real_model_equivalence_executed=false`，模型/torch/权重/active/Self projection/效果实验均未发生。本轮停止，四次先前失败永久保留 | 远程`results/development/self_model_v0_1_instrumented_off_runtime/report.json`；项目负责人终端输出 |
 | 2026-08-19 | 项目负责人独立授权D4真实2.9B OFF等价门；本地完成single-use runner与冻结配置。矩阵固定原始baseline/OFF-G1/OFF-G2三路、单token/序列、None/克隆恢复态及序列两种`full_output`共6个计分单元，每route/cell预热1次；logits和全部state只接受shape/dtype/device一致及`torch.equal`。入口在模型加载前消费claim，失败同样禁止自动重跑；active/Self projection/效果实验/确认性决定全部关闭。6项新增测试、Phase 3组合24项及全项目325项通过；尚待推送后在服务器单次执行 | `src/psa/self_model/d4_real_off_equivalence.py`；`configs/development/self_model_v0_1_d4_real_off_equivalence.json`；`tests/test_self_model_d4_real_off_equivalence.py` |
 | 2026-08-20 | D4一次性runner、冻结配置、说明、测试和进度记录已由提交`36f903d`推送GitHub main；`.env`继续由`.gitignore`排除。服务器尚未拉取或执行，因此single-use claim尚未消费、真实模型等价结论仍为空。下一步固定为服务器拉取最终进度提交、先跑24项无模型组合测试，再单次运行D4 | GitHub main提交`36f903d`；本地`git check-ignore -v .env` |
+| 2026-08-20 | D4真实2.9B OFF等价门在服务器提交`a4d110c`上有效失败：24项组合测试通过，模型成功加载并完成6单元；OFF-G1全部逐位一致，OFF-G2仅`forward_one+state=None`失败，logits及92/96个state组件不等，其余5单元逐位一致。报告digest=`39d4611a…721a`在本机从粘贴原文独立重算一致；claim=`2900bf11…9de`已消费，运行约10.65秒、峰值显存6,129,678,336字节。保留失败，不自动重跑或改容差；进入离线调用顺序/预热/绑定边界审计，D5继续暂停 | 远程`results/development/self_model_v0_1_d4_real_off_equivalence_v01/report.json`；`docs/self_model_v0_1_d4_failure_observation.md` |
