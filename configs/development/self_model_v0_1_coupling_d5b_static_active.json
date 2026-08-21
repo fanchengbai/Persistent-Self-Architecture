@@ -1,0 +1,78 @@
+{
+  "contract_version": "0.1-coupling-d5b-static-active",
+  "stage": "Coupling-D5B_project_active_path_static_integration",
+  "status": "project_local_static_fixture_only_model_unapproved",
+  "development_only": true,
+  "prerequisite": {
+    "d5a_status": "coupling_d5a_offline_active_contract_verified",
+    "d5a_report_digest_sha256": "48c6f609f53a2d5223366abcc9b8b3af3936ede282fcd880113edb4f1cff89d3",
+    "d5_design_report_digest_sha256": "d41dc30460060a85031df38b6cfb27ad8fa41b57cd77ba6f7e0940e75eb898fd",
+    "d4b_real_report_digest_sha256": "8befb5f4b2ce90241b66aff1f43bce59645d367c14f6594169e9c454fcf36a20"
+  },
+  "required_owner_confirmation_text": "确认进入 Self Model v0.1 Coupling-D5B 项目内active路径静态集成与无模型验证；不授权Coupling-D5C/D5D/D5E、RWKV/Torch导入、权重访问、模型加载或执行、真实层选择、真实Self projection构造、Self效果实验、Self Updater或自动重跑。",
+  "upstream_lock": {
+    "package": "rwkv",
+    "version": "0.8.32",
+    "model_source_sha256": "75482aee89a08d2a8c8dbe628110b317fc8d0974ddffbaa52aa19190667305e0",
+    "target_class": "RWKV_x070",
+    "execution_paths": ["forward_one", "forward_seq"],
+    "phase": "post_ffn_residual",
+    "rwkv_de_version": "unset",
+    "reuse_d4b_validated_ast_transform": true,
+    "installed_source_probed_this_round": false
+  },
+  "static_fixture": {
+    "offline_static_fixture_required": true,
+    "n_layer": 4,
+    "hidden_dimension": 2560,
+    "dtype": "float16",
+    "device": "fake-cuda:0",
+    "state_components_per_layer": 3,
+    "single_token": 3,
+    "sequence_tokens": [3, 5, 8]
+  },
+  "synthetic_callback": {
+    "kind": "static_shape_synthetic_probe_not_self_projection",
+    "phase": "post_ffn_residual",
+    "layer_mask": ["fake-layer-01", "fake-layer-03"],
+    "layer_mask_is_real_selection": false,
+    "gate": 0.5,
+    "full_scale": 1.0,
+    "sequence_policy": "broadcast_same_vector_to_each_position",
+    "projection_trained": false,
+    "real_self_projection": false
+  },
+  "required_checks": [
+    "locked_ast_has_both_post_ffn_paths",
+    "only_offline_static_fixture_accepted",
+    "off_and_zero_callback_absent",
+    "off_and_zero_exact",
+    "active_both_paths_change",
+    "active_callback_counts_exact",
+    "real_hidden_shape_preserved",
+    "sequence_broadcast_preserved",
+    "source_state_immutable",
+    "temporary_bindings_restored",
+    "exception_restores_bindings",
+    "nonfinite_and_wrong_shape_fail_closed"
+  ],
+  "authority": {
+    "d5b_static_active_implementation_authorized": true,
+    "d5c_real_model_mechanism_smoke_authorized": false,
+    "d5d_noncore_effect_pilot_authorized": false,
+    "d5e_formal_effect_experiment_authorized": false,
+    "installed_rwkv_source_probe_authorized": false,
+    "rwkv_model_import_authorized": false,
+    "torch_import_authorized": false,
+    "weights_access_authorized": false,
+    "model_load_authorized": false,
+    "model_execution_authorized": false,
+    "real_layer_selection_authorized": false,
+    "real_self_projection_construction_authorized": false,
+    "self_effect_experiment_authorized": false,
+    "self_updater_authorized": false,
+    "automatic_rerun_authorized": false
+  },
+  "required_next_owner_confirmation_text": "确认进入 Self Model v0.1 Coupling-D5C 真实2.9B非Core机制冒烟设计与无模型安全入口实现；不授权模型加载或执行、D5D/D5E、正式测试集、Self效果结论、Self Updater或自动重跑。",
+  "next_gate": "Coupling-D5C_requires_design_and_separate_real_execution_authorization"
+}
