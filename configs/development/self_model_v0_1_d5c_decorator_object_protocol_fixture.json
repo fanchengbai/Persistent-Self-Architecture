@@ -1,0 +1,53 @@
+{
+  "fixture_version": "0.1-d5c-decorator-object-protocol-offline",
+  "stage": "Coupling-D5C_failure_decorator_object_protocol_fixture",
+  "status": "synthetic_fixture_authorized_no_model_no_fix",
+  "development_only": true,
+  "required_owner_confirmation_text": "确认进入 Self Model v0.1 D5C失败纯离线 decorator/object-protocol 边界 fixture 实现；只使用合成 Python fixture 检查 decorator、descriptor、`setattr`/`delattr`/直接字典删除及方法解析，不修改真实 runtime，不导入 RWKV/Torch，不访问权重，不加载或执行模型，不授权修复或重跑 D5C，也不授权 D5D/D5E、正式测试集、Self 效果、真实 Self projection、Self Updater 或自动重跑。",
+  "frozen_prerequisites": {
+    "d5c_real_report_sha256": "187cdfd4f43f4fbc990d08b120c25c36629010133693697b0bb42e48ea8cdb21",
+    "lifecycle_diagnostic_report_sha256": "3dfa640d32bfbea2594e7d58afb6c71552b8fc8619a215d72ae8b23e5e0a4150",
+    "source_audit_report_sha256": "652b1a4cc0bcf3f8c5b03f304133cc151f3af07160d8f8ecdddad9afb32d1342",
+    "d5c_wrapper_source_sha256": "e1de359da6d2087721dfd433a3e6ad90c6439bb474325a768c2f1d07fb08b5b7",
+    "instrumenter_source_sha256": "ce9862b6739980305f854c9a63a08a5b872e73d53ae6098f626998ee0324aea5",
+    "d5c_status": "d5c_mechanism_smoke_failed",
+    "decision_effect": "stop_without_rerun"
+  },
+  "matrix": {
+    "execution_paths": ["forward_one", "forward_seq"],
+    "standard_decorator_kinds": ["plain", "identity_decorator", "non_caching_descriptor"],
+    "cleanup_modes": ["direct_instance_dict_pop", "delattr"],
+    "side_cache_decorator_kind": "non_caching_descriptor",
+    "standard_case_count": 12,
+    "side_cache_case_count": 4,
+    "total_case_count": 16
+  },
+  "expected_observations": {
+    "all_standard_cases_restore_original": true,
+    "side_cache_direct_pop_cases_contaminate": true,
+    "side_cache_delattr_cases_restore_original": true,
+    "direct_pop_can_leave_instance_keys_absent_while_side_cache_remains": true,
+    "synthetic_sufficient_mechanism_is_real_root_cause": false
+  },
+  "required_classification": "synthetic_side_dispatch_state_is_sufficient_for_direct_pop_contamination_standard_decorators_restore_real_root_cause_unresolved",
+  "authority": {
+    "synthetic_fixture_implementation_authorized": true,
+    "existing_source_and_report_observation_authorized": true,
+    "real_runtime_modification_authorized": false,
+    "fix_implementation_authorized": false,
+    "rwkv_import_authorized": false,
+    "torch_import_authorized": false,
+    "weights_access_authorized": false,
+    "model_load_authorized": false,
+    "model_execution_authorized": false,
+    "d5c_rerun_authorized": false,
+    "d5d_authorized": false,
+    "d5e_authorized": false,
+    "formal_test_set_authorized": false,
+    "self_effect_conclusion_authorized": false,
+    "real_self_projection_authorized": false,
+    "self_updater_authorized": false,
+    "automatic_rerun_authorized": false
+  },
+  "next_gate": "offline_fix_design_requires_separate_owner_confirmation"
+}
