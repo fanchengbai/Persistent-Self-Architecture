@@ -1,0 +1,63 @@
+{
+  "audit_version": "0.1-d5c-dispatch-cache-source-offline",
+  "stage": "Coupling-D5C_failure_dispatch_cache_source_audit",
+  "status": "source_audit_authorized_no_model_no_fix",
+  "development_only": true,
+  "required_owner_confirmation_text": "确认进入 Self Model v0.1 D5C失败纯离线源码级dispatch/cache边界审计；只审计冻结AST变换、wrapper源码、decorator/方法分派和现有fake，不导入RWKV/Torch、不访问权重、不加载或执行模型、不实现或授权修复后重跑，也不授权D5D/D5E、正式测试集、Self效果、真实Self projection、Self Updater或自动重跑。",
+  "frozen_evidence": {
+    "rwkv_package_version": "0.8.32",
+    "rwkv_model_source_sha256": "75482aee89a08d2a8c8dbe628110b317fc8d0974ddffbaa52aa19190667305e0",
+    "rwkv_jit_on": "0",
+    "real_original_method_decorators": {
+      "forward_one": ["MyFunction"],
+      "forward_seq": ["MyFunction"]
+    },
+    "recompiled_method_decorators": {
+      "forward_one": [],
+      "forward_seq": []
+    },
+    "public_forward_dispatch_markers": [
+      "return self.forward_seq(idx, state, full_output)",
+      "return self.forward_one(idx[0], state)"
+    ],
+    "d5c_real_report_sha256": "187cdfd4f43f4fbc990d08b120c25c36629010133693697b0bb42e48ea8cdb21",
+    "d5c_real_status": "d5c_mechanism_smoke_failed",
+    "lifecycle_diagnostic_report_sha256": "3dfa640d32bfbea2594e7d58afb6c71552b8fc8619a215d72ae8b23e5e0a4150",
+    "post_active_original_calls": 8,
+    "extra_callback_invocations": 256,
+    "extra_probe_applications": 8,
+    "layers_per_call": 32
+  },
+  "audit_boundaries": [
+    "fresh_ast_parse_and_compilation",
+    "decorator_removal",
+    "temporary_instance_method_binding",
+    "callback_attribute_binding_and_cleanup",
+    "public_forward_method_dispatch",
+    "existing_plain_python_fake_coverage",
+    "unavailable_decorator_and_framework_internals"
+  ],
+  "required_classification": "ast_object_mutation_excluded_wrapper_protocol_asymmetry_and_decorator_coverage_gap_confirmed_cache_root_cause_unresolved",
+  "authority": {
+    "source_audit_authorized": true,
+    "existing_fake_audit_authorized": true,
+    "existing_report_observation_authorized": true,
+    "fix_implementation_authorized": false,
+    "rwkv_import_authorized": false,
+    "torch_import_authorized": false,
+    "weights_access_authorized": false,
+    "model_load_authorized": false,
+    "model_execution_authorized": false,
+    "d4_rerun_authorized": false,
+    "d4b_rerun_authorized": false,
+    "d5c_rerun_authorized": false,
+    "d5d_authorized": false,
+    "d5e_authorized": false,
+    "formal_test_set_authorized": false,
+    "self_effect_conclusion_authorized": false,
+    "real_self_projection_authorized": false,
+    "self_updater_authorized": false,
+    "automatic_rerun_authorized": false
+  },
+  "next_gate": "separate_offline_boundary_fixture_or_fix_design_requires_owner_confirmation"
+}
