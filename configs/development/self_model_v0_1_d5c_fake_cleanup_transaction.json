@@ -1,0 +1,58 @@
+{
+  "implementation_version": "0.1-d5c-fake-cleanup-transaction",
+  "stage": "Coupling-D5C_failure_fake_first_cleanup_transaction",
+  "status": "fake_only_implementation_authorized_no_real_patch_no_model",
+  "development_only": true,
+  "owner_confirmation_text": "下一轮确认",
+  "confirmation_context": "The immediately preceding assistant message offered exactly one next gate: implement the fake-first cleanup transaction and ten synthetic acceptance categories without modifying the real runtime or executing a model.",
+  "frozen_prerequisites": {
+    "d5c_real_report_sha256": "187cdfd4f43f4fbc990d08b120c25c36629010133693697b0bb42e48ea8cdb21",
+    "boundary_fixture_report_sha256": "c2c9b98bcd213af6cae15fe9f8b4ba51448b327956e54b9552943430474c60fc",
+    "fix_design_report_sha256": "a37ac870e7efd7992b55c74cbcea43a195ad451d8d040ea7ba868f8cd54a67b6",
+    "d5c_wrapper_source_sha256": "e1de359da6d2087721dfd433a3e6ad90c6439bb474325a768c2f1d07fb08b5b7",
+    "d5c_status": "d5c_mechanism_smoke_failed",
+    "decision_effect": "stop_without_rerun"
+  },
+  "transaction_contract": {
+    "managed_names": ["_psa_post_ffn_residual_callback", "forward_one", "forward_seq"],
+    "install_order": ["_psa_post_ffn_residual_callback", "forward_one", "forward_seq"],
+    "restore_order": ["forward_seq", "forward_one", "_psa_post_ffn_residual_callback"],
+    "phases": ["snapshot", "install", "forward", "restore", "verify", "commit_or_fail_closed"],
+    "commit_rule": "output is returned only after restoration verification succeeds",
+    "failure_rule": "produced output is discarded when cleanup or verification fails",
+    "precondition_rule": "nested use and pre-existing managed instance names are rejected before managed-name mutation",
+    "verification_uses_extra_forward": false
+  },
+  "acceptance_categories": [
+    "standard_decorator_matrix_both_paths",
+    "cooperative_side_dispatch_restores",
+    "noncooperative_sticky_side_dispatch_fails_closed",
+    "failure_after_callback_install_restores",
+    "failure_after_first_method_install_restores",
+    "forward_exception_restores_and_is_preserved",
+    "cleanup_exception_attempts_remaining_names_and_fails_closed",
+    "post_cleanup_identity_mismatch_discards_output",
+    "nested_or_concurrent_use_rejected_before_inner_mutation",
+    "verification_adds_no_forward_call"
+  ],
+  "required_classification": "fake_transaction_restores_cooperative_boundaries_and_fails_closed_on_sticky_or_exceptional_boundaries_no_real_fix_claim",
+  "authority": {
+    "fake_cleanup_transaction_implementation_authorized": true,
+    "synthetic_acceptance_execution_authorized": true,
+    "real_runtime_modification_authorized": false,
+    "rwkv_import_authorized": false,
+    "torch_import_authorized": false,
+    "weights_access_authorized": false,
+    "model_load_authorized": false,
+    "model_execution_authorized": false,
+    "d5c_rerun_authorized": false,
+    "d5d_authorized": false,
+    "d5e_authorized": false,
+    "formal_test_set_authorized": false,
+    "self_effect_conclusion_authorized": false,
+    "real_self_projection_authorized": false,
+    "self_updater_authorized": false,
+    "automatic_rerun_authorized": false
+  },
+  "next_gate": "real_runtime_patch_implementation_requires_separate_owner_confirmation"
+}

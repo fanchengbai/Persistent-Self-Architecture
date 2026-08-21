@@ -1,8 +1,8 @@
 # Persistent Self Architecture 项目进度表
 
 > 最后更新：2026-08-21
-> 当前节点：Phase 3 D5C失败纯离线修复设计完成；等待fake-first事务清理实现的独立确认
-> 研究状态：推荐“快照—对称恢复—解析身份复核—失败关闭”，仅`delattr`证据不足；尚未实现修复，D5C失败/禁重跑及D5D/D5E关闭均不变
+> 当前节点：Phase 3 D5C失败fake-first事务清理实现完成；等待真实runtime补丁实现的独立确认
+> 研究状态：合成合作边界恢复、顽固/异常边界失败关闭，嵌套与并发均拒绝；尚未修改真实runtime，D5C失败/禁重跑及D5D/D5E关闭均不变
 
 ## 1. 这张表怎么使用
 
@@ -113,14 +113,14 @@
 | 38p. EXP-001C v02 Stage B只读live preflight与机器授权锁 | ✅ 云端通过 | 在模型加载前绑定干净main提交、设计/protocol digest、Stage A原始结果、模型配置与资产哈希、主机环境、224条计划和空输出目录；授权只接受固定逐字文本并绑定preflight digest | 防止把“继续”解释成模型执行授权，也防止代码、证据、模型或输出目录变化后复用旧授权 | Stage B 29项远程测试通过，云端只读preflight全部检查为true且失败项为空；`model_loaded=false`、`model_executed=false`、执行/观察均为false。最终digest以本轮最终文档提交后的服务器v02证据为准 | Codex |
 | 38q. EXP-001C v02 Stage B项目负责人单次授权 | ✅ 已逐字确认并消费 | 负责人使用冻结原文授权224条recurrent-state非Core pilot及本轮结果观察，同时明确排除Stage A重跑、正式测试集、正式运行、确认性决定和自动重跑 | 模型执行和结果观察是新的不可逆边界，不能由此前“继续”推断 | 授权绑定preflight_v03与Stage A/result digest，机器记录和single-use claim均已消费；224条运行及观察完成后禁止重跑 | 项目负责人；Codex执行 |
 | 38r. EXP-001C v02 Stage B冻结只读观察 | ✅ 云端完成 | 对五个状态语义条件按8个语义案例×4代码轮换平均log score，记录联合/字段准确率与margin；reset/random只记录参考匹配率，不定义正确答案 | 原始code top-1容易受A–D先验影响；同时不能把诊断控制事后改成主要端点或临时添加通过阈值 | 五个主要条件均联合7/8、domain 8/8、operation 7/8；continuous/restored预测8/8一致，三种swap均7/8跟随注入state。reset/random参考匹配均2/8；无确认性决定或重跑 | Codex；云端只读分析 |
-| 39. Phase 3：显式 Self Model | ⚠️ D5C真实失败保留；纯离线修复设计完成 | 实现静态Self Store、Self Encoder和可关闭/缩放gated injection，并建立字段mask/swap/random/coupling-off消融 | 先证明接口可审计、可干预、失败关闭，再决定真实RWKV注入位置和效果实验 | 对三种清理策略完成冻结评审：直接`__dict__.pop`因绕过协议且不复核而否决；仅`delattr`因无法保证未知cache清除而不足；推荐未来fake-first事务式快照、反向全量恢复、静态descriptor/解析方法/callback身份复核，只有核验成功才提交forward输出，否则丢弃输出并失败关闭。10类fake验收覆盖顽固cache、部分安装、forward/cleanup异常及嵌套拒绝。19项检查、8项专项及全项目436项通过，digest=`a37ac870…67b6`；真实runtime digest未变、修复未实现、D5C与D5D/D5E阻断不变 | Codex |
+| 39. Phase 3：显式 Self Model | ⚠️ D5C真实失败保留；fake事务清理候选通过 | 实现静态Self Store、Self Encoder和可关闭/缩放gated injection，并建立字段mask/swap/random/coupling-off消融 | 先证明接口可审计、可干预、失败关闭，再决定真实RWKV注入位置和效果实验 | 独立fake transaction实现快照、`setattr`安装、反向全量恢复、descriptor/resolved method/callback核验及输出延迟提交。6个标准decorator双路径和2个合作side-cache均恢复；2个顽固cache在完成一次forward后丢弃输出并失败关闭；两类部分安装、forward异常、cleanup异常、身份错配均符合规则，同对象嵌套和确定性双线程并发都在内层forward前拒绝，核验不增加forward。15项报告检查、11项专项及全项目447项通过，digest=`52519a5f…f57b`；真实wrapper digest未变、真实补丁/模型执行均为false，D5C与D5D/D5E阻断不变 | Codex |
 | 40. Self 更新与演化 | ⏳ 未开始 | 让 Self State 根据经历受控更新、回滚和分化 | 这是“持续自我”真正更深入的部分 | 尚未开始 | 后续阶段 |
 | 41. 内生调节与自主审议 | ⏳ 未开始 | 让 Self/冲突决定是否检索、回放、模拟或停止，并在零新外部观察条件下受控更新 | 检验系统是否不仅“有状态”，还会因内部状态选择继续计算；同时排除定时器和随机回放解释 | 设计说明已完成；必须等待显式 Self 因果价值和受约束更新两道前置门，不创建空壳代码 | 后续阶段 |
 | 42. 最终研究结论 | ⏳ 未开始 | 汇总统计结果、失败案例和替代解释 | 最终回答项目假设是否得到支持，而不是只展示几个有趣案例 | 尚未开始 | 共同完成 |
 
 ## 3. 当前所在位置
 
-> 2026-08-21 当前状态：D4失败、D4A瞬态分类、D4B真实稳态OFF通过、D5A离线闭环和D5B静态active路径均保持；Coupling-D5C唯一真实2.9B机制冒烟的有效失败、报告`187cdfd4…db21`和已消费claim=`75d69ae3…f12f`保持不变。本轮把负责人在唯一明确下一门后的“确认”严格绑定为纯离线修复设计，不扩展到实现或模型。评审否决继续使用直接`instance.__dict__.pop`作为可信清理，因为它绕过对象删除协议且不核验真实解析状态；同时没有把`delattr`单独选为修复，因为前轮只证明它在合作型合成协议中有效，未知cache可以不响应它。推荐的未来fake-first方案是一项事务：变更前冻结managed name所有权/值、静态class descriptor、两条resolved method身份token与callback缺席sentinel；按`setattr`安装；任何成功或异常路径都反向尝试恢复全部名字；随后核对实例状态、descriptor、resolved method与callback。只有恢复核验成功才允许返回forward输出，任何不一致都丢弃输出并失败关闭，同时保留主forward异常并附加cleanup错误。未来fake验收固定10类场景，包括不响应`delattr`的顽固side-cache、部分安装失败、forward/cleanup异常、身份不一致、嵌套/并发拒绝，且禁止用额外真实model forward做清理验证。19项检查、8项专项和全项目436项测试通过；报告`valid=true`、digest=`a37ac870…67b6`、真实wrapper digest仍为`e1de359d…b5b7`、`fake_fix_implemented=false`、`real_runtime_modified=false`、`model_executed=false`。D5C失败和禁止重跑保持，D5D/D5E、正式测试集、Self效果、真实projection、Updater和自动重跑继续关闭。下一步若继续，只能另行确认fake-first事务清理实现；不能自动修改真实runtime或执行模型。以下保留完整历史路径；如与旧阶段描述冲突，以本段和顶部“当前节点”为准。
+> 2026-08-21 当前状态：D4失败、D4A瞬态分类、D4B真实稳态OFF通过、D5A离线闭环和D5B静态active路径均保持；Coupling-D5C唯一真实2.9B机制冒烟的有效失败、报告`187cdfd4…db21`和已消费claim=`75d69ae3…f12f`保持不变。本轮把“下一轮确认”严格绑定到上一轮唯一提出的fake-first事务清理实现，不修改真实runtime。独立`SyntheticCleanupTransaction`在变更前冻结实例所有权/值、静态descriptor、resolved method函数和callback缺席；通过`setattr`安装，反向尝试全部恢复，核验完整快照后才返回输出。标准plain/identity/non-caching descriptor双路径6例和合作型side-dispatch双路径2例全部在一次forward后恢复；不响应`delattr`的顽固side-cache双路径2例均在产生一次active输出后检测到resolved method/callback错配、丢弃输出并失败关闭。callback后/首方法后的部分安装失败不执行forward且恢复；forward主异常恢复后原样抛出；cleanup异常仍尝试三名字并丢弃已产生输出；身份错配不会静默提交。同一对象的嵌套调用与确定性双线程并发均由lock-protected weak registry在内层managed mutation/forward前拒绝，外层恢复；所有验证均不添加forward。15项报告检查、11项专项和全项目447项测试通过；报告`valid=true`、digest=`52519a5f…f57b`、`fake_candidate_valid=true`，但真实wrapper digest仍为`e1de359d…b5b7`、`real_patch_implemented=false`、`real_runtime_modified=false`、`model_executed=false`。D5C失败和禁止重跑保持，D5D/D5E、正式测试集、Self效果、真实projection、Updater和自动重跑继续关闭。下一步若继续，只能另行确认把已验证事务适配到真实runtime源码并做无模型/fake回归；不能自动执行模型或重跑D5C。以下保留完整历史路径；如与旧阶段描述冲突，以本段和顶部“当前节点”为准。
 
 ```text
 理论设计
@@ -239,7 +239,7 @@ EXP-001B补充控制
 
 ## 4. 当前下一步
 
-> 2026-08-21 当前下一步：D5C single-use机会已消费且失败结论不可改变。纯离线设计已推荐事务式`snapshot→install→restore→verify`，并冻结“核验成功后才能提交forward输出”的失败关闭规则，但尚未实现。若继续，下一轮只能另行确认“D5C失败fake-first事务清理实现”：只在合成对象上实现独立cleanup transaction并运行10类验收，不改`d5c_mechanism_runtime.py`或instrumenter，不导入RWKV/Torch、不访问权重、不加载/执行模型，也不授权真实修复、D5C重跑、D5D/D5E、正式测试集、Self效果、真实Self projection、Self Updater或自动重跑。以下保留此前 EXP-001B 轨迹作为历史记录。
+> 2026-08-21 当前下一步：D5C single-use机会已消费且失败结论不可改变。fake-first事务已覆盖合作、顽固、部分安装、forward/cleanup异常、身份错配、嵌套和并发，并保证核验不增加forward；它仍只是fake candidate。若继续，下一轮必须另行确认“D5C真实runtime事务清理补丁与无模型验证”：只把已冻结事务适配到`RWKV7D5CActiveRuntime`，保持instrumenter、实验调度和授权入口不变，只运行纯Python fake与源码静态检查；不导入RWKV/Torch、不访问权重、不加载/执行模型，不授权D5C重跑、D5D/D5E、正式测试集、Self效果、真实Self projection、Self Updater或自动重跑。以下保留此前 EXP-001B 轨迹作为历史记录。
 
 截至2026-08-04，项目负责人已经确认EXP-001B设计草案中的B1–B7。
 新增范围仍锁在11,008条控制记录，并明确不重跑EXP-001、不重估E1–E3、
@@ -743,3 +743,4 @@ trial-condition单元；只允许全量完成且完整性验证后观察结果�
 | 2026-08-21 | D5C失败纯离线dispatch/cache源码边界审计完成：确认instrumenter使用新解析AST与复制globals独立编译，排除直接修改已加载原方法；确认真实原方法`MyFunction` decorator到active无decorator编译方法的边界。wrapper用`setattr`安装、直接`__dict__.pop`清理且不复核解析身份，形成已确认的对象协议不对称；existing fake两条方法无decorator，未覆盖真实descriptor边界。当前冻结源码不含`MyFunction`实现或Torch属性协议内部，因此只能记录风险和覆盖缺口，不能宣称缓存根因或设计修复。18项检查、8项专项及全项目420项通过，报告digest=`652b1a4c…1342`；模型执行/修复实现/D5C结论改变均为false，所有后续门继续关闭 | `configs/development/self_model_v0_1_d5c_dispatch_cache_source_audit.json`；`src/psa/self_model/d5c_dispatch_cache_source_audit.py`；`docs/self_model_v0_1_d5c_dispatch_cache_source_audit.md` |
 | 2026-08-21 | D5C失败纯离线decorator/object-protocol边界fixture完成：16例矩阵中，双forward上的plain、identity decorator和non-caching descriptor在直接字典删除/`delattr`下共12例全部恢复。显式side-dispatch合成对象的2个直接删除案例在实例键已空时仍保留active方法/callback并复现污染形状，相同对象的2个`delattr`案例按合成协议恢复。由此得到一种充分但未证实为真实的机制，不宣称RWKV/Torch根因或`delattr`修复。16项检查、8项专项及全项目428项通过，报告digest=`c2c9b98b…60fc`；runtime修改、模型执行、修复和D5C结论改变均为false，后续门继续关闭 | `configs/development/self_model_v0_1_d5c_decorator_object_protocol_fixture.json`；`src/psa/self_model/d5c_decorator_object_protocol_fixture.py`；`docs/self_model_v0_1_d5c_decorator_object_protocol_fixture.md` |
 | 2026-08-21 | D5C失败纯离线修复设计完成：直接字典删除被否决为未验证清理，仅`delattr`因未知cache可能不响应而不足；推荐未来fake-first事务式快照、安装、反向全量恢复和解析身份核验。设计要求核验成功后才能返回forward输出，否则丢弃输出并失败关闭；10类fake验收覆盖合作/顽固side-cache、部分安装、forward/cleanup异常、身份不一致和嵌套拒绝，且不得增加真实model forward。19项检查、8项专项及全项目436项通过，报告digest=`a37ac870…67b6`；真实wrapper digest未变，fake/真实修复、模型执行和D5C结论改变均为false，后续门继续关闭 | `configs/development/self_model_v0_1_d5c_offline_fix_design.json`；`src/psa/self_model/d5c_offline_fix_design.py`；`docs/self_model_v0_1_d5c_offline_fix_design.md` |
+| 2026-08-21 | D5C失败fake-first事务清理实现完成：独立合成transaction执行快照、安装、反向全量恢复、身份核验和输出延迟提交。标准/合作边界恢复，顽固cache、cleanup与身份异常均丢弃输出并失败关闭；部分安装和forward异常恢复，三名字清理全尝试；嵌套和双线程并发在内层forward前拒绝，验证不增加forward。15项报告检查、11项专项及全项目447项通过，报告digest=`52519a5f…f57b`、fake candidate有效；真实wrapper digest未变，真实补丁、模型执行、D5C结论改变均为false，后续门继续关闭 | `configs/development/self_model_v0_1_d5c_fake_cleanup_transaction.json`；`src/psa/self_model/d5c_fake_cleanup_transaction.py`；`docs/self_model_v0_1_d5c_fake_cleanup_transaction.md` |
