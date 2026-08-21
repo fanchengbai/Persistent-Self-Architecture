@@ -1,0 +1,90 @@
+{
+  "protocol_version": "0.1-d5c-p1-real-engineering-entry",
+  "stage": "D5C-P1_patched_real_2_9b_noncore_engineering_entry",
+  "status": "design_and_no_model_entry_implemented_execution_not_authorized",
+  "development_only": true,
+  "implementation_confirmation_text": "确认进入 Self Model v0.1 D5C-P1 补丁后真实2.9B非Core工程验证设计与无模型安全入口实现；不授权模型加载或执行、不重跑原D5C、不改变历史失败结论，也不授权D5D/D5E、正式测试集、Self效果结论、真实Self projection、Self Updater或自动重跑。",
+  "frozen_prerequisites": {
+    "runtime_patch_report_sha256": "49f7444c6de98f7f751f15242ad43183ef76ea98fd1fd5455a8d521c3e6ac731",
+    "patched_runtime_source_sha256": "e4ae5c5bee74a85a4dea8a9b8eb16e3b6e19ef6b375020ffc849a09cbd7bbc32",
+    "instrumenter_source_sha256": "ce9862b6739980305f854c9a63a08a5b872e73d53ae6098f626998ee0324aea5",
+    "historical_d5c_report_sha256": "187cdfd4f43f4fbc990d08b120c25c36629010133693697b0bb42e48ea8cdb21",
+    "historical_d5c_claim_sha256": "75d69ae3ad4550361cc53d03ae5d89fd636f045d31a6cd62974c4dc15496f12f",
+    "historical_d5c_status": "d5c_mechanism_smoke_failed",
+    "historical_d5c_decision": "stop_without_rerun"
+  },
+  "model_config_path": "configs/models/rwkv7_g1h_2.9b.candidate.json",
+  "model_config_sha256": "959143ab13eb9f86ad40e87a9164194ddb1fe6a74dbfdd4cb04bda354b0dae75",
+  "model_id": "rwkv7-g1h-2.9b-20260710",
+  "upstream": {
+    "package": "rwkv",
+    "version": "0.8.32",
+    "model_source_sha256": "75482aee89a08d2a8c8dbe628110b317fc8d0974ddffbaa52aa19190667305e0",
+    "rwkv_de_version": "unset"
+  },
+  "fixtures": [
+    {"fixture_id": "single_noncore", "token_ids": [2764], "state_input": "none", "full_output": false},
+    {"fixture_id": "sequence_noncore", "token_ids": [187, 931, 2764], "state_input": "none", "full_output": true}
+  ],
+  "route_order": [
+    "original_before", "patched_off_before", "patched_active",
+    "original_after_active", "patched_off_after", "patched_zero_after"
+  ],
+  "control_comparisons": [
+    ["original_before", "patched_off_before"],
+    ["original_before", "original_after_active"],
+    ["patched_off_before", "patched_off_after"],
+    ["original_after_active", "patched_off_after"],
+    ["patched_off_after", "patched_zero_after"]
+  ],
+  "active_comparisons": [
+    ["patched_active", "original_before"],
+    ["patched_active", "original_after_active"]
+  ],
+  "counts": {
+    "fixture_count": 2,
+    "calls_per_fixture": 6,
+    "model_forward_calls_total": 12,
+    "wrapped_forward_calls_total": 8,
+    "active_forward_calls_total": 2,
+    "control_comparisons_total": 10,
+    "active_comparisons_total": 4,
+    "cleanup_evidence_records_total": 8,
+    "active_callback_calls_total": 64,
+    "active_probe_applications_total": 2
+  },
+  "acceptance": {
+    "all_outputs_finite": true,
+    "original_before_after_active_exact": true,
+    "all_control_comparisons_exact": true,
+    "active_differs_from_before_and_after": true,
+    "temporary_bindings_absent_after_every_wrapped_call": true,
+    "callback_counts_exact": true,
+    "engineering_validation_only": true
+  },
+  "execution_lock_env": "PSA_SELF_MODEL_D5C_P1_REAL_ENGINEERING",
+  "execution_lock_value": "AUTHORIZED_D5C_P1_PATCHED_REAL_2_9B_ENGINEERING_ONCE",
+  "authorization_schema_path": "schemas/self_model_v0_1_d5c_p1_real_authorization.schema.json",
+  "authorization_path": "results/authorizations/self_model_v0_1_d5c_p1_real_engineering_v01.json",
+  "output_dir": "results/development/self_model_v0_1_d5c_p1_real_engineering_v01",
+  "future_execution_authorization_text": "授权执行 Self Model v0.1 D5C-P1 补丁后真实2.9B非Core工程验证一次（固定两个夹具、每夹具6次、共12次调用），并授权观察本次工程结果；不授权重跑原D5C、不改变历史失败结论，也不授权D5D/D5E、正式测试集、Self效果结论、真实Self projection、Self Updater或自动重跑。",
+  "design_and_entry_implementation_authorized": true,
+  "no_model_verification_authorized": true,
+  "execution_authorized_at_implementation": false,
+  "future_exact_owner_authorization_required": true,
+  "future_machine_authorization_required": true,
+  "single_use_claim_required": true,
+  "claim_consumed_before_model_config_weights_or_load": true,
+  "historical_d5c_authorization_reusable": false,
+  "historical_d5c_claim_reusable": false,
+  "historical_d5c_rerun_authorized": false,
+  "historical_d5c_conclusion_change_authorized": false,
+  "d5d_authorized": false,
+  "d5e_authorized": false,
+  "formal_test_set_authorized": false,
+  "self_effect_conclusion_authorized": false,
+  "real_self_projection_authorized": false,
+  "self_updater_authorized": false,
+  "automatic_rerun_authorized": false,
+  "failure_action": "persist_failure_and_stop_p1_claim_consumed"
+}
