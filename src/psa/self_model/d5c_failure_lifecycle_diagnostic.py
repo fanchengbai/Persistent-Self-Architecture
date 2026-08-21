@@ -476,8 +476,11 @@ def build_diagnostic_report(
         ] is False,
         "plain_python_single_does_not_reproduce": single["valid"],
         "plain_python_sequence_does_not_reproduce": sequence["valid"],
-        "direct_instance_pop_cleanup_present": "instance_dict.pop(name, None)"
-        in runtime_source,
+        "historical_direct_pop_replaced_by_transactional_cleanup": (
+            "instance_dict.pop(name, None)" not in runtime_source
+            and "_restore_bindings" in runtime_source
+            and "_verify_restored_bindings" in runtime_source
+        ),
         "fake_bindings_restored_both_paths": single["checks"][
             "temporary_instance_bindings_absent"
         ] and sequence["checks"]["temporary_instance_bindings_absent"],

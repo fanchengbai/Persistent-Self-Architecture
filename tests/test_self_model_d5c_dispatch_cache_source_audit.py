@@ -57,14 +57,18 @@ class D5CDispatchCacheSourceAuditTests(unittest.TestCase):
             ]
         )
 
-    def test_wrapper_install_cleanup_protocol_is_asymmetric(self):
+    def test_wrapper_transition_closes_audited_protocol_asymmetry(self):
         analysis = _source_boundary_analysis(ROOT)
         self.assertEqual(analysis["wrapper_setattr_count"], 2)
         self.assertTrue(analysis["wrapper_methodtype_present"])
-        self.assertEqual(analysis["wrapper_direct_dict_pop_count"], 1)
+        self.assertEqual(analysis["wrapper_direct_dict_pop_count"], 0)
         self.assertEqual(analysis["wrapper_delattr_count"], 0)
         self.assertEqual(analysis["wrapper_getattr_count"], 0)
-        self.assertFalse(
+        self.assertEqual(analysis["restore_delattr_count"], 1)
+        self.assertGreaterEqual(analysis["verify_getattr_count"], 2)
+        self.assertTrue(analysis["restore_helper_called"])
+        self.assertTrue(analysis["verify_helper_called"])
+        self.assertTrue(
             analysis["source_level_implications"][
                 "installation_and_cleanup_use_symmetric_object_protocol"
             ]
@@ -92,8 +96,8 @@ class D5CDispatchCacheSourceAuditTests(unittest.TestCase):
             report["findings"]["not_supported"],
         )
         self.assertIn(
-            "setattr_and_direct_dict_pop_object_protocol_asymmetry",
-            report["findings"]["risk_not_root_cause"],
+            "current_wrapper_uses_protocol_restore_and_resolution_verification",
+            report["findings"]["confirmed"],
         )
         self.assertFalse(report["safety"]["fix_implemented"])
         self.assertFalse(report["safety"]["model_executed"])

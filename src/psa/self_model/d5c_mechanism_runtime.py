@@ -2,7 +2,9 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 import hashlib
+import inspect
 import math
+import threading
 import types
 from typing import Any, Mapping, Sequence
 
@@ -55,6 +57,10 @@ N_LAYER = 32
 HIDDEN_DIMENSION = 2560
 TARGET_LAYER_INDEX = (N_LAYER - 1) // 2
 TARGET_RESIDUAL_RMS_RATIO = 0.01
+MANAGED_BINDING_NAMES = (CALLBACK_ATTRIBUTE, *TARGET_METHODS)
+_ABSENT_BINDING = object()
+_ACTIVE_BINDING_MODEL_IDS: set[int] = set()
+_ACTIVE_BINDING_LOCK = threading.RLock()
 
 
 def _is_sha256(value: str) -> bool:
@@ -180,6 +186,115 @@ class D5CCouplingRequest:
             raise PermissionError("D5C OFF and zero routes cannot bind a callback")
 
 
+class D5CCleanupTransactionError(RuntimeError):
+    """The model call cannot commit because binding restoration was not verified."""
+
+    def __init__(
+        self,
+        *,
+        primary_exception: BaseException | None,
+        cleanup_failures: Sequence[str],
+        verification_failures: Sequence[str],
+        output_was_produced: bool,
+    ) -> None:
+        super().__init__("D5C temporary binding cleanup failed closed")
+        self.primary_exception = primary_exception
+        self.cleanup_failures = tuple(cleanup_failures)
+        self.verification_failures = tuple(verification_failures)
+        self.output_was_produced = output_was_produced
+
+
+@dataclass(frozen=True)
+class _D5CBindingSnapshot:
+    instance_values: Mapping[str, Any]
+    static_descriptors: Mapping[str, Any]
+    resolved_functions: Mapping[str, Any]
+    callback_value: Any
+
+
+def _resolved_function(value: Any) -> Any:
+    return getattr(value, "__func__", value)
+
+
+def _capture_binding_snapshot(base_model: Any) -> _D5CBindingSnapshot:
+    instance_dict = getattr(base_model, "__dict__", None)
+    if not isinstance(instance_dict, dict):
+        raise TypeError("D5C base model must expose a mutable instance dictionary")
+    if any(name in instance_dict for name in MANAGED_BINDING_NAMES):
+        raise RuntimeError("D5C model has conflicting temporary overrides")
+    return _D5CBindingSnapshot(
+        instance_values={
+            name: instance_dict.get(name, _ABSENT_BINDING)
+            for name in MANAGED_BINDING_NAMES
+        },
+        static_descriptors={
+            name: inspect.getattr_static(base_model, name) for name in TARGET_METHODS
+        },
+        resolved_functions={
+            name: _resolved_function(getattr(base_model, name)) for name in TARGET_METHODS
+        },
+        callback_value=getattr(base_model, CALLBACK_ATTRIBUTE, _ABSENT_BINDING),
+    )
+
+
+def _restore_bindings(
+    base_model: Any, snapshot: _D5CBindingSnapshot
+) -> list[str]:
+    failures: list[str] = []
+    instance_dict = base_model.__dict__
+    for name in reversed(MANAGED_BINDING_NAMES):
+        try:
+            previous = snapshot.instance_values[name]
+            if previous is _ABSENT_BINDING:
+                if name in instance_dict:
+                    delattr(base_model, name)
+            else:
+                setattr(base_model, name, previous)
+        except BaseException as error:
+            failures.append(f"{name}:{type(error).__name__}:{error}")
+    return failures
+
+
+def _verify_restored_bindings(
+    base_model: Any, snapshot: _D5CBindingSnapshot
+) -> list[str]:
+    failures: list[str] = []
+    try:
+        instance_dict = base_model.__dict__
+    except BaseException as error:
+        failures.append(f"instance_dictionary:{type(error).__name__}:{error}")
+        instance_dict = {}
+    for name in MANAGED_BINDING_NAMES:
+        try:
+            before = snapshot.instance_values[name]
+            after = instance_dict.get(name, _ABSENT_BINDING)
+            if before is _ABSENT_BINDING:
+                if after is not _ABSENT_BINDING:
+                    failures.append(f"instance_ownership:{name}")
+            elif after is not before:
+                failures.append(f"instance_value:{name}")
+        except BaseException as error:
+            failures.append(f"instance_verification:{name}:{type(error).__name__}:{error}")
+    for name in TARGET_METHODS:
+        try:
+            if inspect.getattr_static(base_model, name) is not snapshot.static_descriptors[name]:
+                failures.append(f"static_descriptor:{name}")
+        except BaseException as error:
+            failures.append(f"static_descriptor:{name}:{type(error).__name__}:{error}")
+        try:
+            if _resolved_function(getattr(base_model, name)) is not snapshot.resolved_functions[name]:
+                failures.append(f"resolved_function:{name}")
+        except BaseException as error:
+            failures.append(f"resolved_function:{name}:{type(error).__name__}:{error}")
+    try:
+        callback = getattr(base_model, CALLBACK_ATTRIBUTE, _ABSENT_BINDING)
+        if callback is not snapshot.callback_value:
+            failures.append("callback_resolution")
+    except BaseException as error:
+        failures.append(f"callback_resolution:{type(error).__name__}:{error}")
+    return failures
+
+
 class RWKV7D5CActiveRuntime:
     """Temporarily binds the locked project AST transform around one model call."""
 
@@ -233,19 +348,49 @@ class RWKV7D5CActiveRuntime:
         if type(coupling) is not D5CCouplingRequest:
             raise PermissionError("D5C runtime rejects non-exact requests")
         callback = coupling.callback if coupling.enabled and coupling.scale == 1.0 else None
-        instance_dict = self._base_model.__dict__
-        managed = (*TARGET_METHODS, CALLBACK_ATTRIBUTE)
-        if any(name in instance_dict for name in managed):
-            raise RuntimeError("D5C model has conflicting temporary overrides")
+        model_id = id(self._base_model)
+        with _ACTIVE_BINDING_LOCK:
+            if model_id in _ACTIVE_BINDING_MODEL_IDS:
+                raise RuntimeError("D5C rejects nested or concurrent temporary binding")
+            snapshot = _capture_binding_snapshot(self._base_model)
+            _ACTIVE_BINDING_MODEL_IDS.add(model_id)
+        primary: BaseException | None = None
+        output: Any = _ABSENT_BINDING
         try:
-            setattr(self._base_model, CALLBACK_ATTRIBUTE, callback)
-            for name, function in self._methods.items():
-                setattr(self._base_model, name, types.MethodType(function, self._base_model))
-            self.execution_count += 1
-            return self._base_model.forward(list(tokens), state, full_output)
+            try:
+                setattr(self._base_model, CALLBACK_ATTRIBUTE, callback)
+                for name, function in self._methods.items():
+                    setattr(
+                        self._base_model,
+                        name,
+                        types.MethodType(function, self._base_model),
+                    )
+                self.execution_count += 1
+                output = self._base_model.forward(list(tokens), state, full_output)
+            except BaseException as error:
+                primary = error
+            cleanup_failures = _restore_bindings(self._base_model, snapshot)
+            verification_failures = _verify_restored_bindings(
+                self._base_model, snapshot
+            )
+            if cleanup_failures or verification_failures:
+                failure = D5CCleanupTransactionError(
+                    primary_exception=primary,
+                    cleanup_failures=cleanup_failures,
+                    verification_failures=verification_failures,
+                    output_was_produced=output is not _ABSENT_BINDING,
+                )
+                if primary is not None:
+                    raise failure from primary
+                raise failure
+            if primary is not None:
+                raise primary
+            if output is _ABSENT_BINDING:
+                raise AssertionError("D5C model call produced no output")
+            return output
         finally:
-            for name in managed:
-                instance_dict.pop(name, None)
+            with _ACTIVE_BINDING_LOCK:
+                _ACTIVE_BINDING_MODEL_IDS.discard(model_id)
 
 
 def _invoke(

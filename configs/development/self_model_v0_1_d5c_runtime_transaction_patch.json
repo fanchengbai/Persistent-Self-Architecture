@@ -1,0 +1,42 @@
+{
+  "patch_version": "0.1-d5c-runtime-transaction-patch",
+  "stage": "Coupling-D5C_real_runtime_transaction_patch",
+  "status": "real_runtime_patch_no_model_validation_only",
+  "development_only": true,
+  "owner_confirmation_text": "我会去远程执行，你继续下一轮",
+  "confirmation_context": "Implement the single pending real D5C runtime transaction patch, validate locally without RWKV or Torch, push main, and leave remote execution to the owner.",
+  "frozen_prerequisites": {
+    "d5c_real_report_sha256": "187cdfd4f43f4fbc990d08b120c25c36629010133693697b0bb42e48ea8cdb21",
+    "fake_transaction_report_sha256": "52519a5f1968ae5096ea35a31af885057696928545f53d93f9c0762cf2f3f57b",
+    "historical_d5c_wrapper_source_sha256": "e1de359da6d2087721dfd433a3e6ad90c6439bb474325a768c2f1d07fb08b5b7",
+    "d5c_status": "d5c_mechanism_smoke_failed",
+    "decision_effect": "stop_without_rerun"
+  },
+  "transaction": {
+    "managed_names": ["_psa_post_ffn_residual_callback", "forward_one", "forward_seq"],
+    "phases": ["capture", "install", "forward", "restore", "verify", "commit_or_fail_closed"],
+    "same_model_nested_or_concurrent_policy": "reject_before_inner_mutation",
+    "cleanup_failure_policy": "attempt_all_names_discard_output_and_raise",
+    "verification_uses_extra_forward": false
+  },
+  "required_classification": "real_runtime_transaction_patch_passes_no_model_protocol_and_lifecycle_acceptance_real_2_9b_validation_not_run",
+  "authority": {
+    "real_runtime_transaction_patch_authorized": true,
+    "local_no_model_validation_authorized": true,
+    "remote_execution_delegated_to_owner": true,
+    "rwkv_import_authorized": false,
+    "torch_import_authorized": false,
+    "weights_access_authorized": false,
+    "model_load_authorized": false,
+    "model_execution_authorized": false,
+    "d5c_rerun_authorized": false,
+    "d5d_authorized": false,
+    "d5e_authorized": false,
+    "formal_test_set_authorized": false,
+    "self_effect_conclusion_authorized": false,
+    "real_self_projection_authorized": false,
+    "self_updater_authorized": false,
+    "automatic_rerun_authorized": false
+  },
+  "next_gate": "owner_runs_remote_no_model_verification_then_reports_output"
+}

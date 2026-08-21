@@ -491,7 +491,10 @@ def build_d5c_entry_static_report(
         < calls["sha256_file"] < calls["load_model_config"] < calls["load"],
         "mechanism_core_runs_after_claim": calls["_create_claim"] < calls["execute_d5c_mechanism_core"],
         "temporary_binding_has_finally_cleanup": "finally:" in runtime_source
-        and "instance_dict.pop(name, None)" in runtime_source,
+        and "_restore_bindings" in runtime_source
+        and "_verify_restored_bindings" in runtime_source
+        and "D5CCleanupTransactionError" in runtime_source
+        and "instance_dict.pop(name, None)" not in runtime_source,
         "d4_d4b_d5c_reruns_closed": not spec["d4_rerun_authorized"]
         and not spec["d4b_rerun_authorized"] and not spec["d5c_rerun_authorized"],
         "d5d_d5e_closed": not spec["d5d_authorized"] and not spec["d5e_authorized"],

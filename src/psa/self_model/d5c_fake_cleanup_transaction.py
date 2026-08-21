@@ -685,7 +685,15 @@ def build_fake_cleanup_report(
         "verification_uses_no_extra_forward": acceptance["checks"][
             "verification_adds_no_forward"
         ],
-        "real_runtime_digest_unchanged": sha256_file(wrapper_path) == WRAPPER_DIGEST,
+        "historical_runtime_digest_preserved": config["frozen_prerequisites"][
+            "d5c_wrapper_source_sha256"
+        ] == WRAPPER_DIGEST,
+        "current_runtime_transaction_patch_detected": (
+            sha256_file(wrapper_path) != WRAPPER_DIGEST
+            and "def _capture_binding_snapshot" in wrapper_path.read_text(encoding="utf-8")
+            and "def _verify_restored_bindings" in wrapper_path.read_text(encoding="utf-8")
+            and "instance_dict.pop" not in wrapper_path.read_text(encoding="utf-8")
+        ),
         "source_inventory_complete": len(source_digests) == len(SOURCE_PATHS),
         "rwkv_model_not_imported": "rwkv.model" not in sys.modules,
         "torch_not_imported": "torch" not in sys.modules,
@@ -704,6 +712,7 @@ def build_fake_cleanup_report(
         "decision": {
             "fake_candidate_valid": True,
             "real_patch_implemented": False,
+            "current_tree_real_patch_detected": True,
             "real_fix_proven": False,
             "model_validation_authorized": False,
         },
@@ -711,7 +720,8 @@ def build_fake_cleanup_report(
         "next_gate": config["next_gate"],
         "safety": {
             "fake_cleanup_transaction_implemented": True,
-            "real_runtime_modified": False,
+            "real_runtime_modified_at_fake_stage": False,
+            "current_tree_real_runtime_modified": True,
             "existing_real_report_reexecuted": False,
             "d5c_rerun": False,
             "rwkv_model_imported": "rwkv.model" in sys.modules,

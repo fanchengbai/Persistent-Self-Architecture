@@ -167,6 +167,8 @@ def _source_boundary_analysis(root: Path) -> dict[str, Any]:
     plan = _function(transform_tree, None, "_build_instrumented_method_plan")
     compile_methods = _function(transform_tree, None, "compile_instrumented_methods")
     wrapper_forward = _function(wrapper_tree, "RWKV7D5CActiveRuntime", "forward")
+    restore_bindings = _function(wrapper_tree, None, "_restore_bindings")
+    verify_bindings = _function(wrapper_tree, None, "_verify_restored_bindings")
 
     parse_calls = _calls(plan, "parse")
     exec_calls = _calls(compile_methods, "exec")
@@ -174,6 +176,10 @@ def _source_boundary_analysis(root: Path) -> dict[str, Any]:
     pop_calls = _calls(wrapper_forward, "pop")
     delattr_calls = _calls(wrapper_forward, "delattr")
     getattr_calls = _calls(wrapper_forward, "getattr")
+    restore_delattr_calls = _calls(restore_bindings, "delattr")
+    verify_getattr_calls = _calls(verify_bindings, "getattr")
+    restore_helper_calls = _calls(wrapper_forward, "_restore_bindings")
+    verify_helper_calls = _calls(wrapper_forward, "_verify_restored_bindings")
     decorator_clears = [
         node for node in ast.walk(plan)
         if isinstance(node, ast.Assign)
@@ -230,6 +236,10 @@ def _source_boundary_analysis(root: Path) -> dict[str, Any]:
         "wrapper_direct_dict_pop_count": len(pop_calls),
         "wrapper_delattr_count": len(delattr_calls),
         "wrapper_getattr_count": len(getattr_calls),
+        "restore_delattr_count": len(restore_delattr_calls),
+        "verify_getattr_count": len(verify_getattr_calls),
+        "restore_helper_called": len(restore_helper_calls) == 1,
+        "verify_helper_called": len(verify_helper_calls) == 1,
         "fake_method_decorators": fake_decorators,
         "myfunction_definition_in_audited_sources": myfunction_definitions,
         "public_forward_dynamic_dispatch_markers": public_dispatch_markers,
@@ -238,9 +248,11 @@ def _source_boundary_analysis(root: Path) -> dict[str, Any]:
                 len(parse_calls) == 1 and len(exec_calls) == 1
             ),
             "installation_and_cleanup_use_symmetric_object_protocol": bool(
-                setattr_calls and delattr_calls and not pop_calls
+                setattr_calls and restore_delattr_calls and not pop_calls
             ),
-            "cleanup_verifies_resolved_method_identity_after_pop": bool(getattr_calls),
+            "cleanup_verifies_resolved_method_identity_after_restore": bool(
+                verify_getattr_calls and verify_helper_calls
+            ),
             "cleanup_synchronizes_unknown_framework_or_decorator_caches": False,
             "existing_fake_covers_real_decorator_boundary": any(
                 fake_decorators.values()
@@ -271,11 +283,13 @@ def build_source_audit_report(
         ],
         "wrapper_installs_bound_methods_with_setattr": analysis["wrapper_setattr_count"] == 2
         and analysis["wrapper_methodtype_present"],
-        "wrapper_cleanup_uses_direct_dictionary_pop": analysis[
+        "historical_direct_pop_removed_from_wrapper": analysis[
             "wrapper_direct_dict_pop_count"
-        ] == 1,
-        "wrapper_cleanup_does_not_use_delattr": analysis["wrapper_delattr_count"] == 0,
-        "wrapper_cleanup_does_not_verify_resolution": analysis["wrapper_getattr_count"] == 0,
+        ] == 0,
+        "transactional_restore_uses_delattr": analysis["restore_delattr_count"] == 1
+        and analysis["restore_helper_called"],
+        "transactional_cleanup_verifies_resolution": analysis["verify_getattr_count"] >= 2
+        and analysis["verify_helper_called"],
         "public_forward_dynamically_dispatches_both_paths": all(
             analysis["public_forward_dynamic_dispatch_markers"].values()
         ),
@@ -287,7 +301,7 @@ def build_source_audit_report(
         "ast_loaded_object_mutation_excluded": not implications[
             "ast_transform_can_mutate_loaded_original_method_objects"
         ],
-        "object_protocol_asymmetry_confirmed": not implications[
+        "historical_object_protocol_asymmetry_now_closed_in_source": implications[
             "installation_and_cleanup_use_symmetric_object_protocol"
         ],
         "decorator_coverage_gap_confirmed": not implications[
@@ -315,8 +329,8 @@ def build_source_audit_report(
             "confirmed": [
                 "fresh_ast_compilation_cannot_mutate_loaded_original_method_objects",
                 "active_compiled_methods_remove_real_myfunction_decorators",
-                "wrapper_installs_through_setattr_but_cleans_through_direct_instance_dict_pop",
-                "cleanup_does_not_verify_post_pop_method_or_callback_resolution",
+                "historical_wrapper_used_setattr_then_direct_instance_dict_pop",
+                "current_wrapper_uses_protocol_restore_and_resolution_verification",
                 "existing_plain_python_fake_does_not_cover_real_decorator_descriptor_boundary",
                 "public_forward_source_markers_resolve_forward_one_or_forward_seq_dynamically",
             ],

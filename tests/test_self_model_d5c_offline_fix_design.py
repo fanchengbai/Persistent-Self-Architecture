@@ -47,14 +47,15 @@ class D5COfflineFixDesignTests(unittest.TestCase):
         with self.assertRaises(PermissionError):
             validate_config(changed)
 
-    def test_current_runtime_is_observed_but_unchanged(self):
+    def test_historical_design_observes_current_transactional_transition(self):
         observation = inspect_current_wrapper(ROOT)
-        self.assertTrue(observation["runtime_unchanged_from_frozen_failure"])
+        self.assertFalse(observation["runtime_unchanged_from_frozen_failure"])
         self.assertEqual(observation["setattr_call_count"], 2)
-        self.assertEqual(observation["dict_pop_call_count"], 1)
-        self.assertEqual(observation["delattr_call_count"], 0)
-        self.assertFalse(observation["has_snapshot_helper"])
-        self.assertFalse(observation["has_post_cleanup_identity_verification"])
+        self.assertEqual(observation["dict_pop_call_count"], 0)
+        self.assertEqual(observation["restore_delattr_call_count"], 1)
+        self.assertTrue(observation["has_snapshot_helper"])
+        self.assertTrue(observation["has_post_cleanup_identity_verification"])
+        self.assertTrue(observation["transactional_patch_present"])
 
     def test_design_does_not_treat_delattr_as_sufficient_fix(self):
         payload = json.loads(CONFIG.read_text(encoding="utf-8"))

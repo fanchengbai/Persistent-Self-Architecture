@@ -184,8 +184,10 @@ class D5CFakeCleanupTransactionTests(unittest.TestCase):
         self.assertEqual(report["classification"], CLASSIFICATION)
         self.assertTrue(report["decision"]["fake_candidate_valid"])
         self.assertFalse(report["decision"]["real_patch_implemented"])
+        self.assertTrue(report["decision"]["current_tree_real_patch_detected"])
         self.assertFalse(report["decision"]["real_fix_proven"])
-        self.assertFalse(report["safety"]["real_runtime_modified"])
+        self.assertFalse(report["safety"]["real_runtime_modified_at_fake_stage"])
+        self.assertTrue(report["safety"]["current_tree_real_runtime_modified"])
         self.assertFalse(report["safety"]["model_executed"])
         self.assertFalse(report["safety"]["d5c_rerun"])
 

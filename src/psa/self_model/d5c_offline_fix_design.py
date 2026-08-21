@@ -160,7 +160,17 @@ def validate_config(config: Mapping[str, Any]) -> dict[str, bool]:
     return checks
 
 
-def _function(tree: ast.AST, class_name: str, function_name: str) -> ast.FunctionDef:
+def _function(
+    tree: ast.AST, class_name: str | None, function_name: str
+) -> ast.FunctionDef:
+    if class_name is None:
+        functions = [
+            node for node in getattr(tree, "body", [])
+            if isinstance(node, ast.FunctionDef) and node.name == function_name
+        ]
+        if len(functions) != 1:
+            raise RuntimeError(f"expected one {function_name} function")
+        return functions[0]
     classes = [
         node for node in ast.walk(tree)
         if isinstance(node, ast.ClassDef) and node.name == class_name
@@ -181,22 +191,48 @@ def inspect_current_wrapper(root: Path) -> dict[str, Any]:
     source = path.read_text(encoding="utf-8")
     tree = ast.parse(source)
     forward = _function(tree, "RWKV7D5CActiveRuntime", "forward")
+    restore = _function(tree, None, "_restore_bindings")
+    verify = _function(tree, None, "_verify_restored_bindings")
     call_names = [
         node.func.id if isinstance(node.func, ast.Name) else node.func.attr
         for node in ast.walk(forward)
         if isinstance(node, ast.Call)
         and isinstance(node.func, (ast.Name, ast.Attribute))
     ]
+    restore_calls = [
+        node.func.id if isinstance(node.func, ast.Name) else node.func.attr
+        for node in ast.walk(restore)
+        if isinstance(node, ast.Call)
+        and isinstance(node.func, (ast.Name, ast.Attribute))
+    ]
+    verify_calls = [
+        node.func.id if isinstance(node.func, ast.Name) else node.func.attr
+        for node in ast.walk(verify)
+        if isinstance(node, ast.Call)
+        and isinstance(node.func, (ast.Name, ast.Attribute))
+    ]
+    source_sha256 = sha256_file(path)
     return {
-        "source_sha256": sha256_file(path),
+        "source_sha256": source_sha256,
+        "historical_failure_source_sha256": WRAPPER_DIGEST,
         "setattr_call_count": call_names.count("setattr"),
         "dict_pop_call_count": call_names.count("pop"),
-        "delattr_call_count": call_names.count("delattr"),
-        "getattr_call_count": call_names.count("getattr"),
+        "restore_delattr_call_count": restore_calls.count("delattr"),
+        "verify_getattr_call_count": verify_calls.count("getattr"),
         "has_try_finally": any(isinstance(node, ast.Try) and node.finalbody for node in ast.walk(forward)),
-        "has_snapshot_helper": "snapshot" in source.lower(),
-        "has_post_cleanup_identity_verification": "resolved_method_identity" in source,
-        "runtime_unchanged_from_frozen_failure": sha256_file(path) == WRAPPER_DIGEST,
+        "has_snapshot_helper": "_capture_binding_snapshot" in call_names,
+        "has_restore_helper": "_restore_bindings" in call_names,
+        "has_post_cleanup_identity_verification": "_verify_restored_bindings" in call_names,
+        "runtime_unchanged_from_frozen_failure": source_sha256 == WRAPPER_DIGEST,
+        "transactional_patch_present": all(
+            marker in source
+            for marker in (
+                "class D5CCleanupTransactionError",
+                "def _capture_binding_snapshot",
+                "def _restore_bindings",
+                "def _verify_restored_bindings",
+            )
+        ),
     }
 
 
@@ -213,14 +249,23 @@ def build_fix_design_report(
     source_digests = {path: sha256_file(root / path) for path in SOURCE_PATHS}
     checks = {
         "config_valid": all(config_checks.values()),
-        "real_runtime_digest_unchanged": wrapper["runtime_unchanged_from_frozen_failure"],
+        "historical_failure_digest_preserved": WRAPPER_DIGEST
+        == config["frozen_prerequisites"]["d5c_wrapper_source_sha256"],
+        "current_runtime_differs_from_frozen_failure": not wrapper[
+            "runtime_unchanged_from_frozen_failure"
+        ],
         "current_wrapper_still_installs_with_setattr": wrapper["setattr_call_count"] == 2,
-        "current_wrapper_still_cleans_with_direct_pop": wrapper["dict_pop_call_count"] == 1,
-        "current_wrapper_has_no_delattr_fix": wrapper["delattr_call_count"] == 0,
-        "current_wrapper_has_no_snapshot_fix": wrapper["has_snapshot_helper"] is False,
-        "current_wrapper_has_no_identity_verification_fix": wrapper[
+        "current_wrapper_removed_direct_pop": wrapper["dict_pop_call_count"] == 0,
+        "current_wrapper_restores_through_delattr": wrapper[
+            "restore_delattr_call_count"
+        ] == 1,
+        "current_wrapper_has_snapshot_fix": wrapper["has_snapshot_helper"] is True,
+        "current_wrapper_has_identity_verification_fix": wrapper[
             "has_post_cleanup_identity_verification"
-        ] is False,
+        ] is True,
+        "current_wrapper_has_transactional_patch": wrapper[
+            "transactional_patch_present"
+        ],
         "direct_pop_rejected_as_unverified": config["strategy_review"][0]["decision"]
         == "reject_as_unverified_cleanup",
         "delattr_only_not_overclaimed": config["strategy_review"][1]["decision"]
