@@ -1,0 +1,82 @@
+{
+  "contract_version": "0.1-coupling-d5a-offline-active",
+  "stage": "Coupling-D5A_offline_active_contract_and_fake_projection",
+  "status": "offline_fake_implementation_only",
+  "development_only": true,
+  "prerequisite": {
+    "coupling_d5_design_status": "coupling_d5_active_design_static_verified",
+    "coupling_d5_design_report_digest_sha256": "d41dc30460060a85031df38b6cfb27ad8fa41b57cd77ba6f7e0940e75eb898fd",
+    "d4b_real_report_digest_sha256": "8befb5f4b2ce90241b66aff1f43bce59645d367c14f6594169e9c454fcf36a20"
+  },
+  "required_owner_confirmation_text": "确认进入 Self Model v0.1 Coupling-D5A 离线active contract与fake projection实现；不授权Coupling-D5B/D5C/D5D/D5E、RWKV/Torch导入、权重访问、模型加载或执行、真实层选择、真实Self projection构造、Self效果实验、Self Updater或自动重跑。",
+  "fake_encoder": {
+    "kind": "deterministic_hash_fake_encoder",
+    "dimension": 16,
+    "field_mask": ["identity_anchors", "active_goals"],
+    "prompt_serialization_used": false
+  },
+  "fake_projection": {
+    "kind": "deterministic_hash_matrix_fake_projection",
+    "seed_namespace": "PSA|Self-v0.1|Coupling-D5A|fake-projection",
+    "input_dimension": 16,
+    "output_dimension": 8,
+    "trained": false,
+    "real_self_projection": false
+  },
+  "fake_runtime": {
+    "kind": "no_weight_fake_rwkv7_residual_runtime",
+    "n_layer": 4,
+    "hidden_dimension": 8,
+    "dtype": "float16",
+    "device": "fake-cuda:0",
+    "state_components_per_layer": 3
+  },
+  "fake_callback": {
+    "phase": "post_ffn_residual",
+    "execution_paths": ["forward_one", "forward_seq"],
+    "layer_mask": ["fake-layer-01", "fake-layer-03"],
+    "gate": 0.5,
+    "sequence_policy": "broadcast_all_tokens_fake_only",
+    "minimum_scale": 0.0,
+    "maximum_scale": 2.0
+  },
+  "offline_fixture": {
+    "single_token": 3,
+    "sequence_tokens": [3, 5, 8],
+    "half_scale": 0.5,
+    "full_scale": 1.0,
+    "random_seed": 20260821,
+    "field_swap": "identity_anchors"
+  },
+  "required_checks": [
+    "state_and_encoding_immutable",
+    "projection_deterministic_and_finite",
+    "projection_changes_for_field_swap_and_random",
+    "off_and_zero_do_not_call_callback",
+    "off_and_zero_exact_for_both_paths",
+    "active_changes_both_paths",
+    "active_repeat_deterministic",
+    "callback_counts_exact",
+    "shape_dtype_device_preserved",
+    "scale_ordering_observed"
+  ],
+  "authority": {
+    "d5a_offline_implementation_authorized": true,
+    "d5b_real_path_static_implementation_authorized": false,
+    "d5c_model_mechanism_smoke_authorized": false,
+    "d5d_noncore_effect_pilot_authorized": false,
+    "d5e_formal_effect_experiment_authorized": false,
+    "rwkv_model_import_authorized": false,
+    "torch_import_authorized": false,
+    "weights_access_authorized": false,
+    "model_load_authorized": false,
+    "model_execution_authorized": false,
+    "real_layer_selection_authorized": false,
+    "real_self_projection_construction_authorized": false,
+    "self_effect_experiment_authorized": false,
+    "self_updater_authorized": false,
+    "automatic_rerun_authorized": false
+  },
+  "required_next_owner_confirmation_text": "确认进入 Self Model v0.1 Coupling-D5B 项目内active路径静态集成与无模型验证；不授权Coupling-D5C/D5D/D5E、RWKV/Torch导入、权重访问、模型加载或执行、真实层选择、真实Self projection构造、Self效果实验、Self Updater或自动重跑。",
+  "next_gate": "Coupling-D5B_requires_new_explicit_confirmation"
+}
