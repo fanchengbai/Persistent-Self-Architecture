@@ -1,8 +1,8 @@
 # Persistent Self Architecture 项目进度表
 
 > 最后更新：2026-08-21
-> 当前节点：Phase 3 Coupling-D5B项目内active静态路径已验证；等待D5C设计与安全入口逐字确认
-> 研究状态：2560维无模型双路径与mask契约通过；真实模型active执行/Self效果/Self Updater仍未授权
+> 当前节点：Phase 3 Coupling-D5C真实2.9B非Core机制冒烟设计与无模型安全入口已验证；等待单次真实执行逐字授权
+> 研究状态：固定synthetic probe、第15层和42次调用已冻结；真实模型尚未加载/执行，D5D/D5E、Self效果与Self Updater仍未授权
 
 ## 1. 这张表怎么使用
 
@@ -113,14 +113,14 @@
 | 38p. EXP-001C v02 Stage B只读live preflight与机器授权锁 | ✅ 云端通过 | 在模型加载前绑定干净main提交、设计/protocol digest、Stage A原始结果、模型配置与资产哈希、主机环境、224条计划和空输出目录；授权只接受固定逐字文本并绑定preflight digest | 防止把“继续”解释成模型执行授权，也防止代码、证据、模型或输出目录变化后复用旧授权 | Stage B 29项远程测试通过，云端只读preflight全部检查为true且失败项为空；`model_loaded=false`、`model_executed=false`、执行/观察均为false。最终digest以本轮最终文档提交后的服务器v02证据为准 | Codex |
 | 38q. EXP-001C v02 Stage B项目负责人单次授权 | ✅ 已逐字确认并消费 | 负责人使用冻结原文授权224条recurrent-state非Core pilot及本轮结果观察，同时明确排除Stage A重跑、正式测试集、正式运行、确认性决定和自动重跑 | 模型执行和结果观察是新的不可逆边界，不能由此前“继续”推断 | 授权绑定preflight_v03与Stage A/result digest，机器记录和single-use claim均已消费；224条运行及观察完成后禁止重跑 | 项目负责人；Codex执行 |
 | 38r. EXP-001C v02 Stage B冻结只读观察 | ✅ 云端完成 | 对五个状态语义条件按8个语义案例×4代码轮换平均log score，记录联合/字段准确率与margin；reset/random只记录参考匹配率，不定义正确答案 | 原始code top-1容易受A–D先验影响；同时不能把诊断控制事后改成主要端点或临时添加通过阈值 | 五个主要条件均联合7/8、domain 8/8、operation 7/8；continuous/restored预测8/8一致，三种swap均7/8跟随注入state。reset/random参考匹配均2/8；无确认性决定或重跑 | Codex；云端只读分析 |
-| 39. Phase 3：显式 Self Model | 🟡 Coupling-D5B静态active路径通过，等待D5C设计确认 | 实现静态Self Store、Self Encoder和可关闭/缩放gated injection，并建立字段mask/swap/random/coupling-off消融 | 先证明接口可审计、可干预、失败关闭，再决定真实RWKV注入位置和效果实验 | 新增独立project-local active AST wrapper，不改冻结OFF runtime；以`[2560]`/`[T,2560]` fake residual覆盖双路径，每层调用并由mask控制2/4层实际应用，OFF/zero精确旁路且临时绑定成功/异常后恢复。10项合同、12项runtime、7项专项及全项目394项测试通过，报告digest=`b6ca7f56…8d16`；真实模型、真实层/projection及Self效果仍未授权 | Codex |
+| 39. Phase 3：显式 Self Model | 🟡 Coupling-D5C设计与无模型安全入口通过，等待单次真实执行授权 | 实现静态Self Store、Self Encoder和可关闭/缩放gated injection，并建立字段mask/swap/random/coupling-off消融 | 先证明接口可审计、可干预、失败关闭，再决定真实RWKV注入位置和效果实验 | D5C冻结两个非Core夹具、原始/OFF/zero/active四路、每夹具21次及总42次调用；synthetic unit-RMS probe只在0-based第15层以残差RMS的1%应用，不是Self projection或效果层选择。入口要求干净main、精确机器授权和模型访问前single-use claim；10项专项、23项静态及全项目404项测试通过，报告digest=`ce96c627…ae88`。本轮未加载或执行模型，D5D/D5E与Self效果仍关闭 | Codex |
 | 40. Self 更新与演化 | ⏳ 未开始 | 让 Self State 根据经历受控更新、回滚和分化 | 这是“持续自我”真正更深入的部分 | 尚未开始 | 后续阶段 |
 | 41. 内生调节与自主审议 | ⏳ 未开始 | 让 Self/冲突决定是否检索、回放、模拟或停止，并在零新外部观察条件下受控更新 | 检验系统是否不仅“有状态”，还会因内部状态选择继续计算；同时排除定时器和随机回放解释 | 设计说明已完成；必须等待显式 Self 因果价值和受约束更新两道前置门，不创建空壳代码 | 后续阶段 |
 | 42. 最终研究结论 | ⏳ 未开始 | 汇总统计结果、失败案例和替代解释 | 最终回答项目假设是否得到支持，而不是只展示几个有趣案例 | 尚未开始 | 共同完成 |
 
 ## 3. 当前所在位置
 
-> 2026-08-21 当前状态：D4失败、D4A瞬态分类、D4B真实稳态OFF通过及D5A离线闭环均保持；Coupling-D5B已在逐字确认范围内完成。新增独立`RWKV7ProjectStaticActiveRuntime`，复用D4B锁定的post-FFN AST变换而不修改冻结OFF runtime；它强制只接受`offline_static_fixture=true`、`model_loaded=false`的对象，并用真实2.9B隐藏维对应的fake `[2560]`与`[T,2560]` residual验证双路径。首次专项测试发现AST实际在每层调用callback，原实现误把mask外层当异常；现已修正为每层记录、mask外原样返回，并分别锁定4次调用与2次实际应用。最终OFF/zero不绑定callback且精确等于baseline，active改变两路径输出，shape/dtype/device与序列广播保持，来源state不变，临时method/callback在成功和异常后均恢复，非有限值、错误shape与伪真实对象失败关闭。10项合同、12项runtime和7项专项检查通过，全项目394项测试通过；报告`valid=true`、digest=`b6ca7f56…8d16`。installed source未探测，RWKV/Torch未导入，权重/模型未访问或执行，真实层、真实projection、Self效果和Self Updater均未实现或授权。下一步只等待D5C真实机制冒烟的设计与无模型安全入口确认，不授权直接执行2.9B。以下保留完整历史路径；如与旧阶段描述冲突，以本段和顶部“当前节点”为准。
+> 2026-08-21 当前状态：D4失败、D4A瞬态分类、D4B真实稳态OFF通过、D5A离线闭环和D5B静态active路径均保持；Coupling-D5C设计与无模型安全入口已在逐字确认范围内完成。D5C固定两个非Core夹具（单token与三token序列）、原始/OFF/zero/active四路线、每夹具1次prefix+4次预条件+16次拉丁计分，总计42次模型调用。active使用无语义、未训练的2560维deterministic unit-RMS synthetic probe，只按预先结构规则`floor((32-1)/2)`在0-based第15层施加残差RMS的1%，不是Self representation、真实Self projection或效果层选择。未来入口冻结干净main、准确环境锁、逐字机器授权、唯一结果路径及模型配置/权重/加载前消费single-use claim，claim后失败也持久化并停止。10项专项、23项静态检查和全项目404项测试通过；报告`valid=true`、digest=`ce96c627…ae88`、`model_executed=false`。本轮未创建机器授权/claim，未探测installed source，未导入RWKV/Torch，未访问权重、加载或执行模型；D4/D4B/D5C重跑、D5D/D5E、正式测试集、Self效果结论、真实Self projection、Self Updater和自动重跑均未授权。下一步只等待D5C一次真实2.9B机制冒烟及结果观察的精确逐字授权。以下保留完整历史路径；如与旧阶段描述冲突，以本段和顶部“当前节点”为准。
 
 ```text
 理论设计
@@ -219,7 +219,7 @@ EXP-001B补充控制
 正式 state 因果实验
    🟡 EXP-001主实验完成；等待EXP-001B控制闭合后作最终阶段决策
 显式 Self Model
-   🟡 Coupling-D5B项目内active静态路径已验证；等待D5C设计确认
+   🟡 Coupling-D5C设计与无模型安全入口已验证；等待一次真实2.9B机制冒烟逐字授权
 受约束 Self 更新
    ⏳
 内生调节与自主审议
@@ -239,7 +239,7 @@ EXP-001B补充控制
 
 ## 4. 当前下一步
 
-> 2026-08-21 当前下一步：只等待项目负责人逐字确认Coupling-D5C真实2.9B非Core机制冒烟的设计与无模型安全入口实现。冻结文本为：“确认进入 Self Model v0.1 Coupling-D5C 真实2.9B非Core机制冒烟设计与无模型安全入口实现；不授权模型加载或执行、D5D/D5E、正式测试集、Self效果结论、Self Updater或自动重跑。”该轮只允许冻结synthetic probe、非选择性层位置、调用矩阵、失败规则、single-use claim与未来精确执行授权文本；完成静态验证后仍需另一次逐字执行与结果观察授权。以下保留此前 EXP-001B 轨迹作为历史记录。
+> 2026-08-21 当前下一步：只等待项目负责人逐字授权一次Coupling-D5C真实2.9B非Core机制冒烟及本次结果观察。冻结文本为：“授权执行 Self Model v0.1 Coupling-D5C 真实2.9B非Core机制冒烟一次（固定synthetic probe、0-based第15层、42次调用），并授权观察本次机制结果；不授权重跑D4/D4B/D5C、自动重跑、D5D/D5E、正式测试集、Self效果结论、真实Self projection或Self Updater。”普通“继续/确认”不能创建机器授权。获得逐字授权后只能在远程干净main通过唯一runner执行一次，完成或失败均停止；当前尚未加载或执行模型。以下保留此前 EXP-001B 轨迹作为历史记录。
 
 截至2026-08-04，项目负责人已经确认EXP-001B设计草案中的B1–B7。
 新增范围仍锁在11,008条控制记录，并明确不重跑EXP-001、不重估E1–E3、
@@ -737,3 +737,4 @@ trial-condition单元；只允许全量完成且完整性验证后观察结果�
 | 2026-08-21 | Coupling-D5A在逐字确认范围内完成离线active闭环：静态Self经16维deterministic fake encoder与未训练hash-matrix fake projection映射到8维，再进入无权重RWKV残差夹具的post-FFN callback。12项合同与10项runtime检查全真；OFF/zero在两条forward路径精确旁路且callback计数为0，active固定两层、重复确定、元数据保持，full-scale改变量大于half-scale，identity swap与norm-matched random均改变投影且来源对象不变。6项专项及全项目387项测试通过，报告digest=`48c6f609…89d3`。真实active路径、RWKV/Torch、权重/模型、真实层/projection、Self效果、Self Updater和自动重跑均未发生或获授权；下一步只等待逐字D5B无模型静态集成确认 | `configs/development/self_model_v0_1_coupling_d5a_offline_active.json`；`docs/self_model_v0_1_coupling_d5a_offline_active.md`；`src/psa/self_model/d5a_offline_active.py` |
 | 2026-08-21 | Coupling-D5B首次无模型专项测试有效失败：锁定AST在每层调用callback，首版callback却把mask外层视为非法请求，导致active双路径在第一个未选层抛出`PermissionError`。失败只发生于纯Python fake `[2560]`夹具，无RWKV/Torch、权重或模型副作用；修正契约为“每层调用、mask外原样返回、调用数与实际应用数分别记录”，不改变D4B冻结OFF路径 | D5B首次7项专项输出；`src/psa/self_model/d5b_static_active.py` |
 | 2026-08-21 | Coupling-D5B修正后静态集成通过：独立project-local active wrapper复用D4B锁定AST但拒绝任何非`offline_static_fixture`对象；`forward_one [2560]`与`forward_seq [T,2560]`均覆盖4层callback/2层实际应用，OFF/zero精确旁路，active改变输出，元数据、广播、来源state和临时绑定恢复均有效，错误shape/非有限/伪真实对象失败关闭。10项合同、12项runtime、7项专项及全项目394项测试通过，报告digest=`b6ca7f56…8d16`。未探测installed source、未导入RWKV/Torch、未访问或执行模型，真实层/projection、Self效果、Self Updater和自动重跑均未授权；下一步只等待D5C设计与无模型安全入口确认 | `configs/development/self_model_v0_1_coupling_d5b_static_active.json`；`docs/self_model_v0_1_coupling_d5b_static_active.md`；`src/psa/self_model/d5b_static_active.py` |
+| 2026-08-21 | Coupling-D5C真实2.9B非Core机制冒烟设计与无模型安全入口完成：冻结单token/序列两个非Core夹具、四路线、4×4拉丁顺序与总42次调用；active只使用无语义的deterministic unit-RMS synthetic probe，按结构规则固定0-based第15层、残差RMS比0.01，明确不属于Self representation/projection或效果层选择。入口绑定精确逐字授权、机器授权Schema、干净main、唯一输出、模型配置和锁定源码；模型配置/权重校验和加载前先消费single-use claim，失败也停止。10项专项、23项静态及全项目404项测试通过，静态报告`valid=true`、digest=`ce96c627…ae88`、`model_executed=false`。机器授权/claim未创建，RWKV/Torch、权重、模型均未访问或执行；D5D/D5E、正式测试集、Self效果结论、真实Self projection、Self Updater与自动重跑关闭。下一步只等待一次真实执行及观察的冻结逐字授权 | `configs/development/self_model_v0_1_coupling_d5c_real_mechanism.json`；`src/psa/self_model/d5c_real_mechanism.py`；`docs/self_model_v0_1_coupling_d5c_real_mechanism.md` |

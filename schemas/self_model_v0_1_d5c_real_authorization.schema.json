@@ -1,0 +1,43 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Self Model v0.1 Coupling-D5C single-use real mechanism authorization",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "authorization_version", "stage", "scope", "authorized", "authorization_basis",
+    "authorization_text", "authorized_at_utc", "git_commit", "config_sha256",
+    "entry_static_report_sha256", "model_execution_authorized", "result_observation_authorized",
+    "mechanism_only", "d4_rerun_authorized", "d4b_rerun_authorized", "d5c_rerun_authorized",
+    "d5d_authorized", "d5e_authorized", "formal_test_set_authorized",
+    "self_effect_conclusion_authorized", "real_self_projection_authorized",
+    "self_updater_authorized", "automatic_rerun_authorized", "single_use",
+    "authorization_digest_sha256"
+  ],
+  "properties": {
+    "authorization_version": {"const": "0.1-coupling-d5c-real-mechanism"},
+    "stage": {"const": "Coupling-D5C_real_2_9b_noncore_mechanism_smoke"},
+    "scope": {"const": "one_fixed_42_call_mechanism_smoke_and_observation"},
+    "authorized": {"const": true},
+    "authorization_basis": {"const": "project_owner_explicit_chat_authorization"},
+    "authorization_text": {"const": "授权执行 Self Model v0.1 Coupling-D5C 真实2.9B非Core机制冒烟一次（固定synthetic probe、0-based第15层、42次调用），并授权观察本次机制结果；不授权重跑D4/D4B/D5C、自动重跑、D5D/D5E、正式测试集、Self效果结论、真实Self projection或Self Updater。"},
+    "authorized_at_utc": {"type": "string", "format": "date-time"},
+    "git_commit": {"type": "string", "pattern": "^[0-9a-f]{40}$"},
+    "config_sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+    "entry_static_report_sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+    "model_execution_authorized": {"const": true},
+    "result_observation_authorized": {"const": true},
+    "mechanism_only": {"const": true},
+    "d4_rerun_authorized": {"const": false},
+    "d4b_rerun_authorized": {"const": false},
+    "d5c_rerun_authorized": {"const": false},
+    "d5d_authorized": {"const": false},
+    "d5e_authorized": {"const": false},
+    "formal_test_set_authorized": {"const": false},
+    "self_effect_conclusion_authorized": {"const": false},
+    "real_self_projection_authorized": {"const": false},
+    "self_updater_authorized": {"const": false},
+    "automatic_rerun_authorized": {"const": false},
+    "single_use": {"const": true},
+    "authorization_digest_sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"}
+  }
+}

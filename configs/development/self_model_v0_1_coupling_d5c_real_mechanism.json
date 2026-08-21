@@ -1,0 +1,103 @@
+{
+  "protocol_version": "0.1-coupling-d5c-real-mechanism",
+  "stage": "Coupling-D5C_real_2_9b_noncore_mechanism_smoke_entry",
+  "status": "design_and_no_model_entry_implemented_execution_not_authorized",
+  "development_only": true,
+  "prerequisite": {
+    "d5a_report_digest_sha256": "48c6f609f53a2d5223366abcc9b8b3af3936ede282fcd880113edb4f1cff89d3",
+    "d5b_report_digest_sha256": "b6ca7f56caabff0c64d85bda6735d6dd185d41fdc832cbc8d4f30f19a1bc8d16",
+    "d4b_real_report_digest_sha256": "8befb5f4b2ce90241b66aff1f43bce59645d367c14f6594169e9c454fcf36a20"
+  },
+  "model_config_path": "configs/models/rwkv7_g1h_2.9b.candidate.json",
+  "model_config_sha256": "959143ab13eb9f86ad40e87a9164194ddb1fe6a74dbfdd4cb04bda354b0dae75",
+  "model_id": "rwkv7-g1h-2.9b-20260710",
+  "upstream": {
+    "package": "rwkv",
+    "version": "0.8.32",
+    "model_source_sha256": "75482aee89a08d2a8c8dbe628110b317fc8d0974ddffbaa52aa19190667305e0",
+    "rwkv_de_version": "unset"
+  },
+  "fixtures": [
+    {"fixture_id": "single_noncore", "token_ids": [2764], "state_input": "none", "full_output": false},
+    {"fixture_id": "sequence_noncore", "token_ids": [187, 931, 2764], "state_input": "none", "full_output": true}
+  ],
+  "routes": [
+    "original_uninstrumented",
+    "active_wrapper_off",
+    "active_wrapper_zero",
+    "active_synthetic_probe"
+  ],
+  "fixed_preconditioning_order": [
+    "original_uninstrumented",
+    "active_wrapper_off",
+    "active_wrapper_zero",
+    "active_synthetic_probe"
+  ],
+  "scored_rounds": [
+    ["original_uninstrumented", "active_wrapper_off", "active_wrapper_zero", "active_synthetic_probe"],
+    ["active_wrapper_off", "active_wrapper_zero", "active_synthetic_probe", "original_uninstrumented"],
+    ["active_wrapper_zero", "active_synthetic_probe", "original_uninstrumented", "active_wrapper_off"],
+    ["active_synthetic_probe", "original_uninstrumented", "active_wrapper_off", "active_wrapper_zero"]
+  ],
+  "probe": {
+    "kind": "deterministic_synthetic_unit_rms_vector_not_self_representation",
+    "hidden_dimension": 2560,
+    "n_layer": 32,
+    "target_layer_index_zero_based": 15,
+    "target_layer_rule": "floor((n_layer-1)/2)",
+    "phase": "post_ffn_residual",
+    "target_residual_rms_ratio": 0.01,
+    "gate": 1.0,
+    "sequence_policy": "broadcast_same_delta_to_each_position",
+    "projection_trained": false,
+    "real_self_projection": false,
+    "effect_layer_selected": false
+  },
+  "counts": {
+    "fixture_count": 2,
+    "prefix_calls_per_fixture": 1,
+    "preconditioning_calls_per_fixture": 4,
+    "scored_calls_per_fixture": 16,
+    "model_forward_calls_per_fixture": 21,
+    "model_forward_calls_total": 42,
+    "within_route_comparisons_total": 24,
+    "control_cross_route_comparisons_total": 24,
+    "active_control_comparisons_total": 24,
+    "active_callback_calls_total": 320,
+    "active_probe_applications_total": 10
+  },
+  "acceptance": {
+    "within_route_all_exact": true,
+    "all_control_pairs_exact": true,
+    "active_differs_from_each_control_in_logits_or_state": true,
+    "all_outputs_finite": true,
+    "all_shapes_dtypes_devices_compatible": true,
+    "callback_count_exact": true,
+    "claim_is_mechanism_only": true
+  },
+  "execution_lock_env": "PSA_SELF_MODEL_D5C_REAL_MECHANISM_SMOKE",
+  "execution_lock_value": "AUTHORIZED_D5C_REAL_2_9B_NONCORE_MECHANISM_ONCE",
+  "authorization_schema_path": "schemas/self_model_v0_1_d5c_real_authorization.schema.json",
+  "authorization_path": "results/authorizations/self_model_v0_1_d5c_real_mechanism_v01.json",
+  "output_dir": "results/development/self_model_v0_1_d5c_real_mechanism_v01",
+  "required_owner_authorization_text": "授权执行 Self Model v0.1 Coupling-D5C 真实2.9B非Core机制冒烟一次（固定synthetic probe、0-based第15层、42次调用），并授权观察本次机制结果；不授权重跑D4/D4B/D5C、自动重跑、D5D/D5E、正式测试集、Self效果结论、真实Self projection或Self Updater。",
+  "design_and_entry_implementation_authorized": true,
+  "no_model_verification_authorized": true,
+  "execution_authorized_at_implementation": false,
+  "future_exact_owner_authorization_required": true,
+  "future_machine_authorization_required": true,
+  "single_use_claim_required": true,
+  "claim_consumed_before_model_config_or_weights_or_load": true,
+  "result_observation_requires_same_authorization": true,
+  "d4_rerun_authorized": false,
+  "d4b_rerun_authorized": false,
+  "d5c_rerun_authorized": false,
+  "d5d_authorized": false,
+  "d5e_authorized": false,
+  "formal_test_set_authorized": false,
+  "self_effect_conclusion_authorized": false,
+  "real_self_projection_authorized": false,
+  "self_updater_authorized": false,
+  "automatic_rerun_authorized": false,
+  "failure_action": "persist_failure_and_stop_claim_consumed"
+}
