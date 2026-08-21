@@ -1,0 +1,137 @@
+{
+  "design_version": "0.1-coupling-d5-active-design",
+  "stage": "Coupling-D5_offline_active_injection_review",
+  "status": "design_only_active_implementation_and_execution_not_authorized",
+  "development_only": true,
+  "nomenclature": {
+    "workflow_gate_id": "Coupling-D5",
+    "workflow_gate_meaning": "active_injection_design_after_off_equivalence",
+    "architecture_decision_id": "Architecture-D5-Self-Updater",
+    "architecture_decision_meaning": "deterministic_constrained_self_update_in_stage4",
+    "same_gate": false,
+    "self_updater_in_scope": false
+  },
+  "prerequisites": {
+    "d4_status": "failed_preserved",
+    "d4_report_digest_sha256": "39d4611a6d50791f1677f9eb27e6fb2ea702151a26236fa4094699b821ca721a",
+    "d4a_classification": "within_route_instability_observed",
+    "d4a_report_digest_sha256": "d6b0602a85553fddae184e2accb3ef06ed280a925ebc4d90a9e13032726b2e88",
+    "d4b_status": "d4b_real_off_equivalence_passed",
+    "d4b_report_digest_sha256": "8befb5f4b2ce90241b66aff1f43bce59645d367c14f6594169e9c454fcf36a20",
+    "d4b_execution_commit": "949bfa0e10a984ceb139f20e6861bb320d3fd54d",
+    "d4_or_d4b_rerun_required": false,
+    "d4_status_can_change": false
+  },
+  "active_contract": {
+    "implementation_location": "project_owned_code_only",
+    "site_packages_modification_allowed": false,
+    "upstream_source_lock_required": true,
+    "coupling_phase": "post_ffn_residual",
+    "execution_paths": ["forward_one", "forward_seq"],
+    "sequence_policy": "broadcast_same_self_residual_to_each_sequence_position",
+    "recurrent_state_semantics_may_change": false,
+    "residual_operation": "x_out_equals_x_in_plus_gate_times_scale_times_projection",
+    "projection_output_hidden_dimension": 2560,
+    "projection_must_match_residual_shape_dtype_device": true,
+    "source_self_state_immutable": true,
+    "source_recurrent_state_immutable_between_conditions": true,
+    "off_or_zero_scale_calls_callback": false,
+    "off_or_zero_scale_must_remain_exact": true,
+    "nonfinite_projection_action": "fail_before_residual_addition",
+    "real_layer_indices_selected": false,
+    "real_projection_parameters_selected": false,
+    "real_scale_values_selected": false,
+    "self_encoder_kind_selected": false
+  },
+  "gate_ladder": [
+    {
+      "gate_id": "Coupling-D5A",
+      "name": "offline_active_contract_and_fake_projection",
+      "model_allowed": false,
+      "effect_claim_allowed": false,
+      "separate_owner_confirmation_required": true
+    },
+    {
+      "gate_id": "Coupling-D5B",
+      "name": "project_owned_active_path_static_integration",
+      "model_allowed": false,
+      "effect_claim_allowed": false,
+      "separate_owner_confirmation_required": true
+    },
+    {
+      "gate_id": "Coupling-D5C",
+      "name": "real_2_9b_noncore_mechanism_smoke",
+      "model_allowed": true,
+      "effect_claim_allowed": false,
+      "single_use_machine_claim_required": true,
+      "separate_owner_authorization_required": true
+    },
+    {
+      "gate_id": "Coupling-D5D",
+      "name": "noncore_self_semantic_effect_pilot",
+      "model_allowed": true,
+      "effect_claim_allowed": "development_only",
+      "single_use_machine_claim_required": true,
+      "separate_owner_authorization_required": true
+    },
+    {
+      "gate_id": "Coupling-D5E",
+      "name": "formal_self_effect_experiment",
+      "model_allowed": true,
+      "effect_claim_allowed": "preregistered_only",
+      "new_preregistration_and_authorization_required": true
+    }
+  ],
+  "d5c_mechanism_smoke_requirements": {
+    "formal_test_set_accessed": false,
+    "synthetic_probe_not_self_evidence": true,
+    "original_off_zero_exact_controls_required": true,
+    "active_callback_count_exact": true,
+    "active_output_finite": true,
+    "repeat_determinism_required": true,
+    "source_inputs_unchanged_required": true,
+    "scale_ordering_recorded_without_behavior_claim": true,
+    "failure_action": "stop_without_automatic_rerun_or_effect_pilot"
+  },
+  "future_noncore_effect_controls": [
+    "original_uninstrumented",
+    "coupling_off",
+    "zero_scale",
+    "active_correct_self",
+    "identity_field_swap",
+    "goal_field_swap",
+    "field_mask",
+    "encoded_norm_matched_random",
+    "scale_dose",
+    "prompt_visible_reference",
+    "general_capability_side_effect"
+  ],
+  "selection_boundaries": {
+    "layer_scale_encoder_selection_uses_noncore_development_only": true,
+    "formal_test_set_for_selection": false,
+    "base_model_frozen": true,
+    "inference_prompt_self_serialization_forbidden": true,
+    "projection_training_data_and_seed_must_freeze_before_effect_evaluation": true,
+    "no_posthoc_threshold_or_control_removal": true
+  },
+  "authority": {
+    "offline_design_review_authorized": true,
+    "d5a_implementation_authorized": false,
+    "d5b_real_path_static_implementation_authorized": false,
+    "rwkv_model_import_authorized": false,
+    "weights_access_authorized": false,
+    "model_load_authorized": false,
+    "model_execution_authorized": false,
+    "active_injection_implementation_authorized": false,
+    "active_injection_execution_authorized": false,
+    "real_layer_selection_authorized": false,
+    "self_projection_construction_authorized": false,
+    "noncore_effect_pilot_authorized": false,
+    "formal_test_set_access_authorized": false,
+    "formal_self_effect_experiment_authorized": false,
+    "self_updater_authorized": false,
+    "automatic_rerun_authorized": false
+  },
+  "required_next_owner_confirmation_text": "确认进入 Self Model v0.1 Coupling-D5A 离线active contract与fake projection实现；不授权Coupling-D5B/D5C/D5D/D5E、RWKV/Torch导入、权重访问、模型加载或执行、真实层选择、真实Self projection构造、Self效果实验、Self Updater或自动重跑。",
+  "current_round_exit": "offline_design_verified_wait_for_explicit_coupling_d5a_confirmation"
+}

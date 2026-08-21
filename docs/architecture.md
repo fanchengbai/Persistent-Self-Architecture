@@ -840,9 +840,13 @@ commit_update(decision) -> NewSelfState
 
 暂不决定。先完成 RWKV-7 state 和层接口调查，再用开发集定位；正式测试集不得用于选层。
 
-### D5 Self Updater
+### Architecture-D5 Self Updater
 
 建议：Stage 3 使用静态人工设置的 Self；Stage 4 再加入确定性受约束更新器。
+
+这里的 `Architecture-D5` 是总架构决策编号，不是 Phase 3 coupling 工程流程中的
+`Coupling-D5` active injection 门。Coupling-D5 只负责静态 Self 的注入通路，不能授权
+或实现 Self Updater。
 
 ### D6 EXP-001 的 A/B 变量
 
