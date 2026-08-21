@@ -1,0 +1,93 @@
+{
+  "diagnostic_version": "0.1-d5c-failure-lifecycle-offline",
+  "stage": "Coupling-D5C_failure_binding_lifecycle_offline_diagnostic",
+  "status": "offline_diagnostic_implementation_authorized_no_model",
+  "development_only": true,
+  "required_owner_confirmation_text": "确认进入 Self Model v0.1 D5C失败纯离线绑定生命周期诊断设计与无模型实现；仅使用现有报告、冻结源码和fake fixture，不导入RWKV/Torch、不访问权重、不加载或执行模型、不修改D5C失败结论，也不授权D5D/D5E、正式测试集、Self效果结论、真实Self projection、Self Updater或自动重跑。",
+  "d5c_frozen_evidence": {
+    "execution_commit": "a8ef52a5390581666edf4e6ffecaf61aee912a9e",
+    "entry_static_report_sha256": "ce96c627377a75dfe711e018ed3e5cf71657486476338cb5ba295045b555ae88",
+    "execution_claim_sha256": "75d69ae3ad4550361cc53d03ae5d89fd636f045d31a6cd62974c4dc15496f12f",
+    "real_report_sha256": "187cdfd4f43f4fbc990d08b120c25c36629010133693697b0bb42e48ea8cdb21",
+    "real_report_status": "d5c_mechanism_smoke_failed",
+    "real_report_valid": false,
+    "decision_effect": "stop_without_rerun",
+    "model_forward_calls": 42,
+    "within_route_comparisons": 24,
+    "control_cross_route_comparisons": 24,
+    "active_control_comparisons": 24,
+    "callback_invocations_expected": 320,
+    "callback_invocations_observed": 576,
+    "probe_applications_expected": 10,
+    "probe_applications_observed": 18,
+    "extra_callback_invocations": 256,
+    "extra_probe_applications": 8,
+    "n_layer": 32,
+    "fixture_signatures": [
+      {
+        "fixture_id": "single_noncore",
+        "within_exact": 12,
+        "control_exact": 4,
+        "active_control_exact": 4,
+        "off_equals_zero_rounds": 4,
+        "original_equals_active_rounds": 4,
+        "original_differs_from_off_rounds": 4,
+        "original_differs_from_zero_rounds": 4
+      },
+      {
+        "fixture_id": "sequence_noncore",
+        "within_exact": 12,
+        "control_exact": 4,
+        "active_control_exact": 4,
+        "off_equals_zero_rounds": 4,
+        "original_equals_active_rounds": 4,
+        "original_differs_from_off_rounds": 4,
+        "original_differs_from_zero_rounds": 4
+      }
+    ]
+  },
+  "diagnostic_questions": [
+    "does_frozen_schedule_place_every_scored_original_immediately_after_active",
+    "do_extra_applications_match_scored_post_active_original_calls_exactly",
+    "does_plain_python_fake_runtime_restore_callback_and_method_bindings_after_active",
+    "does_plain_python_raw_original_after_active_return_to_baseline",
+    "can_existing_evidence identify_one_low_level_root_cause"
+  ],
+  "fake_fixture": {
+    "source_kind": "pure_python_locked_shape_fixture",
+    "n_layer": 32,
+    "hidden_dimension": 2560,
+    "single_tokens": [3],
+    "sequence_tokens": [3, 5, 8],
+    "state_components": 96,
+    "execution_paths": ["forward_one", "forward_seq"],
+    "active_then_raw_original_pairs_per_path": 1,
+    "rwkv_imported": false,
+    "torch_imported": false,
+    "model_loaded": false,
+    "model_executed": false
+  },
+  "required_classification": "real_only_post_active_route_isolation_contamination_not_reproduced_by_plain_python_fixture_root_cause_unresolved",
+  "authority": {
+    "offline_diagnostic_design_authorized": true,
+    "offline_fake_implementation_authorized": true,
+    "existing_report_observation_authorized": true,
+    "rwkv_import_authorized": false,
+    "torch_import_authorized": false,
+    "weights_access_authorized": false,
+    "model_load_authorized": false,
+    "model_execution_authorized": false,
+    "d4_rerun_authorized": false,
+    "d4b_rerun_authorized": false,
+    "d5c_rerun_authorized": false,
+    "d5c_conclusion_change_authorized": false,
+    "d5d_authorized": false,
+    "d5e_authorized": false,
+    "formal_test_set_authorized": false,
+    "self_effect_conclusion_authorized": false,
+    "real_self_projection_authorized": false,
+    "self_updater_authorized": false,
+    "automatic_rerun_authorized": false
+  },
+  "next_gate": "offline_diagnostic_observation_only_no_model_or_rerun_gate"
+}

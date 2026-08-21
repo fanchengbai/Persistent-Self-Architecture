@@ -1,8 +1,8 @@
 # Persistent Self Architecture 项目进度表
 
 > 最后更新：2026-08-21
-> 当前节点：Phase 3 Coupling-D5C真实2.9B非Core机制冒烟有效失败；single-use claim已消费，禁止重跑
-> 研究状态：42次调用完整，但路线隔离和callback计数门失败；D5D/D5E、Self效果与Self Updater继续关闭
+> 当前节点：Phase 3 D5C失败纯离线绑定生命周期诊断完成；真实upstream底层原因仍未定位
+> 研究状态：fake双路径未复现post-active污染，确认调度前序混淆；D5C失败/禁重跑及D5D/D5E关闭均不变
 
 ## 1. 这张表怎么使用
 
@@ -113,14 +113,14 @@
 | 38p. EXP-001C v02 Stage B只读live preflight与机器授权锁 | ✅ 云端通过 | 在模型加载前绑定干净main提交、设计/protocol digest、Stage A原始结果、模型配置与资产哈希、主机环境、224条计划和空输出目录；授权只接受固定逐字文本并绑定preflight digest | 防止把“继续”解释成模型执行授权，也防止代码、证据、模型或输出目录变化后复用旧授权 | Stage B 29项远程测试通过，云端只读preflight全部检查为true且失败项为空；`model_loaded=false`、`model_executed=false`、执行/观察均为false。最终digest以本轮最终文档提交后的服务器v02证据为准 | Codex |
 | 38q. EXP-001C v02 Stage B项目负责人单次授权 | ✅ 已逐字确认并消费 | 负责人使用冻结原文授权224条recurrent-state非Core pilot及本轮结果观察，同时明确排除Stage A重跑、正式测试集、正式运行、确认性决定和自动重跑 | 模型执行和结果观察是新的不可逆边界，不能由此前“继续”推断 | 授权绑定preflight_v03与Stage A/result digest，机器记录和single-use claim均已消费；224条运行及观察完成后禁止重跑 | 项目负责人；Codex执行 |
 | 38r. EXP-001C v02 Stage B冻结只读观察 | ✅ 云端完成 | 对五个状态语义条件按8个语义案例×4代码轮换平均log score，记录联合/字段准确率与margin；reset/random只记录参考匹配率，不定义正确答案 | 原始code top-1容易受A–D先验影响；同时不能把诊断控制事后改成主要端点或临时添加通过阈值 | 五个主要条件均联合7/8、domain 8/8、operation 7/8；continuous/restored预测8/8一致，三种swap均7/8跟随注入state。reset/random参考匹配均2/8；无确认性决定或重跑 | Codex；云端只读分析 |
-| 39. Phase 3：显式 Self Model | ⚠️ Coupling-D5C真实机制冒烟有效失败，停止且不重跑 | 实现静态Self Store、Self Encoder和可关闭/缩放gated injection，并建立字段mask/swap/random/coupling-off消融 | 先证明接口可审计、可干预、失败关闭，再决定真实RWKV注入位置和效果实验 | 干净main提交`a8ef52a`完成固定42次调用；输出全有限、24项同路线全精确，但控制隔离失败：OFF=zero，active=随后的original。callback为576次/18次应用而非320/10，多出的8次与8个计分original调用一致。报告digest=`187cdfd4…db21`、claim=`75d69ae3…f12f`均复算有效；D5D/D5E被阻断，不能形成Self效果结论 | 项目负责人执行；Codex观察 |
+| 39. Phase 3：显式 Self Model | ⚠️ D5C真实失败保留；纯离线绑定生命周期诊断完成 | 实现静态Self Store、Self Encoder和可关闭/缩放gated injection，并建立字段mask/swap/random/coupling-off消融 | 先证明接口可审计、可干预、失败关闭，再决定真实RWKV注入位置和效果实验 | 冻结调度的8个计分original全部紧跟active，恰好解释多出的8次应用/256次访问，因此原实验无法分离route与前序效应。复用真实wrapper的纯Python 32层/2560维single与sequence fake均在active后清空绑定、raw original回到baseline且callback停在32/1，普通Python清理未复现真实污染。15项诊断检查、8项专项及全项目412项通过，digest=`3dfa640d…4150`；真实dispatch/decorator/cache原因仍未定位，D5C失败与D5D/D5E阻断不变 | Codex |
 | 40. Self 更新与演化 | ⏳ 未开始 | 让 Self State 根据经历受控更新、回滚和分化 | 这是“持续自我”真正更深入的部分 | 尚未开始 | 后续阶段 |
 | 41. 内生调节与自主审议 | ⏳ 未开始 | 让 Self/冲突决定是否检索、回放、模拟或停止，并在零新外部观察条件下受控更新 | 检验系统是否不仅“有状态”，还会因内部状态选择继续计算；同时排除定时器和随机回放解释 | 设计说明已完成；必须等待显式 Self 因果价值和受约束更新两道前置门，不创建空壳代码 | 后续阶段 |
 | 42. 最终研究结论 | ⏳ 未开始 | 汇总统计结果、失败案例和替代解释 | 最终回答项目假设是否得到支持，而不是只展示几个有趣案例 | 尚未开始 | 共同完成 |
 
 ## 3. 当前所在位置
 
-> 2026-08-21 当前状态：D4失败、D4A瞬态分类、D4B真实稳态OFF通过、D5A离线闭环和D5B静态active路径均保持；Coupling-D5C在干净main提交`a8ef52a`上按逐字授权完成唯一一次真实2.9B非Core机制冒烟。single-use claim=`75d69ae3…f12f`已消费，42次调用、24项同路线、24项控制跨路线和24项active-control比较全部记录，报告digest=`187cdfd4…db21`独立复算一致。输出均有限、shape/dtype/device兼容且24/24同路线逐位稳定；但控制隔离门失败：两个夹具的OFF与zero在四轮均精确一致，original却均与OFF/zero不同并与active精确一致。callback实际576次访问/18次第15层应用，而冻结值为320/10；多出的8次应用恰与8个计分original调用对应，形成确定性的post-active路线隔离/绑定生命周期污染签名。当前只把它记录为实现边界异常，不宣称已定位底层缓存原因，更不能解释为Self效果。运行约21.07秒、峰值显存6,418,167,808字节；决策固定`stop_without_rerun`，D4/D4B/D5C不重跑，D5D/D5E、正式测试集、Self效果结论、真实Self projection、Self Updater和自动重跑全部关闭。下一步如继续，只能另行确认纯离线绑定生命周期诊断，不加载或执行模型。以下保留完整历史路径；如与旧阶段描述冲突，以本段和顶部“当前节点”为准。
+> 2026-08-21 当前状态：D4失败、D4A瞬态分类、D4B真实稳态OFF通过、D5A离线闭环和D5B静态active路径均保持；Coupling-D5C唯一真实2.9B机制冒烟的有效失败、报告`187cdfd4…db21`和已消费claim=`75d69ae3…f12f`保持不变。本轮在逐字确认范围内完成纯离线绑定生命周期诊断：源码调度审计确认两个夹具共8个计分`original_uninstrumented`全部紧跟active，因此恰好对应真实报告多出的8次第15层应用和`8×32=256`次callback访问；原42次顺序本身无法把路线身份与前序active残留效应分开。诊断复用真实`RWKV7D5CActiveRuntime`绑定代码，但只作用于纯Python 32层、2560维fake；single与sequence均在active后清除两条临时forward和callback属性，随后的raw original精确回到baseline、不同于active，callback保持32次访问/1次应用而不增长。由此普通Python实例字典清理没有复现真实污染，只能弱化而不能排除直接`__dict__.pop`假设；真实upstream dispatch、decorator/compiled-method cache、属性解析边界及其与清理方式的交互仍是未决候选，不能宣称已找到单一根因。15项诊断检查、8项专项和全项目412项测试通过；报告`valid=true`、digest=`3dfa640d…4150`、`model_executed=false`、`d5c_conclusion_changed=false`。D5C禁止重跑，D5D/D5E、正式测试集、Self效果、真实projection、Updater和自动重跑继续关闭。下一步如继续，只能另行确认纯离线源码级dispatch/cache边界审计。以下保留完整历史路径；如与旧阶段描述冲突，以本段和顶部“当前节点”为准。
 
 ```text
 理论设计
@@ -219,7 +219,7 @@ EXP-001B补充控制
 正式 state 因果实验
    🟡 EXP-001主实验完成；等待EXP-001B控制闭合后作最终阶段决策
 显式 Self Model
-   ⚠️ Coupling-D5C真实机制冒烟有效失败；claim已消费，D5D/D5E暂停
+   ⚠️ D5C真实失败保留；离线生命周期诊断未复现fake污染，真实cache/dispatch根因未决
 受约束 Self 更新
    ⏳
 内生调节与自主审议
@@ -239,7 +239,7 @@ EXP-001B补充控制
 
 ## 4. 当前下一步
 
-> 2026-08-21 当前下一步：D5C single-use机会已消费且结果为有效失败，禁止重跑或用新授权替代本次失败。当前只允许观察和持久化既有结果。若项目负责人希望继续，下一轮只能另行确认“D5C失败纯离线绑定生命周期诊断设计与无模型实现”：仅使用现有报告、冻结源码和fake fixture解释为何active后的original路线继承了active签名；不导入RWKV/Torch、不访问权重、不加载或执行模型、不修改D5C结论，也不授权D5D/D5E、正式测试集、Self效果结论、真实Self projection、Self Updater或自动重跑。以下保留此前 EXP-001B 轨迹作为历史记录。
+> 2026-08-21 当前下一步：D5C single-use机会已消费且失败结论不可改变。纯离线生命周期诊断已确认调度前序混淆，并证明普通Python fake的临时绑定清理不会污染下一次raw original，但仍不能从现有证据选定真实upstream底层原因。若继续，下一轮只能另行确认“D5C失败纯离线源码级dispatch/cache边界审计”：只审计冻结AST变换、wrapper源码、decorator/方法分派和现有fake，不导入RWKV/Torch、不访问权重、不加载或执行模型、不实现或授权修复后重跑，也不授权D5D/D5E、正式测试集、Self效果、真实Self projection、Self Updater或自动重跑。以下保留此前 EXP-001B 轨迹作为历史记录。
 
 截至2026-08-04，项目负责人已经确认EXP-001B设计草案中的B1–B7。
 新增范围仍锁在11,008条控制记录，并明确不重跑EXP-001、不重估E1–E3、
@@ -739,3 +739,4 @@ trial-condition单元；只允许全量完成且完整性验证后观察结果�
 | 2026-08-21 | Coupling-D5B修正后静态集成通过：独立project-local active wrapper复用D4B锁定AST但拒绝任何非`offline_static_fixture`对象；`forward_one [2560]`与`forward_seq [T,2560]`均覆盖4层callback/2层实际应用，OFF/zero精确旁路，active改变输出，元数据、广播、来源state和临时绑定恢复均有效，错误shape/非有限/伪真实对象失败关闭。10项合同、12项runtime、7项专项及全项目394项测试通过，报告digest=`b6ca7f56…8d16`。未探测installed source、未导入RWKV/Torch、未访问或执行模型，真实层/projection、Self效果、Self Updater和自动重跑均未授权；下一步只等待D5C设计与无模型安全入口确认 | `configs/development/self_model_v0_1_coupling_d5b_static_active.json`；`docs/self_model_v0_1_coupling_d5b_static_active.md`；`src/psa/self_model/d5b_static_active.py` |
 | 2026-08-21 | Coupling-D5C真实2.9B非Core机制冒烟设计与无模型安全入口完成：冻结单token/序列两个非Core夹具、四路线、4×4拉丁顺序与总42次调用；active只使用无语义的deterministic unit-RMS synthetic probe，按结构规则固定0-based第15层、残差RMS比0.01，明确不属于Self representation/projection或效果层选择。入口绑定精确逐字授权、机器授权Schema、干净main、唯一输出、模型配置和锁定源码；模型配置/权重校验和加载前先消费single-use claim，失败也停止。10项专项、23项静态及全项目404项测试通过，静态报告`valid=true`、digest=`ce96c627…ae88`、`model_executed=false`。机器授权/claim未创建，RWKV/Torch、权重、模型均未访问或执行；D5D/D5E、正式测试集、Self效果结论、真实Self projection、Self Updater与自动重跑关闭。下一步只等待一次真实执行及观察的冻结逐字授权 | `configs/development/self_model_v0_1_coupling_d5c_real_mechanism.json`；`src/psa/self_model/d5c_real_mechanism.py`；`docs/self_model_v0_1_coupling_d5c_real_mechanism.md` |
 | 2026-08-21 | Coupling-D5C唯一一次真实2.9B非Core机制冒烟有效失败：干净main提交`a8ef52a`完成42次调用，所有输出有限、比较兼容且24项同路线全精确；但OFF=zero而original=active，控制隔离和active对每个控制差异门失败。callback为576次/18次应用而非320/10，多出的8次与两个夹具各四个计分original调用逐一对应，形成post-active路线隔离/绑定生命周期污染签名；底层原因尚未定位。报告`valid=false`、digest=`187cdfd4…db21`与claim=`75d69ae3…f12f`均独立复算有效，运行约21.07秒、峰值显存6,418,167,808字节。claim已消费，决策`stop_without_rerun`；D5D/D5E、正式测试集、Self效果、真实projection、Updater与自动重跑全部关闭 | 远程`results/development/self_model_v0_1_d5c_real_mechanism_v01/report.json`；`docs/self_model_v0_1_coupling_d5c_real_mechanism_observation.md` |
+| 2026-08-21 | D5C失败纯离线绑定生命周期诊断完成：冻结调度中两个夹具的8个计分original全部位于active之后，数量与真实报告多出的8次应用及256次callback访问精确对应，确认原顺序无法分离route与前序效应。复用真实D5C wrapper的纯Python 32层/2560维fake在single/sequence两路均于active后清空临时method/callback，raw original回到baseline且不推进32/1计数，因此普通Python清理未复现真实污染。分类固定为“real-only post-active污染、fake未复现、根因未决”；真实dispatch/decorator/compiled cache/属性解析仍是候选但无一获证实。15项检查、8项专项及全项目412项通过，报告digest=`3dfa640d…4150`、模型执行=false、D5C结论改变=false；D5C/D5D/D5E和所有效果升级门继续关闭 | `configs/development/self_model_v0_1_d5c_failure_lifecycle_diagnostic.json`；`src/psa/self_model/d5c_failure_lifecycle_diagnostic.py`；`docs/self_model_v0_1_d5c_failure_lifecycle_diagnostic.md` |
