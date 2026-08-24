@@ -1,8 +1,8 @@
 # Persistent Self Architecture 项目进度表
 
-> 最后更新：2026-08-21
-> 当前节点：Phase 3 D5C-P1补丁后2.9B工程验证入口已完成跨主机无模型验证；等待真实12次工程执行的独立授权
-> 研究状态：25项静态检查与11个源码digest跨主机一致；机器授权/claim均缺席，模型未执行，原D5C失败及D5D/D5E关闭不变
+> 最后更新：2026-08-24
+> 当前节点：Phase 3 D5C-P1真实2.9B非Core工程验证已获单次逐字授权；等待干净main上的唯一远程执行
+> 研究状态：授权固定两个夹具各6次、共12次并允许观察；机器授权/claim尚未创建，模型未执行，原D5C失败及D5D/D5E关闭不变
 
 ## 1. 这张表怎么使用
 
@@ -113,14 +113,14 @@
 | 38p. EXP-001C v02 Stage B只读live preflight与机器授权锁 | ✅ 云端通过 | 在模型加载前绑定干净main提交、设计/protocol digest、Stage A原始结果、模型配置与资产哈希、主机环境、224条计划和空输出目录；授权只接受固定逐字文本并绑定preflight digest | 防止把“继续”解释成模型执行授权，也防止代码、证据、模型或输出目录变化后复用旧授权 | Stage B 29项远程测试通过，云端只读preflight全部检查为true且失败项为空；`model_loaded=false`、`model_executed=false`、执行/观察均为false。最终digest以本轮最终文档提交后的服务器v02证据为准 | Codex |
 | 38q. EXP-001C v02 Stage B项目负责人单次授权 | ✅ 已逐字确认并消费 | 负责人使用冻结原文授权224条recurrent-state非Core pilot及本轮结果观察，同时明确排除Stage A重跑、正式测试集、正式运行、确认性决定和自动重跑 | 模型执行和结果观察是新的不可逆边界，不能由此前“继续”推断 | 授权绑定preflight_v03与Stage A/result digest，机器记录和single-use claim均已消费；224条运行及观察完成后禁止重跑 | 项目负责人；Codex执行 |
 | 38r. EXP-001C v02 Stage B冻结只读观察 | ✅ 云端完成 | 对五个状态语义条件按8个语义案例×4代码轮换平均log score，记录联合/字段准确率与margin；reset/random只记录参考匹配率，不定义正确答案 | 原始code top-1容易受A–D先验影响；同时不能把诊断控制事后改成主要端点或临时添加通过阈值 | 五个主要条件均联合7/8、domain 8/8、operation 7/8；continuous/restored预测8/8一致，三种swap均7/8跟随注入state。reset/random参考匹配均2/8；无确认性决定或重跑 | Codex；云端只读分析 |
-| 39. Phase 3：显式 Self Model | 🟡 D5C-P1无模型入口跨主机通过；待真实12次工程执行独立授权 | 实现静态Self Store、Self Encoder和可关闭/缩放gated injection，并建立字段mask/swap/random/coupling-off消融 | 先证明接口可审计、可干预、失败关闭，再决定真实RWKV注入位置和效果实验 | 事务补丁已跨主机无模型通过。D5C-P1冻结两个既有非Core夹具各6次、共12次，形成10项控制、4项active比较、8条cleanup证据及64/2 callback计数。本地25项静态、7项专项、22项组合和全项目459项通过；远程7项测试与25/25检查再次通过，报告digest=`ff0ef77c…3f95`及11个源码digest全部一致。服务器明确机器授权和claim缺席，模型未执行；回传未单列HEAD/最终status，因此只确认源码清单跨主机一致。真实执行仍未授权 | Codex；项目负责人远程复验 |
+| 39. Phase 3：显式 Self Model | 🟡 D5C-P1真实12次工程验证已授权；待唯一远程执行 | 实现静态Self Store、Self Encoder和可关闭/缩放gated injection，并建立字段mask/swap/random/coupling-off消融 | 先证明接口可审计、可干预、失败关闭，再决定真实RWKV注入位置和效果实验 | D5C-P1无模型入口已跨主机通过。项目负责人于2026-08-24逐字授权一次固定12次真实2.9B非Core工程验证及本次观察；范围仍为10项控制、4项active比较、8条cleanup证据和64/2 callback计数。授权明确排除原D5C重跑/改判、D5D/D5E、正式测试集及所有Self效果升级。当前只持久化人类授权；服务器机器授权、P1 claim、权重访问和模型执行尚未发生 | 项目负责人授权；待远程执行 |
 | 40. Self 更新与演化 | ⏳ 未开始 | 让 Self State 根据经历受控更新、回滚和分化 | 这是“持续自我”真正更深入的部分 | 尚未开始 | 后续阶段 |
 | 41. 内生调节与自主审议 | ⏳ 未开始 | 让 Self/冲突决定是否检索、回放、模拟或停止，并在零新外部观察条件下受控更新 | 检验系统是否不仅“有状态”，还会因内部状态选择继续计算；同时排除定时器和随机回放解释 | 设计说明已完成；必须等待显式 Self 因果价值和受约束更新两道前置门，不创建空壳代码 | 后续阶段 |
 | 42. 最终研究结论 | ⏳ 未开始 | 汇总统计结果、失败案例和替代解释 | 最终回答项目假设是否得到支持，而不是只展示几个有趣案例 | 尚未开始 | 共同完成 |
 
 ## 3. 当前所在位置
 
-> 2026-08-21 当前状态：D4失败、D4A瞬态分类、D4B真实稳态OFF通过、D5A离线闭环和D5B静态active路径均保持；Coupling-D5C唯一真实2.9B机制冒烟的有效失败、报告`187cdfd4…db21`和已消费claim=`75d69ae3…f12f`仍保持不变。事务补丁已在本地和远程完成无模型验收。独立D5C-P1工程门冻结两个原有非Core夹具各6次，顺序为original-before、patched-OFF-before、patched-active、original-after-active、patched-OFF-after、patched-zero-after，共12次；每夹具5项精确控制和2项active差异，所有8次wrapped返回必须无managed instance binding，总callback 64次、应用2次。纯Python 32层核心、本地25项静态/7项专项/22项组合/全项目459项均通过；远程再次7项测试`OK`、25/25检查全真，报告digest=`ff0ef77c…3f95`及配置、Schema、文档、脚本、runtime、P1 core、entry、instrumenter和测试共11个digest逐项匹配。服务器明确输出`machine authorization absent`与`execution claim absent`，全部RWKV/Torch、权重、模型和研究升级安全字段为false。回传片段未单列HEAD或最终`git status --short`，因此本轮确认跨主机源码inventory一致，不额外宣称已观察commit/worktree状态。D5C-P1无模型入口门已闭环；真实12次2.9B工程执行仍需下一条逐字授权，原D5C不能重跑或改判，D5D/D5E及Self效果相关门继续关闭。以下保留完整历史路径；如与旧阶段描述冲突，以本段和顶部“当前节点”为准。
+> 2026-08-24 当前状态：D4失败、D4A瞬态分类、D4B真实稳态OFF通过、D5A离线闭环和D5B静态active路径均保持；Coupling-D5C唯一真实2.9B机制冒烟的有效失败、报告`187cdfd4…db21`和已消费claim=`75d69ae3…f12f`仍保持不变。事务补丁及独立D5C-P1入口均已跨主机无模型通过。项目负责人现已逐字授权D5C-P1一次真实2.9B非Core工程验证和本次结果观察：两个夹具各6次，共12次，顺序、10项控制、4项active差异、8条cleanup证据及64/2 callback计数保持冻结。授权文本精确匹配Schema，明确原D5C授权与claim不可复用、原D5C不得重跑或改判；D5D/D5E、正式测试集、Self效果、真实projection、Updater与自动重跑继续关闭。本轮只把人类授权写入文档并准备干净main提交，尚未在服务器创建机器授权或P1 execution claim，未访问权重、加载或执行模型。下一步仅允许项目负责人在拉取最终授权提交、核对干净main后设置唯一P1环境锁并运行runner一次；成功或失败都消费P1 claim并停止。以下保留完整历史路径；如与旧阶段描述冲突，以本段和顶部“当前节点”为准。
 
 ```text
 理论设计
@@ -239,7 +239,7 @@ EXP-001B补充控制
 
 ## 4. 当前下一步
 
-> 2026-08-21 当前下一步：D5C-P1远程无模型入口复验已通过。若继续，只能由项目负责人逐字授权一次固定12次调用的真实2.9B非Core工程验证及本次结果观察；授权后才可在最终干净main上创建全新的机器授权并single-use消费P1 claim。执行无论通过或失败均停止，不得复用原D5C授权/claim，不得称为原D5C重跑或改变其失败结论，也不授权D5D/D5E、正式测试集、Self效果、真实Self projection、Self Updater或自动重跑。以下保留此前 EXP-001B 轨迹作为历史记录。
+> 2026-08-24 当前下一步：D5C-P1真实12次工程验证与本次结果观察已逐字授权。项目负责人需在远程服务器拉取最终授权提交，确认HEAD与`origin/main`一致且工作区干净，然后只设置`PSA_SELF_MODEL_D5C_P1_REAL_ENGINEERING=AUTHORIZED_D5C_P1_PATCHED_REAL_2_9B_ENGINEERING_ONCE`并运行冻结runner一次。runner将创建全新机器授权、消费P1 single-use claim并执行12次；无论通过或失败均停止，不得再次运行。执行后只观察authorization、claim、report或failure及工作区状态；原D5C结论和所有后续研究门不随P1结果自动改变。以下保留此前 EXP-001B 轨迹作为历史记录。
 
 截至2026-08-04，项目负责人已经确认EXP-001B设计草案中的B1–B7。
 新增范围仍锁在11,008条控制记录，并明确不重跑EXP-001、不重估E1–E3、
@@ -748,3 +748,4 @@ trial-condition单元；只允许全量完成且完整性验证后观察结果�
 | 2026-08-21 | D5C真实runtime事务补丁远程无模型复验通过：服务器报告11/11 acceptance和9/9总检查全真，digest=`49f7444c…c731`与本地一致；runtime digest=`e4ae5c5b…bc32`、未变instrumenter digest=`ce9862b6…4aea5`也逐项匹配，终端测试为`OK`且工作区为空。所有RWKV/Torch、权重、模型与研究升级安全字段均为false，确认这是跨主机源码/合成机制门而非2.9B执行。补丁无模型阶段闭环；D5C历史失败、已消费claim和后续关闭不变 | 项目负责人回传的`results/development/self_model_v0_1_d5c_runtime_transaction_patch/report.json`；`docs/self_model_v0_1_d5c_runtime_transaction_patch_remote_observation.md` |
 | 2026-08-21 | D5C-P1补丁后真实2.9B非Core工程验证设计与无模型入口完成：冻结两个既有夹具各6次、共12次的定向生命周期顺序，形成10项控制、4项active差异、8条wrapped清理证据及64/2 callback计数。纯Python 32层核心按同一计划通过。真实入口采用全新的Schema、环境锁、机器授权、输出目录和single-use claim，原D5C授权/claim不可复用；claim早于模型配置资产校验、权重及加载，失败也停止。25项静态、7项专项、22项D5C组合及全项目459项通过，报告digest=`ff0ef77c…3f95`、模型执行=false。下一步仅远程无模型复验，真实执行待另一条逐字授权 | `configs/development/self_model_v0_1_d5c_p1_real_engineering_validation.json`；`src/psa/self_model/d5c_p1_engineering_validation.py`；`src/psa/self_model/d5c_p1_real_entry.py`；`docs/self_model_v0_1_d5c_p1_real_engineering_validation.md` |
 | 2026-08-21 | D5C-P1真实入口远程无模型静态复验通过：7项专项`OK`，报告25/25检查全真，digest=`ff0ef77c…3f95`与本地一致，11个配置/Schema/文档/脚本/源码/测试digest全部匹配。机器授权和execution claim均明确缺席；RWKV/Torch、权重、模型执行、原D5C重跑/改判及所有研究升级字段为false。回传未单列HEAD或最终status，故结论限定为跨主机源码inventory与安全入口一致。真实12次工程执行仍等待逐字单次授权 | 项目负责人回传的`results/development/self_model_v0_1_d5c_p1_real_entry/report.json`；`docs/self_model_v0_1_d5c_p1_real_entry_remote_observation.md` |
+| 2026-08-24 | 项目负责人逐字授权D5C-P1补丁后真实2.9B非Core工程验证一次及本次结果观察：范围固定为两个夹具各6次、共12次，明确排除原D5C重跑与历史结论改变，并继续关闭D5D/D5E、正式测试集、Self效果、真实projection、Updater和自动重跑。本轮仅持久化人类授权；机器授权和P1 claim尚未创建，模型尚未加载/执行。下一步只允许干净main上的冻结runner单次消费，完成或失败均停止 | 项目负责人授权原文；`docs/self_model_v0_1_d5c_p1_real_execution_authorization.md`；`configs/development/self_model_v0_1_d5c_p1_real_engineering_validation.json` |
