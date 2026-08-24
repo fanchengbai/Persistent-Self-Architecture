@@ -171,6 +171,7 @@ def inspect_frozen_reporter(root: Path) -> dict[str, Any]:
     ]
     return {
         "source_sha256": sha256_file(path),
+        "historical_source_sha256": P1_CORE_DIGEST,
         "tensor_payload_line": function.lineno,
         "hasattr_values_call_count": len(hasattrs),
         "hasattr_values_line": hasattrs[0].lineno if len(hasattrs) == 1 else None,
@@ -318,11 +319,15 @@ def build_reporter_fix_design_report(
         "claim_consumed_and_patched_routes_not_reached": config["frozen_failure_evidence"]
         ["completed_model_forwards"] == 1
         and config["frozen_failure_evidence"]["patched_routes_reached"] is False,
-        "reporter_source_digest_frozen": source_audit["source_sha256"] == P1_CORE_DIGEST,
-        "hasattr_values_boundary_confirmed": source_audit["hasattr_values_call_count"] == 1,
-        "callable_values_serialized_boundary_confirmed": source_audit[
-            "sha256_json_values_call_count"
-        ] == 1,
+        "historical_reporter_digest_frozen_in_config": config[
+            "frozen_reporter_source_sha256"
+        ] == P1_CORE_DIGEST,
+        "current_reporter_differs_from_failure_source": source_audit[
+            "source_sha256"
+        ] != P1_CORE_DIGEST,
+        "historical_values_dispatch_removed": source_audit[
+            "hasattr_values_call_count"
+        ] == 0 and source_audit["sha256_json_values_call_count"] == 0,
         "real_failure_shape_reproduced_synthetically": diagnostic["valid"],
         "callability_guard_rejected_as_incomplete": config["strategy_review"][0][
             "decision"
@@ -332,7 +337,9 @@ def build_reporter_fix_design_report(
         ].startswith("insufficient"),
         "explicit_adapter_design_recommended": config["strategy_review"][2]["decision"]
         == "recommended_for_future_fake_first_implementation",
-        "frozen_reporter_not_modified": source_audit["explicit_adapter_present"] is False,
+        "explicit_adapter_transition_detected": source_audit[
+            "explicit_adapter_present"
+        ] is True,
         "source_inventory_complete": len(source_digests) == len(SOURCE_PATHS),
         "rwkv_model_not_imported": "rwkv.model" not in sys.modules,
         "torch_not_imported": "torch" not in sys.modules,
@@ -356,6 +363,7 @@ def build_reporter_fix_design_report(
             "root_cause_boundary": "reporter_dispatch_attribute_name_collision",
             "runtime_patch_evaluated_by_p1": False,
             "reporter_fix_implemented": False,
+            "current_tree_reporter_fix_detected": True,
             "real_rerun_authorized": False,
             "historical_d5c_or_p1_conclusion_changed": False,
         },
@@ -368,6 +376,7 @@ def build_reporter_fix_design_report(
             "model_loaded": False,
             "model_executed": False,
             "reporter_fix_implemented": False,
+            "current_tree_reporter_fix_detected": True,
             "p1_rerun": False,
             "historical_d5c_conclusion_changed": False,
             "p1_conclusion_changed": False,

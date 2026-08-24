@@ -26,6 +26,7 @@ from psa.self_model.d5c_p1_engineering_validation import (
     ROUTE_ORDER,
     execute_d5c_p1_engineering_core,
 )
+from psa.self_model.d5c_p1_reporter_adapter_fix import ExactOfflineTensorAdapter
 from psa.self_model.d5c_p1_real_entry import (
     AUTHORIZATION_RELATIVE_PATH,
     CONFIG_RELATIVE_PATH,
@@ -102,6 +103,7 @@ class D5CP1RealEntryTests(unittest.TestCase):
             probe=probe,
             torch=OfflineTorch(),
             state_factory=_state,
+            offline_adapter=ExactOfflineTensorAdapter(),
         )
         self.assertTrue(report["valid"])
         self.assertTrue(all(report["checks"].values()))

@@ -52,12 +52,13 @@ class D5CP1ReporterFixDesignTests(unittest.TestCase):
         with self.assertRaises(PermissionError):
             validate_config(changed)
 
-    def test_frozen_source_audit_confirms_values_name_dispatch(self):
+    def test_source_audit_preserves_history_and_detects_adapter_transition(self):
         audit = inspect_frozen_reporter(ROOT)
-        self.assertEqual(audit["source_sha256"], P1_CORE_DIGEST)
-        self.assertEqual(audit["hasattr_values_call_count"], 1)
-        self.assertEqual(audit["sha256_json_values_call_count"], 1)
-        self.assertFalse(audit["explicit_adapter_present"])
+        self.assertEqual(audit["historical_source_sha256"], P1_CORE_DIGEST)
+        self.assertNotEqual(audit["source_sha256"], P1_CORE_DIGEST)
+        self.assertEqual(audit["hasattr_values_call_count"], 0)
+        self.assertEqual(audit["sha256_json_values_call_count"], 0)
+        self.assertTrue(audit["explicit_adapter_present"])
         self.assertFalse(audit["torch_import_present"])
 
     def test_synthetic_fixture_reproduces_collision_and_design_boundaries(self):
@@ -82,6 +83,7 @@ class D5CP1ReporterFixDesignTests(unittest.TestCase):
         )
         self.assertFalse(report["decision"]["runtime_patch_evaluated_by_p1"])
         self.assertFalse(report["decision"]["reporter_fix_implemented"])
+        self.assertTrue(report["decision"]["current_tree_reporter_fix_detected"])
         self.assertFalse(report["decision"]["real_rerun_authorized"])
         self.assertFalse(report["safety"]["model_executed"])
 

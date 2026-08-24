@@ -42,17 +42,38 @@ ACTIVE_COMPARISONS = (
 MANAGED_NAMES = (CALLBACK_ATTRIBUTE, *TARGET_METHODS)
 
 
-def _tensor_payload(value: Any, torch: Any) -> dict[str, Any]:
-    if hasattr(value, "values"):
-        return {
-            "kind": "offline_tensor",
-            "shape": list(value.shape),
-            "dtype": str(value.dtype),
-            "device": str(value.device),
-            "sha256": sha256_json(value.values),
-        }
-    detached = value.detach().contiguous()
-    byte_view = detached.cpu().view(torch.uint8)
+def _tensor_payload(
+    value: Any, torch: Any, *, offline_adapter: Any | None = None
+) -> dict[str, Any]:
+    if offline_adapter is not None:
+        accepts = getattr(offline_adapter, "accepts", None)
+        payload = getattr(offline_adapter, "payload", None)
+        if not callable(accepts) or not callable(payload):
+            raise TypeError("D5C-P1 offline adapter must provide accepts and payload")
+        if bool(accepts(value)):
+            adapted = payload(value)
+            if not isinstance(adapted, Mapping):
+                raise TypeError("D5C-P1 offline adapter payload must be a mapping")
+            return dict(adapted)
+
+    detach = getattr(value, "detach", None)
+    if not callable(detach):
+        raise TypeError(
+            "D5C-P1 tensor requires the real tensor protocol or an explicit offline adapter"
+        )
+    detached = detach()
+    contiguous = getattr(detached, "contiguous", None)
+    if not callable(contiguous):
+        raise TypeError("D5C-P1 real tensor protocol requires contiguous")
+    detached = contiguous()
+    cpu = getattr(detached, "cpu", None)
+    if not callable(cpu):
+        raise TypeError("D5C-P1 real tensor protocol requires cpu")
+    cpu_value = cpu()
+    view = getattr(cpu_value, "view", None)
+    if not callable(view):
+        raise TypeError("D5C-P1 real tensor protocol requires view")
+    byte_view = view(torch.uint8)
     return {
         "kind": "tensor",
         "shape": list(detached.shape),
@@ -62,13 +83,23 @@ def _tensor_payload(value: Any, torch: Any) -> dict[str, Any]:
     }
 
 
-def _value_payload(value: Any, torch: Any) -> Any:
+def _value_payload(
+    value: Any, torch: Any, *, offline_adapter: Any | None = None
+) -> Any:
     if hasattr(value, "shape") and hasattr(value, "dtype"):
-        return _tensor_payload(value, torch)
+        return _tensor_payload(value, torch, offline_adapter=offline_adapter)
     if isinstance(value, (list, tuple)):
-        return [_value_payload(item, torch) for item in value]
+        return [
+            _value_payload(item, torch, offline_adapter=offline_adapter)
+            for item in value
+        ]
     if isinstance(value, dict):
-        return {str(key): _value_payload(value[key], torch) for key in sorted(value)}
+        return {
+            str(key): _value_payload(
+                value[key], torch, offline_adapter=offline_adapter
+            )
+            for key in sorted(value)
+        }
     if value is None or isinstance(value, (bool, int, float, str)):
         return value
     raise TypeError(f"unsupported D5C-P1 output value {type(value).__name__}")
@@ -88,10 +119,16 @@ def _all_finite(value: Any, torch: Any) -> bool:
     return False
 
 
-def _output_record(output: tuple[Any, Any], torch: Any) -> dict[str, Any]:
+def _output_record(
+    output: tuple[Any, Any], torch: Any, *, offline_adapter: Any | None = None
+) -> dict[str, Any]:
     payload = {
-        "logits": _value_payload(output[0], torch),
-        "state": _value_payload(output[1], torch),
+        "logits": _value_payload(
+            output[0], torch, offline_adapter=offline_adapter
+        ),
+        "state": _value_payload(
+            output[1], torch, offline_adapter=offline_adapter
+        ),
     }
     return {
         "sha256": sha256_json(payload),
@@ -139,6 +176,7 @@ def execute_d5c_p1_engineering_core(
     torch: Any,
     state_factory: Callable[[], Any] = lambda: None,
     fixtures: Sequence[Mapping[str, Any]] = FIXTURES,
+    offline_adapter: Any | None = None,
 ) -> dict[str, Any]:
     fixture_reports: list[dict[str, Any]] = []
     control_records: list[dict[str, Any]] = []
@@ -158,7 +196,9 @@ def execute_d5c_p1_engineering_core(
                 torch=torch,
                 state_factory=state_factory,
             )
-            record = _output_record(output, torch)
+            record = _output_record(
+                output, torch, offline_adapter=offline_adapter
+            )
             calls.append(
                 {
                     "call_id": f"{fixture['fixture_id']}-{position}",
@@ -181,7 +221,9 @@ def execute_d5c_p1_engineering_core(
                 cleanup_evidence_count += 1
 
         fingerprints = {
-            route: _output_record(output, torch)["sha256"]
+            route: _output_record(
+                output, torch, offline_adapter=offline_adapter
+            )["sha256"]
             for route, output in outputs.items()
         }
         fixture_controls = [

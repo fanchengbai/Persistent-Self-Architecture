@@ -1,8 +1,8 @@
 # Persistent Self Architecture 项目进度表
 
 > 最后更新：2026-08-24
-> 当前节点：Phase 3 D5C-P1失败纯离线reporter诊断与修复设计完成；等待fake-first实现的独立确认
-> 研究状态：确认`values`名称碰撞并推荐显式注入offline adapter；真实reporter未修改、P1不得重跑，原D5C及后续关闭不变
+> 当前节点：Phase 3 D5C-P1 reporter显式adapter fake-first修复已本地通过；等待远程无模型复验
+> 研究状态：默认真实tensor路径已移除`values`名称分派，离线fixture必须显式adapter；P1不得重跑，原D5C/P1结论及后续关闭不变
 
 ## 1. 这张表怎么使用
 
@@ -113,14 +113,14 @@
 | 38p. EXP-001C v02 Stage B只读live preflight与机器授权锁 | ✅ 云端通过 | 在模型加载前绑定干净main提交、设计/protocol digest、Stage A原始结果、模型配置与资产哈希、主机环境、224条计划和空输出目录；授权只接受固定逐字文本并绑定preflight digest | 防止把“继续”解释成模型执行授权，也防止代码、证据、模型或输出目录变化后复用旧授权 | Stage B 29项远程测试通过，云端只读preflight全部检查为true且失败项为空；`model_loaded=false`、`model_executed=false`、执行/观察均为false。最终digest以本轮最终文档提交后的服务器v02证据为准 | Codex |
 | 38q. EXP-001C v02 Stage B项目负责人单次授权 | ✅ 已逐字确认并消费 | 负责人使用冻结原文授权224条recurrent-state非Core pilot及本轮结果观察，同时明确排除Stage A重跑、正式测试集、正式运行、确认性决定和自动重跑 | 模型执行和结果观察是新的不可逆边界，不能由此前“继续”推断 | 授权绑定preflight_v03与Stage A/result digest，机器记录和single-use claim均已消费；224条运行及观察完成后禁止重跑 | 项目负责人；Codex执行 |
 | 38r. EXP-001C v02 Stage B冻结只读观察 | ✅ 云端完成 | 对五个状态语义条件按8个语义案例×4代码轮换平均log score，记录联合/字段准确率与margin；reset/random只记录参考匹配率，不定义正确答案 | 原始code top-1容易受A–D先验影响；同时不能把诊断控制事后改成主要端点或临时添加通过阈值 | 五个主要条件均联合7/8、domain 8/8、operation 7/8；continuous/restored预测8/8一致，三种swap均7/8跟随注入state。reset/random参考匹配均2/8；无确认性决定或重跑 | Codex；云端只读分析 |
-| 39. Phase 3：显式 Self Model | ⚠️ D5C-P1失败保留；离线reporter修复设计完成 | 实现静态Self Store、Self Encoder和可关闭/缩放gated injection，并建立字段mask/swap/random/coupling-off消融 | 先证明接口可审计、可干预、失败关闭，再决定真实RWKV注入位置和效果实验 | P1仍是1/12后有效失败且禁止重跑。冻结源码AST确认`_tensor_payload`以`hasattr(value,"values")`分派并直接序列化该成员；纯Python可调用`values`对象复现同型TypeError。仅加callable guard仍误判偶然数据属性，自带marker可伪造；推荐未来由离线测试显式注入只接受精确fixture类型的adapter，真实runner传`None`并默认走真实tensor serializer，未知对象失败关闭。14项报告、7项专项、14项组合及全项目466项通过，digest=`5940b7ee…bcb7`；reporter修复实现=false、模型执行=false | Codex |
+| 39. Phase 3：显式 Self Model | 🟡 D5C-P1失败保留；reporter adapter修复本地通过 | 实现静态Self Store、Self Encoder和可关闭/缩放gated injection，并建立字段mask/swap/random/coupling-off消融 | 先证明接口可审计、可干预、失败关闭，再决定真实RWKV注入位置和效果实验 | P1仍是1/12后有效失败且禁止重跑。reporter默认路径已彻底移除`values`名称猜测，只接受真实tensor协议；纯Python fixture必须显式传入仅接受精确类型的adapter，真实runner源码固定不传adapter，未知对象失败关闭。冻结9类合成验收、完整32层fixture的12次调用、21项相关及全项目473项均通过；新报告13/13检查、9/9验收全真，digest=`3200210f…b95f`，模型执行/P1重跑均为false。等待远程无模型复验 | Codex |
 | 40. Self 更新与演化 | ⏳ 未开始 | 让 Self State 根据经历受控更新、回滚和分化 | 这是“持续自我”真正更深入的部分 | 尚未开始 | 后续阶段 |
 | 41. 内生调节与自主审议 | ⏳ 未开始 | 让 Self/冲突决定是否检索、回放、模拟或停止，并在零新外部观察条件下受控更新 | 检验系统是否不仅“有状态”，还会因内部状态选择继续计算；同时排除定时器和随机回放解释 | 设计说明已完成；必须等待显式 Self 因果价值和受约束更新两道前置门，不创建空壳代码 | 后续阶段 |
 | 42. 最终研究结论 | ⏳ 未开始 | 汇总统计结果、失败案例和替代解释 | 最终回答项目假设是否得到支持，而不是只展示几个有趣案例 | 尚未开始 | 共同完成 |
 
 ## 3. 当前所在位置
 
-> 2026-08-24 当前状态：D4失败、D4A瞬态分类、D4B真实稳态OFF通过、D5A离线闭环和D5B静态active路径均保持；Coupling-D5C历史失败与D5C-P1在1/12原始调用后的有效失败均保持，两个claim都已消费且不得重跑。本轮只做纯离线reporter诊断与修复设计：AST将冻结边界定位到`_tensor_payload`第50–52行，使用`hasattr(value,"values")`判断offline fixture后直接把`value.values`交给JSON；合成可调用`values`对象稳定复现`TypeError`，证明名称碰撞足以解释本次P1 reporter失败。策略审阅否决单纯callability guard，因为偶然的非callable数据属性仍会误分派；也否决仅靠对象自带marker，因为可伪造且污染production协议。推荐未来fake-first实现显式注入offline adapter：只接受精确fixture类型；真实runner不构造adapter，默认只走真实tensor serializer；未知对象不再按属性名猜测而是失败关闭。9类未来验收已冻结。14项报告检查、7项专项、14项组合及全项目466项通过，报告`valid=true`、digest=`5940b7ee…bcb7`、`reporter_fix_implemented=false`、`model_executed=false`。冻结P1 core digest仍为`30f1f911…67a78`，未修改真实reporter。原D5C/P1结论、D5D/D5E、正式测试集和全部Self效果门不变。下一步只能另行确认fake-first reporter dispatch修复实现与纯合成验收，不能包含真实模型或重跑。以下保留完整历史路径；如与旧阶段描述冲突，以本段和顶部“当前节点”为准。
+> 2026-08-24 当前状态：D4失败、D4A瞬态分类、D4B真实稳态OFF通过、D5A离线闭环和D5B静态active路径均保持；Coupling-D5C历史失败与D5C-P1在1/12原始调用后的有效失败均保持，两个claim都已消费且不得重跑。本轮完成限定范围内的reporter显式adapter fake-first修复：`_tensor_payload`默认路径不再读取或推断`values`，而是要求`detach→contiguous→cpu→view`真实tensor协议；offline adapter为keyword-only显式参数，只有纯Python调用传入且只接受精确`OfflineTensor`类型。真实runner的AST审计确认唯一core调用没有`offline_adapter`关键字，未知数据属性对象失败关闭。冻结9类验收全部通过，包括历史碰撞复现、可调用`values`真实样对象走默认serializer且该成员读取次数为0、精确fixture adapter、两种否决策略、名称无关性与验证前后源码digest不变；完整32层fixture也通过12次计划调用。新报告13/13检查、9/9验收全真，`valid=true`、digest=`3200210f…b95f`、`model_executed=false`、`p1_rerun=false`；21项相关与全项目473项通过。旧设计报告仍保留`reporter_fix_implemented=false`这一历史阶段事实，并显式识别当前树已迁移。原D5C/P1结论、D5D/D5E、正式测试集和全部Self效果门不变。下一步仅允许远程运行同一套无模型验证并回传结果，不包含任何真实模型或重跑。以下保留完整历史路径；如与旧阶段描述冲突，以本段和顶部“当前节点”为准。
 
 ```text
 理论设计
@@ -751,3 +751,4 @@ trial-condition单元；只允许全量完成且完整性验证后观察结果�
 | 2026-08-24 | 项目负责人逐字授权D5C-P1补丁后真实2.9B非Core工程验证一次及本次结果观察：范围固定为两个夹具各6次、共12次，明确排除原D5C重跑与历史结论改变，并继续关闭D5D/D5E、正式测试集、Self效果、真实projection、Updater和自动重跑。本轮仅持久化人类授权；机器授权和P1 claim尚未创建，模型尚未加载/执行。下一步只允许干净main上的冻结runner单次消费，完成或失败均停止 | 项目负责人授权原文；`docs/self_model_v0_1_d5c_p1_real_execution_authorization.md`；`configs/development/self_model_v0_1_d5c_p1_real_engineering_validation.json` |
 | 2026-08-24 | D5C-P1唯一真实2.9B工程尝试有效失败并停止：干净main `1bc5857`创建有效机器授权与全新P1 claim，模型加载且首个`original_before` forward返回；首次指纹记录将真实Tensor的可调用`values`成员误判为offline fixture数据，JSON序列化时抛出`TypeError`。实际只完成1/12原始调用，所有patched路线均未到达，故不能评价事务补丁、控制隔离或机制连接。authorization内部、authorization文件→claim、claim→failure及failure内部四层digest独立复算全真；failure=`930c31ef…4483`，claim已消费且禁止重跑。原D5C失败及所有后续研究门不变 | 项目负责人回传authorization/claim/failure；`docs/self_model_v0_1_d5c_p1_real_engineering_observation.md` |
 | 2026-08-24 | D5C-P1失败纯离线Tensor/fixture分派诊断与reporter修复设计完成：冻结AST确认`hasattr(values)`后直接JSON序列化成员的边界，合成可调用成员复现同型TypeError。callability guard和对象marker均因误判/可伪造而不足；推荐未来显式注入test-only offline adapter，真实runner固定无adapter并走真实tensor默认路径，未知对象失败关闭。9类fake验收已冻结；14项报告、7项专项、14项组合及全项目466项通过，报告digest=`5940b7ee…bcb7`。真实reporter digest未变，修复、RWKV/Torch、权重、模型和重跑均未发生，D5C/P1结论不变 | `configs/development/self_model_v0_1_d5c_p1_reporter_fix_design.json`；`src/psa/self_model/d5c_p1_reporter_fix_design.py`；`docs/self_model_v0_1_d5c_p1_reporter_fix_design.md` |
+| 2026-08-24 | D5C-P1 reporter显式adapter fake-first修复本地完成：默认serializer彻底移除`values`名称分派并要求真实tensor协议，offline adapter只能由调用方显式传入且精确接受纯Python fixture；真实runner唯一core调用不传adapter，未知对象失败关闭。冻结9类验收与32层fixture完整12次调用全真，21项相关及全项目473项通过；报告13/13检查、9/9验收有效，digest=`3200210f…b95f`。旧设计验证保留历史失败源码digest与当时“未实现”事实，同时识别当前树迁移。未导入RWKV/Torch、未访问权重、未加载/执行模型、未重跑D5C/P1，所有历史结论和后续研究门不变；下一步仅远程无模型复验 | `configs/development/self_model_v0_1_d5c_p1_reporter_adapter_fix.json`；`src/psa/self_model/d5c_p1_reporter_adapter_fix.py`；`docs/self_model_v0_1_d5c_p1_reporter_adapter_fix.md` |

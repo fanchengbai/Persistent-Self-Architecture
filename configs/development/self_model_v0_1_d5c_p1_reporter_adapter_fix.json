@@ -1,0 +1,54 @@
+{
+  "fix_version": "0.1-d5c-p1-reporter-adapter-fix",
+  "stage": "D5C-P1_reporter_explicit_adapter_fake_first_fix",
+  "status": "implementation_and_synthetic_acceptance_only_no_model_no_rerun",
+  "development_only": true,
+  "owner_confirmation_text": "确认进入 Self Model v0.1 D5C-P1 reporter显式adapter fake-first修复实现；只修改reporter分派接口与纯Python fixture调用，真实runner固定不传offline adapter，并执行冻结的9类合成验收；不导入RWKV/Torch、不访问权重、不加载或执行模型、不授权任何D5C/P1真实重跑，也不改变D5C/P1结论或开放D5D/D5E、正式测试集、Self效果、真实Self projection、Self Updater或自动重跑。",
+  "prerequisites": {
+    "design_report_sha256": "5940b7eee3467c935442422b2a3de132a7a0981215de976bb01d67d29260bcb7",
+    "historical_reporter_source_sha256": "30f1f91186cf6e45a775cb28732556ff39c1a44f92b7940d21f8682880d67a78",
+    "failure_report_sha256": "930c31ef6f70c431066cda3637c97fcc35344b8caabaeb2f2f7147a0b5d54483",
+    "execution_claim_sha256": "7c49107b33a223be7ac11f3412328abc07e24e5fc6bcf68accfbe34b7ca97628"
+  },
+  "dispatch_contract": {
+    "production_default": "real_tensor_protocol_without_values_name_dispatch",
+    "offline_path": "explicit_adapter_with_exact_fixture_type",
+    "real_runner_offline_adapter": null,
+    "unknown_object_policy": "fail_closed",
+    "adapter_methods": ["accepts", "payload"]
+  },
+  "acceptance_categories": [
+    "callable_values_collision_reproduces_serialization_typeerror",
+    "real_like_tensor_with_callable_values_uses_default_real_serializer",
+    "exact_offline_fixture_uses_explicit_adapter",
+    "unregistered_data_values_object_fails_closed",
+    "callability_guard_rejects_method_but_still_misclassifies_data_property",
+    "object_marker_can_be_spoofed_and_is_insufficient_alone",
+    "adapter_does_not_read_callable_values_member",
+    "default_path_does_not_depend_on_values_name",
+    "verification_does_not_modify_frozen_reporter"
+  ],
+  "authority": {
+    "reporter_fix_implementation_authorized": true,
+    "synthetic_fixture_execution_authorized": true,
+    "real_runner_signature_audit_authorized": true,
+    "rwkv_import_authorized": false,
+    "torch_import_authorized": false,
+    "weights_access_authorized": false,
+    "model_load_authorized": false,
+    "model_execution_authorized": false,
+    "historical_d5c_rerun_authorized": false,
+    "p1_rerun_authorized": false,
+    "historical_d5c_conclusion_change_authorized": false,
+    "p1_conclusion_change_authorized": false,
+    "d5d_authorized": false,
+    "d5e_authorized": false,
+    "formal_test_set_authorized": false,
+    "self_effect_conclusion_authorized": false,
+    "real_self_projection_authorized": false,
+    "self_updater_authorized": false,
+    "automatic_rerun_authorized": false
+  },
+  "required_classification": "explicit_offline_adapter_reporter_fix_passes_nine_fake_acceptance_real_runner_no_adapter_no_rerun",
+  "next_gate": "remote_no_model_adapter_fix_verification_then_research_review_no_rerun"
+}
