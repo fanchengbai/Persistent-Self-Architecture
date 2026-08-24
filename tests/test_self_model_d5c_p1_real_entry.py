@@ -161,14 +161,28 @@ class D5CP1RealEntryTests(unittest.TestCase):
         claim.assert_not_called()
         load.assert_not_called()
 
-    def test_wrong_config_path_and_model_modules_absent(self):
+    def test_wrong_config_path_preserves_historical_authority_and_claim(self):
+        authorization_path = ROOT / AUTHORIZATION_RELATIVE_PATH
+        claim_path = ROOT / OUTPUT_RELATIVE_DIR / "execution_claim.json"
+
+        def snapshot(path: Path) -> tuple[bool, str | None]:
+            return (
+                path.exists(),
+                hashlib.sha256(path.read_bytes()).hexdigest()
+                if path.exists() else None,
+            )
+
+        before = {
+            "authorization": snapshot(authorization_path),
+            "claim": snapshot(claim_path),
+        }
         with tempfile.TemporaryDirectory() as directory:
             path = Path(directory) / "changed.json"
             path.write_text(CONFIG.read_text(encoding="utf-8"), encoding="utf-8")
             with self.assertRaises(PermissionError):
                 build_p1_entry_static_report(config_path=path, project_root=ROOT)
-        self.assertFalse((ROOT / AUTHORIZATION_RELATIVE_PATH).exists())
-        self.assertFalse((ROOT / OUTPUT_RELATIVE_DIR / "execution_claim.json").exists())
+        self.assertEqual(snapshot(authorization_path), before["authorization"])
+        self.assertEqual(snapshot(claim_path), before["claim"])
         self.assertNotIn("rwkv.model", sys.modules)
         self.assertNotIn("torch", sys.modules)
 
