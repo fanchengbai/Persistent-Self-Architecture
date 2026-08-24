@@ -1,8 +1,8 @@
 # Persistent Self Architecture 项目进度表
 
 > 最后更新：2026-08-24
-> 当前节点：Phase 3 D5C-P1真实2.9B工程尝试在首个输出记录阶段有效失败；single-use claim已消费并停止
-> 研究状态：首个original forward后因Tensor/fixture类型判别缺陷失败，patched路线均未到达；不得重跑，原D5C失败及D5D/D5E关闭不变
+> 当前节点：Phase 3 D5C-P1失败纯离线reporter诊断与修复设计完成；等待fake-first实现的独立确认
+> 研究状态：确认`values`名称碰撞并推荐显式注入offline adapter；真实reporter未修改、P1不得重跑，原D5C及后续关闭不变
 
 ## 1. 这张表怎么使用
 
@@ -113,14 +113,14 @@
 | 38p. EXP-001C v02 Stage B只读live preflight与机器授权锁 | ✅ 云端通过 | 在模型加载前绑定干净main提交、设计/protocol digest、Stage A原始结果、模型配置与资产哈希、主机环境、224条计划和空输出目录；授权只接受固定逐字文本并绑定preflight digest | 防止把“继续”解释成模型执行授权，也防止代码、证据、模型或输出目录变化后复用旧授权 | Stage B 29项远程测试通过，云端只读preflight全部检查为true且失败项为空；`model_loaded=false`、`model_executed=false`、执行/观察均为false。最终digest以本轮最终文档提交后的服务器v02证据为准 | Codex |
 | 38q. EXP-001C v02 Stage B项目负责人单次授权 | ✅ 已逐字确认并消费 | 负责人使用冻结原文授权224条recurrent-state非Core pilot及本轮结果观察，同时明确排除Stage A重跑、正式测试集、正式运行、确认性决定和自动重跑 | 模型执行和结果观察是新的不可逆边界，不能由此前“继续”推断 | 授权绑定preflight_v03与Stage A/result digest，机器记录和single-use claim均已消费；224条运行及观察完成后禁止重跑 | 项目负责人；Codex执行 |
 | 38r. EXP-001C v02 Stage B冻结只读观察 | ✅ 云端完成 | 对五个状态语义条件按8个语义案例×4代码轮换平均log score，记录联合/字段准确率与margin；reset/random只记录参考匹配率，不定义正确答案 | 原始code top-1容易受A–D先验影响；同时不能把诊断控制事后改成主要端点或临时添加通过阈值 | 五个主要条件均联合7/8、domain 8/8、operation 7/8；continuous/restored预测8/8一致，三种swap均7/8跟随注入state。reset/random参考匹配均2/8；无确认性决定或重跑 | Codex；云端只读分析 |
-| 39. Phase 3：显式 Self Model | ⚠️ D5C-P1有效失败并停止；patched路线未到达 | 实现静态Self Store、Self Encoder和可关闭/缩放gated injection，并建立字段mask/swap/random/coupling-off消融 | 先证明接口可审计、可干预、失败关闭，再决定真实RWKV注入位置和效果实验 | 干净main `1bc5857`创建了有效机器授权和新P1 claim，2.9B加载且首个`original_before` forward返回；随后输出指纹器以`hasattr(value,"values")`区分offline fixture，误将同样具有可调用`values`成员的真实Tensor当作fixture，JSON序列化方法对象时抛出`TypeError`。仅完成1/12原始调用，patched OFF/active/post-active/zero均未到达，不能评价事务补丁。authorization→claim→failure四层digest独立复算全真；claim已消费，禁止重跑 | 项目负责人执行；Codex观察 |
+| 39. Phase 3：显式 Self Model | ⚠️ D5C-P1失败保留；离线reporter修复设计完成 | 实现静态Self Store、Self Encoder和可关闭/缩放gated injection，并建立字段mask/swap/random/coupling-off消融 | 先证明接口可审计、可干预、失败关闭，再决定真实RWKV注入位置和效果实验 | P1仍是1/12后有效失败且禁止重跑。冻结源码AST确认`_tensor_payload`以`hasattr(value,"values")`分派并直接序列化该成员；纯Python可调用`values`对象复现同型TypeError。仅加callable guard仍误判偶然数据属性，自带marker可伪造；推荐未来由离线测试显式注入只接受精确fixture类型的adapter，真实runner传`None`并默认走真实tensor serializer，未知对象失败关闭。14项报告、7项专项、14项组合及全项目466项通过，digest=`5940b7ee…bcb7`；reporter修复实现=false、模型执行=false | Codex |
 | 40. Self 更新与演化 | ⏳ 未开始 | 让 Self State 根据经历受控更新、回滚和分化 | 这是“持续自我”真正更深入的部分 | 尚未开始 | 后续阶段 |
 | 41. 内生调节与自主审议 | ⏳ 未开始 | 让 Self/冲突决定是否检索、回放、模拟或停止，并在零新外部观察条件下受控更新 | 检验系统是否不仅“有状态”，还会因内部状态选择继续计算；同时排除定时器和随机回放解释 | 设计说明已完成；必须等待显式 Self 因果价值和受约束更新两道前置门，不创建空壳代码 | 后续阶段 |
 | 42. 最终研究结论 | ⏳ 未开始 | 汇总统计结果、失败案例和替代解释 | 最终回答项目假设是否得到支持，而不是只展示几个有趣案例 | 尚未开始 | 共同完成 |
 
 ## 3. 当前所在位置
 
-> 2026-08-24 当前状态：D4失败、D4A瞬态分类、D4B真实稳态OFF通过、D5A离线闭环和D5B静态active路径均保持；Coupling-D5C历史失败、报告`187cdfd4…db21`和已消费claim=`75d69ae3…f12f`保持不变。D5C-P1在干净main `1bc5857`上完成唯一授权尝试：机器授权digest=`c7d78281…af37e`、授权文件digest=`8b0f34cb…2f0f`、P1 claim digest=`7c49107b…7628`和failure digest=`930c31ef…4483`四层独立复算有效。2.9B模型已加载，第1个`original_before` forward已经返回；在首次输出指纹记录时，`hasattr(value,"values")`误把真实`torch.Tensor.values`方法当作offline fixture数据，`sha256_json`序列化builtin method失败。故实际边界为1/12原始调用后停止，尚未调用patched OFF、active、post-active original或zero；没有形成任何cleanup、控制隔离、机制连接或Self效果证据，也不能判定事务补丁在真实对象上通过或失败。P1 claim已消费，自动或人工重跑均未授权。原D5C结论不能改变；D5D/D5E、正式测试集、真实projection、Updater和所有效果升级继续关闭。下一步若继续，只能另行授权纯离线失败诊断与reporter修复设计，不能包含真实模型执行或修复后重跑。以下保留完整历史路径；如与旧阶段描述冲突，以本段和顶部“当前节点”为准。
+> 2026-08-24 当前状态：D4失败、D4A瞬态分类、D4B真实稳态OFF通过、D5A离线闭环和D5B静态active路径均保持；Coupling-D5C历史失败与D5C-P1在1/12原始调用后的有效失败均保持，两个claim都已消费且不得重跑。本轮只做纯离线reporter诊断与修复设计：AST将冻结边界定位到`_tensor_payload`第50–52行，使用`hasattr(value,"values")`判断offline fixture后直接把`value.values`交给JSON；合成可调用`values`对象稳定复现`TypeError`，证明名称碰撞足以解释本次P1 reporter失败。策略审阅否决单纯callability guard，因为偶然的非callable数据属性仍会误分派；也否决仅靠对象自带marker，因为可伪造且污染production协议。推荐未来fake-first实现显式注入offline adapter：只接受精确fixture类型；真实runner不构造adapter，默认只走真实tensor serializer；未知对象不再按属性名猜测而是失败关闭。9类未来验收已冻结。14项报告检查、7项专项、14项组合及全项目466项通过，报告`valid=true`、digest=`5940b7ee…bcb7`、`reporter_fix_implemented=false`、`model_executed=false`。冻结P1 core digest仍为`30f1f911…67a78`，未修改真实reporter。原D5C/P1结论、D5D/D5E、正式测试集和全部Self效果门不变。下一步只能另行确认fake-first reporter dispatch修复实现与纯合成验收，不能包含真实模型或重跑。以下保留完整历史路径；如与旧阶段描述冲突，以本段和顶部“当前节点”为准。
 
 ```text
 理论设计
@@ -239,7 +239,7 @@ EXP-001B补充控制
 
 ## 4. 当前下一步
 
-> 2026-08-24 当前下一步：D5C-P1 single-use claim已消费且failure有效，禁止再次运行runner。若继续，下一轮必须另行确认“D5C-P1失败纯离线Tensor/fixture类型判别诊断与reporter修复设计”：只使用现有authorization、claim、failure、冻结源码和合成fixture复现`torch.Tensor.values`名称碰撞，设计显式类型协议与fake-first验收；不导入RWKV/Torch、不访问权重、不加载或执行模型、不实现或授权真实重跑，也不改变原D5C/P1结论或开放D5D/D5E及Self效果门。以下保留此前 EXP-001B 轨迹作为历史记录。
+> 2026-08-24 当前下一步：P1 failure与claim消费状态保持，禁止runner重跑。若继续，下一轮必须另行确认“D5C-P1 reporter显式adapter fake-first修复实现”：只修改reporter分派接口和纯Python fixture调用，真实runner固定传`None`，用9类合成验收证明可调用`values`走默认真实路径、精确offline fixture仅经adapter、偶然数据属性/伪marker失败关闭；不导入RWKV/Torch、不访问权重、不加载或执行模型、不授权任何真实重跑，也不改变D5C/P1结论或开放后续研究门。以下保留此前 EXP-001B 轨迹作为历史记录。
 
 截至2026-08-04，项目负责人已经确认EXP-001B设计草案中的B1–B7。
 新增范围仍锁在11,008条控制记录，并明确不重跑EXP-001、不重估E1–E3、
@@ -750,3 +750,4 @@ trial-condition单元；只允许全量完成且完整性验证后观察结果�
 | 2026-08-21 | D5C-P1真实入口远程无模型静态复验通过：7项专项`OK`，报告25/25检查全真，digest=`ff0ef77c…3f95`与本地一致，11个配置/Schema/文档/脚本/源码/测试digest全部匹配。机器授权和execution claim均明确缺席；RWKV/Torch、权重、模型执行、原D5C重跑/改判及所有研究升级字段为false。回传未单列HEAD或最终status，故结论限定为跨主机源码inventory与安全入口一致。真实12次工程执行仍等待逐字单次授权 | 项目负责人回传的`results/development/self_model_v0_1_d5c_p1_real_entry/report.json`；`docs/self_model_v0_1_d5c_p1_real_entry_remote_observation.md` |
 | 2026-08-24 | 项目负责人逐字授权D5C-P1补丁后真实2.9B非Core工程验证一次及本次结果观察：范围固定为两个夹具各6次、共12次，明确排除原D5C重跑与历史结论改变，并继续关闭D5D/D5E、正式测试集、Self效果、真实projection、Updater和自动重跑。本轮仅持久化人类授权；机器授权和P1 claim尚未创建，模型尚未加载/执行。下一步只允许干净main上的冻结runner单次消费，完成或失败均停止 | 项目负责人授权原文；`docs/self_model_v0_1_d5c_p1_real_execution_authorization.md`；`configs/development/self_model_v0_1_d5c_p1_real_engineering_validation.json` |
 | 2026-08-24 | D5C-P1唯一真实2.9B工程尝试有效失败并停止：干净main `1bc5857`创建有效机器授权与全新P1 claim，模型加载且首个`original_before` forward返回；首次指纹记录将真实Tensor的可调用`values`成员误判为offline fixture数据，JSON序列化时抛出`TypeError`。实际只完成1/12原始调用，所有patched路线均未到达，故不能评价事务补丁、控制隔离或机制连接。authorization内部、authorization文件→claim、claim→failure及failure内部四层digest独立复算全真；failure=`930c31ef…4483`，claim已消费且禁止重跑。原D5C失败及所有后续研究门不变 | 项目负责人回传authorization/claim/failure；`docs/self_model_v0_1_d5c_p1_real_engineering_observation.md` |
+| 2026-08-24 | D5C-P1失败纯离线Tensor/fixture分派诊断与reporter修复设计完成：冻结AST确认`hasattr(values)`后直接JSON序列化成员的边界，合成可调用成员复现同型TypeError。callability guard和对象marker均因误判/可伪造而不足；推荐未来显式注入test-only offline adapter，真实runner固定无adapter并走真实tensor默认路径，未知对象失败关闭。9类fake验收已冻结；14项报告、7项专项、14项组合及全项目466项通过，报告digest=`5940b7ee…bcb7`。真实reporter digest未变，修复、RWKV/Torch、权重、模型和重跑均未发生，D5C/P1结论不变 | `configs/development/self_model_v0_1_d5c_p1_reporter_fix_design.json`；`src/psa/self_model/d5c_p1_reporter_fix_design.py`；`docs/self_model_v0_1_d5c_p1_reporter_fix_design.md` |

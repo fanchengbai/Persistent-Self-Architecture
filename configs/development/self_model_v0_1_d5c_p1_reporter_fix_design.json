@@ -1,0 +1,76 @@
+{
+  "design_version": "0.1-d5c-p1-reporter-fix-design",
+  "stage": "D5C-P1_failure_offline_reporter_fix_design",
+  "status": "offline_diagnosis_and_design_only_no_fix_no_model",
+  "development_only": true,
+  "owner_confirmation_text": "确认进入 Self Model v0.1 D5C-P1失败纯离线Tensor/fixture类型判别诊断与reporter修复设计；仅使用现有authorization、claim、failure、冻结源码和合成fixture，不导入RWKV/Torch、不访问权重、不加载或执行模型、不实现或授权修复后真实重跑，也不改变原D5C/P1结论或开放D5D/D5E、正式测试集、Self效果、真实Self projection、Self Updater或自动重跑。",
+  "frozen_failure_evidence": {
+    "execution_commit": "1bc58579ddc0ff91a8ad37f83044f2046d2ccc16",
+    "authorization_internal_digest_sha256": "c7d78281d93e85814a61fb8fdbb71696495b24981f5b2e944f42cf3e30daf37e",
+    "authorization_file_sha256": "8b0f34cbc0b2b57a5ffffefb801128ff7e3243283ce6ae182c37ee414c3c2f0f",
+    "execution_claim_sha256": "7c49107b33a223be7ac11f3412328abc07e24e5fc6bcf68accfbe34b7ca97628",
+    "failure_report_sha256": "930c31ef6f70c431066cda3637c97fcc35344b8caabaeb2f2f7147a0b5d54483",
+    "failure_status": "d5c_p1_attempt_failed_claim_consumed",
+    "failure_type": "TypeError",
+    "failure_message": "Object of type builtin_function_or_method is not JSON serializable",
+    "completed_model_forwards": 1,
+    "patched_routes_reached": false
+  },
+  "frozen_reporter_source_sha256": "30f1f91186cf6e45a775cb28732556ff39c1a44f92b7940d21f8682880d67a78",
+  "strategy_review": [
+    {
+      "strategy": "callability_guard_on_values",
+      "decision": "insufficient_accidental_data_property_still_misclassified"
+    },
+    {
+      "strategy": "object_owned_offline_marker",
+      "decision": "insufficient_spoofable_and_production_object_coupled"
+    },
+    {
+      "strategy": "explicit_injected_offline_adapter",
+      "decision": "recommended_for_future_fake_first_implementation"
+    }
+  ],
+  "recommended_design": {
+    "production_default": "always_use_real_tensor_serializer_without_values_name_dispatch",
+    "offline_test_path": "requires_explicit_adapter_argument_with_exact_fixture_acceptance",
+    "unknown_object_policy": "fail_closed_without_guessing_from_attribute_names",
+    "adapter_scope": "test_only_not_constructed_by_real_runner",
+    "real_runner_adapter_value": null,
+    "output_commit_rule": "fingerprint_all_outputs_or_fail_without_reclassifying_tensor_kind"
+  },
+  "future_fake_acceptance": [
+    "callable_values_collision_reproduces_serialization_typeerror",
+    "real_like_tensor_with_callable_values_uses_default_real_serializer",
+    "exact_offline_fixture_uses_explicit_adapter",
+    "unregistered_data_values_object_fails_closed",
+    "callability_guard_rejects_method_but_still_misclassifies_data_property",
+    "object_marker_can_be_spoofed_and_is_insufficient_alone",
+    "adapter_does_not_read_callable_values_member",
+    "default_path_does_not_depend_on_values_name",
+    "verification_does_not_modify_frozen_reporter"
+  ],
+  "required_classification": "callable_values_name_collision_reproduced_reporter_dispatch_defect_explicit_injected_offline_adapter_recommended_no_fix_or_rerun",
+  "authority": {
+    "offline_failure_diagnosis_authorized": true,
+    "reporter_fix_design_authorized": true,
+    "synthetic_fixture_execution_authorized": true,
+    "reporter_fix_implementation_authorized": false,
+    "rwkv_import_authorized": false,
+    "torch_import_authorized": false,
+    "weights_access_authorized": false,
+    "model_load_authorized": false,
+    "model_execution_authorized": false,
+    "p1_rerun_authorized": false,
+    "historical_d5c_conclusion_change_authorized": false,
+    "p1_conclusion_change_authorized": false,
+    "d5d_authorized": false,
+    "d5e_authorized": false,
+    "formal_test_set_authorized": false,
+    "self_effect_conclusion_authorized": false,
+    "real_self_projection_authorized": false,
+    "self_updater_authorized": false,
+    "automatic_rerun_authorized": false
+  },
+  "next_gate": "fake_first_reporter_dispatch_fix_requires_separate_owner_confirmation"
+}
