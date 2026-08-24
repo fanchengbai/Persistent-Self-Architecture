@@ -1,8 +1,8 @@
 # Persistent Self Architecture 项目进度表
 
 > 最后更新：2026-08-24
-> 当前节点：Phase 3 Coupling-D6C真实persistent机制验证设计与无模型安全入口本地完成；等待远程无模型复验
-> 研究状态：D6C专项9/9、静态入口24/24、全项目496项通过；installed source和真实2.9B执行仍未授权
+> 当前节点：Phase 3 Coupling-D6C设计与无模型安全入口已跨主机闭环；等待真实2.9B单次执行与观察的独立逐字授权
+> 研究状态：D6C远程9/9测试、24/24入口检查及源码inventory一致；机器授权、claim、installed source探测和模型执行均未发生
 
 ## 1. 这张表怎么使用
 
@@ -113,14 +113,14 @@
 | 38p. EXP-001C v02 Stage B只读live preflight与机器授权锁 | ✅ 云端通过 | 在模型加载前绑定干净main提交、设计/protocol digest、Stage A原始结果、模型配置与资产哈希、主机环境、224条计划和空输出目录；授权只接受固定逐字文本并绑定preflight digest | 防止把“继续”解释成模型执行授权，也防止代码、证据、模型或输出目录变化后复用旧授权 | Stage B 29项远程测试通过，云端只读preflight全部检查为true且失败项为空；`model_loaded=false`、`model_executed=false`、执行/观察均为false。最终digest以本轮最终文档提交后的服务器v02证据为准 | Codex |
 | 38q. EXP-001C v02 Stage B项目负责人单次授权 | ✅ 已逐字确认并消费 | 负责人使用冻结原文授权224条recurrent-state非Core pilot及本轮结果观察，同时明确排除Stage A重跑、正式测试集、正式运行、确认性决定和自动重跑 | 模型执行和结果观察是新的不可逆边界，不能由此前“继续”推断 | 授权绑定preflight_v03与Stage A/result digest，机器记录和single-use claim均已消费；224条运行及观察完成后禁止重跑 | 项目负责人；Codex执行 |
 | 38r. EXP-001C v02 Stage B冻结只读观察 | ✅ 云端完成 | 对五个状态语义条件按8个语义案例×4代码轮换平均log score，记录联合/字段准确率与margin；reset/random只记录参考匹配率，不定义正确答案 | 原始code top-1容易受A–D先验影响；同时不能把诊断控制事后改成主要端点或临时添加通过阈值 | 五个主要条件均联合7/8、domain 8/8、operation 7/8；continuous/restored预测8/8一致，三种swap均7/8跟随注入state。reset/random参考匹配均2/8；无确认性决定或重跑 | Codex；云端只读分析 |
-| 39. Phase 3：显式 Self Model | ✅ D6C设计与无模型入口本地完成；等待远程复验 | 实现静态Self Store、Self Encoder和可关闭/缩放gated injection，并建立字段mask/swap/random/coupling-off消融 | 先证明接口可审计、可干预、失败关闭，再决定真实RWKV注入位置和效果实验 | D6C冻结两个非Core形状各1次OFF预条件和4轮三路线调度，共26次；无raw-original，8次active对应256次层访问/8次固定层应用。一次安装的persistent runtime、精确授权Schema、唯一输出与single-use claim已实现；9项专项、24项静态和全项目496项通过，digest=`95220de6…0a78`。installed source、机器授权、claim、RWKV/Torch、权重和模型均未触发；真实执行及D6D–E关闭 | Codex |
+| 39. Phase 3：显式 Self Model | ✅ D6C设计与无模型入口跨主机闭环；等待真实单次授权 | 实现静态Self Store、Self Encoder和可关闭/缩放gated injection，并建立字段mask/swap/random/coupling-off消融 | 先证明接口可审计、可干预、失败关闭，再决定真实RWKV注入位置和效果实验 | 远程9/9测试与24/24检查通过，digest=`95220de6…0a78`及11项源码inventory与本地一致；26-call、三条persistent路线、256/8 active计数、一次安装和forward零属性切换均冻结。机器授权与claim明确缺席，installed source/RWKV/Torch/权重/模型均未触发。当前只等待未来逐字授权唯一一次真实2.9B机制验证；D6D–E和Self效果仍关闭 | 共同完成 |
 | 40. Self 更新与演化 | ⏳ 未开始 | 让 Self State 根据经历受控更新、回滚和分化 | 这是“持续自我”真正更深入的部分 | 尚未开始 | 后续阶段 |
 | 41. 内生调节与自主审议 | ⏳ 未开始 | 让 Self/冲突决定是否检索、回放、模拟或停止，并在零新外部观察条件下受控更新 | 检验系统是否不仅“有状态”，还会因内部状态选择继续计算；同时排除定时器和随机回放解释 | 设计说明已完成；必须等待显式 Self 因果价值和受约束更新两道前置门，不创建空壳代码 | 后续阶段 |
 | 42. 最终研究结论 | ⏳ 未开始 | 汇总统计结果、失败案例和替代解释 | 最终回答项目假设是否得到支持，而不是只展示几个有趣案例 | 尚未开始 | 共同完成 |
 
 ## 3. 当前所在位置
 
-> 2026-08-24 当前状态：D4失败、D4A瞬态分类、D4B真实稳态OFF通过、D5A离线闭环和D5B静态active路径均保持；Coupling-D5C历史失败与D5C-P1在1/12原始调用后的有效失败均保持，两个claim都已消费且不得重跑，D5路线终止与P2拒绝判定不变；D6A和D6B均已跨主机闭环。D6C真实2.9B persistent-instrumented非Core机制验证现只完成设计与无模型安全入口：冻结single/sequence两个形状，每形状1次OFF预条件加4轮`OFF/zero/active-synthetic`调度，13次/形状、总26次，不包含raw-original路线；8次active冻结为32层访问，预期256次callback和8次0-based第15层应用，该层是预注册中点机制探针而不是依据效果选择。真实runtime只在未来授权后于首次forward前一次安装dispatcher及双方法，运行期forward的模型属性修改AST计数为0。新Schema、机器授权唯一路径、结果唯一目录、逐字未来授权和single-use claim均已实现，claim早于模型配置/权重/加载。专项9/9、静态入口24/24及全项目496项通过，报告`valid=true`、digest=`95220de6…0a78`；本轮installed source未探测，外部RWKV/Torch未导入，权重、模型、机器授权和claim均未访问/创建。下一步仅允许远程运行同一无模型验证；D6C真实执行仍需另一条逐字授权，D6D/E、正式集、真实层选择、真实Self projection、Self效果、Updater和自动重跑全部关闭。以下保留完整历史路径；如与旧阶段描述冲突，以本段和顶部“当前节点”为准。
+> 2026-08-24 当前状态：D4失败、D4A瞬态分类、D4B真实稳态OFF通过、D5A离线闭环和D5B静态active路径均保持；Coupling-D5C历史失败与D5C-P1在1/12原始调用后的有效失败均保持，两个claim都已消费且不得重跑，D5路线终止与P2拒绝判定不变；D6A和D6B均已跨主机闭环。D6C设计与无模型安全入口也已跨主机闭环：服务器9/9专项和24/24入口检查通过，报告`valid=true`、digest=`95220de6…0a78`与本地一致，11项冻结源码digest全部匹配。single/sequence两个非Core形状各冻结1次OFF预条件和4轮`OFF/zero/active-synthetic`调度，13次/形状、总26次，不含raw-original；8次active预期256次callback和8次0-based第15层应用，该层是预注册中点机制探针而非依据效果选择。真实runtime只在未来授权后于首次forward前一次安装dispatcher及双方法，forward AST模型属性修改计数为0；授权验证、installed-source、claim、模型配置/加载和core的时序检查全真。远程明确输出机器授权和claim缺席，报告确认installed source未探测、RWKV/Torch未导入、权重与模型未访问/执行。贴回未含HEAD/status，因此结论限定为跨主机源码inventory与无模型入口行为。下一步只能由项目负责人逐字授权唯一一次26-call真实2.9B机制验证及观察；该授权也不开放D6C重跑、D6D/E、raw-original、正式集、真实层选择、真实Self projection、Self效果、Updater或自动重跑。以下保留完整历史路径；如与旧阶段描述冲突，以本段和顶部“当前节点”为准。
 
 ```text
 理论设计
@@ -239,7 +239,7 @@ EXP-001B补充控制
 
 ## 4. 当前下一步
 
-> 2026-08-24 当前下一步：项目负责人在远程服务器拉取本轮提交，只运行D6C的9项专项测试和24项无模型静态入口验证，并贴回完整输出、`git rev-parse HEAD`与`git status --short`。该验证必须保持环境执行锁未设置、机器授权与claim缺席，且报告显示`installed_source_probed=false`、`model_executed=false`。远程无模型闭环后，是否授权唯一一次26-call真实2.9B机制执行必须另行逐字决定，不能由本轮确认或测试输出推导。以下保留此前 EXP-001B 轨迹作为历史记录。
+> 2026-08-24 当前下一步：等待项目负责人逐字授权唯一一次D6C真实2.9B persistent-instrumented非Core机制验证及本次结果观察。未来授权固定两个非Core形状、每形状1次OFF预条件和4轮三路线调度，共26次，并继续禁止D5C/P1/P2或D6C重跑、raw-original、D6D/E、正式集、真实层选择、真实Self projection、Self效果、Updater和自动重跑。普通“继续/确认”不能启动；在逐字授权前不得设置D6C执行锁、创建机器授权/claim、探测installed source或加载模型。以下保留此前 EXP-001B 轨迹作为历史记录。
 
 截至2026-08-04，项目负责人已经确认EXP-001B设计草案中的B1–B7。
 新增范围仍锁在11,008条控制记录，并明确不重跑EXP-001、不重估E1–E3、
@@ -760,3 +760,4 @@ trial-condition单元；只允许全量完成且完整性验证后观察结果�
 | 2026-08-24 | Coupling-D6B项目内persistent AST静态集成本地完成：锁定instrumenter在32层/2560维/96-state纯Python fixture双路径各编译1个post-FFN注入点，三绑定一次安装，forward运行期零模型属性切换。单次/序列OFF=zero且probe零调用，active各两次确定变化，共128层访问/4次应用；异常恢复、输入和身份稳定有效。14项验收、12项报告、7项专项及全项目487项通过，digest=`e51c1248…9007`；installed source未探测，历史D5、D6A、instrumenter未改，模型和D6C–E关闭。下一步仅远程无模型复验 | `configs/development/self_model_v0_1_coupling_d6b_persistent_ast.json`；`src/psa/self_model/d6b_persistent_ast.py`；`docs/self_model_v0_1_coupling_d6b_persistent_ast.md` |
 | 2026-08-24 | Coupling-D6B远程无模型复验通过并闭环：7/7测试、14/14验收、12/12报告及digest=`e51c1248…9007`跨主机一致；双路径AST、32×2560×96形状、三绑定一次安装、零运行期属性修改、OFF/zero、active 128/4计数和全部锁定源码均有效。installed source、模型和后续权限关闭；贴回未含HEAD/status，结论限定为源码/无模型行为。D6C只可在新确认下先做设计与无模型入口 | 项目负责人贴回终端输出；`docs/self_model_v0_1_coupling_d6b_remote_observation.md` |
 | 2026-08-24 | Coupling-D6C真实persistent机制验证设计与无模型安全入口本地完成：冻结两个非Core形状各1次OFF预条件和4轮三路线调度，总26次且无raw-original；8次active固定产生256次层访问和8次第15层应用。persistent dispatcher与双方法只安装一次，runtime forward AST无模型属性修改；新Schema、唯一路径、逐字未来授权和single-use claim全部失败关闭。9项专项、24项静态入口及全项目496项通过，报告digest=`95220de6…0a78`；installed source、RWKV/Torch、权重、模型、机器授权和claim均未触发。下一步仅远程无模型复验，真实执行需独立逐字授权 | `configs/development/self_model_v0_1_coupling_d6c_real_persistent_mechanism.json`；`src/psa/self_model/d6c_persistent_mechanism.py`；`src/psa/self_model/d6c_real_entry.py`；`docs/self_model_v0_1_coupling_d6c_real_persistent_mechanism.md` |
+| 2026-08-24 | Coupling-D6C远程无模型复验通过并闭环：9/9专项测试、24/24入口检查、报告digest=`95220de6…0a78`及11项冻结源码digest与本地一致；26-call三路线计划、256/8计数、forward零属性修改和授权/claim/model时序均有效。机器授权和claim明确缺席，installed source、RWKV/Torch、权重和模型均未触发。贴回未含HEAD/status，结论限定为跨主机源码inventory与无模型入口行为；真实唯一执行仍需独立逐字授权 | 项目负责人贴回终端输出；`docs/self_model_v0_1_coupling_d6c_remote_observation.md` |
