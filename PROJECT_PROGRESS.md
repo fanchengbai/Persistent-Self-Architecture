@@ -1,8 +1,8 @@
 # Persistent Self Architecture 项目进度表
 
 > 最后更新：2026-08-24
-> 当前节点：Phase 3 post-P1研究审阅完成；D5路线终止，等待Coupling-D6A纯离线新架构确认
-> 研究状态：拒绝以P2名义重跑P1；推荐一次安装、固定dispatcher、context-local请求的persistent-instrumented架构，尚未实现
+> 当前节点：Phase 3 Coupling-D6A persistent dispatcher纯离线实现本地通过；等待远程无模型复验
+> 研究状态：三名字一次安装、固定dispatcher与context-local请求的12类fake lifecycle验收全真；D5路线仍终止，D6B及模型路径未授权
 
 ## 1. 这张表怎么使用
 
@@ -113,14 +113,14 @@
 | 38p. EXP-001C v02 Stage B只读live preflight与机器授权锁 | ✅ 云端通过 | 在模型加载前绑定干净main提交、设计/protocol digest、Stage A原始结果、模型配置与资产哈希、主机环境、224条计划和空输出目录；授权只接受固定逐字文本并绑定preflight digest | 防止把“继续”解释成模型执行授权，也防止代码、证据、模型或输出目录变化后复用旧授权 | Stage B 29项远程测试通过，云端只读preflight全部检查为true且失败项为空；`model_loaded=false`、`model_executed=false`、执行/观察均为false。最终digest以本轮最终文档提交后的服务器v02证据为准 | Codex |
 | 38q. EXP-001C v02 Stage B项目负责人单次授权 | ✅ 已逐字确认并消费 | 负责人使用冻结原文授权224条recurrent-state非Core pilot及本轮结果观察，同时明确排除Stage A重跑、正式测试集、正式运行、确认性决定和自动重跑 | 模型执行和结果观察是新的不可逆边界，不能由此前“继续”推断 | 授权绑定preflight_v03与Stage A/result digest，机器记录和single-use claim均已消费；224条运行及观察完成后禁止重跑 | 项目负责人；Codex执行 |
 | 38r. EXP-001C v02 Stage B冻结只读观察 | ✅ 云端完成 | 对五个状态语义条件按8个语义案例×4代码轮换平均log score，记录联合/字段准确率与margin；reset/random只记录参考匹配率，不定义正确答案 | 原始code top-1容易受A–D先验影响；同时不能把诊断控制事后改成主要端点或临时添加通过阈值 | 五个主要条件均联合7/8、domain 8/8、operation 7/8；continuous/restored预测8/8一致，三种swap均7/8跟随注入state。reset/random参考匹配均2/8；无确认性决定或重跑 | Codex；云端只读分析 |
-| 39. Phase 3：显式 Self Model | 🟡 D5终止；D6架构换轨待确认 | 实现静态Self Store、Self Encoder和可关闭/缩放gated injection，并建立字段mask/swap/random/coupling-off消融 | 先证明接口可审计、可干预、失败关闭，再决定真实RWKV注入位置和效果实验 | post-P1审阅认定：reporter修复不恢复已消费机会，同计划P2属于实质重跑，D5D/E继续关闭。推荐Coupling-D6 persistent-instrumented路线：方法与dispatcher在首次forward前只安装一次，此后模型对象零属性切换，OFF/zero/active仅通过context-local显式请求区分。先等待D6A纯Python contract与fake lifecycle的精确确认；尚未实现、未导入模型库 | Codex |
+| 39. Phase 3：显式 Self Model | 🟡 D6A本地通过；等待远程无模型复验 | 实现静态Self Store、Self Encoder和可关闭/缩放gated injection，并建立字段mask/swap/random/coupling-off消融 | 先证明接口可审计、可干预、失败关闭，再决定真实RWKV注入位置和效果实验 | D6A使用精确纯Python fixture，在构造阶段一次安装dispatcher、`forward_one`和`forward_seq`共3个绑定；之后forward源码零`setattr`/`delattr`。OFF=zero且probe零调用，active确定改变且可复现；嵌套/并发在第二个inner forward前拒绝，callback异常恢复context并可复用，输入和绑定身份不变。12/12验收、8/8报告、7项专项及全项目480项通过，digest=`8e141f69…6dc4`；D5 runtime digest未变，模型及D6B–E关闭 | Codex |
 | 40. Self 更新与演化 | ⏳ 未开始 | 让 Self State 根据经历受控更新、回滚和分化 | 这是“持续自我”真正更深入的部分 | 尚未开始 | 后续阶段 |
 | 41. 内生调节与自主审议 | ⏳ 未开始 | 让 Self/冲突决定是否检索、回放、模拟或停止，并在零新外部观察条件下受控更新 | 检验系统是否不仅“有状态”，还会因内部状态选择继续计算；同时排除定时器和随机回放解释 | 设计说明已完成；必须等待显式 Self 因果价值和受约束更新两道前置门，不创建空壳代码 | 后续阶段 |
 | 42. 最终研究结论 | ⏳ 未开始 | 汇总统计结果、失败案例和替代解释 | 最终回答项目假设是否得到支持，而不是只展示几个有趣案例 | 尚未开始 | 共同完成 |
 
 ## 3. 当前所在位置
 
-> 2026-08-24 当前状态：D4失败、D4A瞬态分类、D4B真实稳态OFF通过、D5A离线闭环和D5B静态active路径均保持；Coupling-D5C历史失败与D5C-P1在1/12原始调用后的有效失败均保持，两个claim都已消费且不得重跑。reporter显式adapter fake-first工程门已跨主机闭环，但只修复工具，不产生真实patched-route证据。post-P1研究审阅因此冻结D5路线终止判定：不得复用D5C/P1授权、claim、输出或调度，不得用P2名称重复相同12次问题，D5D/E继续关闭。若继续显式Self耦合，只能换成实质不同的Coupling-D6 persistent-instrumented架构：锁定instrumented方法与固定dispatcher在实例首次forward前一次安装，整个生命周期不再对模型方法或callback属性执行切换；OFF/zero/active仅由context-local显式请求控制，同实例不再运行post-active raw-original路线。D6按A纯离线contract、B静态集成、C另行授权真实机制、D非Core效果、E正式预注册重新分门，现有权限全部不能继承。当前仅完成研究审阅文档，未实现D6、未导入RWKV/Torch、未访问权重或执行模型。下一步必须由项目负责人逐字确认D6A纯Python fake lifecycle范围。以下保留完整历史路径；如与旧阶段描述冲突，以本段和顶部“当前节点”为准。
+> 2026-08-24 当前状态：D4失败、D4A瞬态分类、D4B真实稳态OFF通过、D5A离线闭环和D5B静态active路径均保持；Coupling-D5C历史失败与D5C-P1在1/12原始调用后的有效失败均保持，两个claim都已消费且不得重跑。D5路线终止与P2拒绝判定不变。本轮在精确授权下完成独立Coupling-D6A纯Python persistent dispatcher：构造函数在首次forward前一次安装固定dispatcher、`forward_one`和`forward_seq`，安装计数严格为3，重复安装在任何新forward前拒绝且绑定不变；运行期只设置/恢复runtime私有`ContextVar`请求，AST确认`forward`中没有模型`setattr`/`delattr`。OFF与zero输出精确一致且不调用probe，active输出确定性变化；成功和callback异常后context均清空，异常后runtime可继续OFF调用；嵌套和双线程并发都在第二个inner forward前失败关闭；tokens、state、probe source与模型绑定身份全程不变。12/12冻结验收、8/8总检查、7项专项及全项目480项通过，报告`valid=true`、digest=`8e141f69…6dc4`；历史D5 runtime digest保持`e4ae5c5b…bc32`。未导入RWKV/Torch、未访问权重、未加载或执行模型，D6B–E、真实层/projection、Self效果、Updater和自动重跑全部关闭。下一步仅远程运行同一无模型D6A验证，不能进入D6B或模型路径。以下保留完整历史路径；如与旧阶段描述冲突，以本段和顶部“当前节点”为准。
 
 ```text
 理论设计
@@ -239,7 +239,7 @@ EXP-001B补充控制
 
 ## 4. 当前下一步
 
-> 2026-08-24 当前下一步：等待项目负责人逐字确认Coupling-D6A persistent-instrumented dispatcher纯离线实现。D6A只允许合成Python fixture验证一次安装、固定dispatcher、context-local OFF/zero/active、模型对象零属性切换、嵌套/并发失败关闭和输入不变性；不导入RWKV/Torch、不访问权重、不加载或执行模型，也不授权D6B–D6E、D5C/P1/P2重跑、真实层/projection、Self效果、Updater或自动重跑。以下保留此前 EXP-001B 轨迹作为历史记录。
+> 2026-08-24 当前下一步：项目负责人在远程服务器拉取最终D6A提交，仅运行7项D6A专项与固定无模型验证器并回传报告；必须保持RWKV/Torch、权重、模型、D6B–E和所有D5重跑关闭。远程通过后才讨论D6B的独立确认，不能由D6A结果自动升级。以下保留此前 EXP-001B 轨迹作为历史记录。
 
 截至2026-08-04，项目负责人已经确认EXP-001B设计草案中的B1–B7。
 新增范围仍锁在11,008条控制记录，并明确不重跑EXP-001、不重估E1–E3、
@@ -755,3 +755,4 @@ trial-condition单元；只允许全量完成且完整性验证后观察结果�
 | 2026-08-24 | D5C-P1 reporter adapter首次远程无模型复验：核心报告13/13、冻结验收9/9、完整12次纯Python调用及digest=`3200210f…b95f`均跨主机一致，真实runner不传adapter且全部模型/重跑安全字段关闭。21项组合测试唯一失败来自旧用例假设历史authorization必须缺席；该文件是服务器应保留的已消费P1证据，不是本轮副作用。用例已改为验证可选authorization/claim在检查前后的存在性和SHA-256不变，本地21项及全项目473项通过，新报告digest=`7f36c30d…5915a`；等待第二次远程无模型复验闭环 | 项目负责人贴回终端输出；`docs/self_model_v0_1_d5c_p1_reporter_adapter_fix_remote_observation.md`；`tests/test_self_model_d5c_p1_real_entry.py` |
 | 2026-08-24 | D5C-P1 reporter adapter第二次远程无模型复验通过并闭环：修正版21/21测试`OK`，13/13报告检查、9/9冻结验收及完整12次纯Python调用全真，digest=`7f36c30d…5915a`与本地一致；默认路径零`values`读取，真实runner不传adapter。所有模型、重跑和研究升级安全字段保持false。贴回未重复显示HEAD/status，但锁定源码inventory全部digest（含修正测试）一致，因此正式关闭跨主机源码/无模型行为门，同时不扩大到未展示的工作区状态、真实2.9B补丁评价或任何新实验权限 | 项目负责人贴回终端输出；`docs/self_model_v0_1_d5c_p1_reporter_adapter_fix_remote_observation.md` |
 | 2026-08-24 | post-P1只读研究审阅完成：reporter修复只闭合工具缺陷，不恢复已消费P1机会；同模型、同调度、同问题的P2属于实质重跑，明确拒绝，D5D/E继续关闭。推荐新Coupling-D6 persistent-instrumented路线：方法与固定dispatcher仅在实例首次forward前安装一次，此后模型对象零属性切换，条件只通过context-local请求改变；禁止同实例post-active raw-original。D6重新拆分A–E独立门，当前仅冻结审阅与D6A精确确认文本，未实现或执行任何模型 | `docs/self_model_v0_1_post_p1_research_review.md`；`PROJECT_PROGRESS.md` |
+| 2026-08-24 | Coupling-D6A persistent dispatcher纯离线contract与fake lifecycle完成：构造前3个绑定一次安装，运行期模型对象零属性切换；OFF/zero精确且probe零调用，active确定变化，context成功/异常均恢复，嵌套/并发在第二个inner forward前拒绝，输入与绑定身份不变。12项验收、8项报告、7项专项及全项目480项通过，digest=`8e141f69…6dc4`；历史D5 runtime未改，RWKV/Torch、权重、模型、D6B–E及全部研究升级门关闭。下一步仅远程无模型复验 | `configs/development/self_model_v0_1_coupling_d6a_persistent_dispatcher.json`；`src/psa/self_model/d6a_persistent_dispatcher.py`；`docs/self_model_v0_1_coupling_d6a_persistent_dispatcher.md` |
