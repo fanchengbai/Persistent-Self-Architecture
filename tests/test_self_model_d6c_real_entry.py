@@ -165,6 +165,38 @@ class D6CRealEntryTests(unittest.TestCase):
                 git_metadata=git,
             )
 
+    def test_existing_machine_authorization_can_validate_bound_preflight_digest(self):
+        git = {"commit": "a" * 40, "branch": "main", "status_porcelain": ""}
+        artifact_state = {
+            "machine_authorization_absent": False,
+            "execution_claim_absent": True,
+        }
+        with patch.object(
+            entry, "_execution_artifacts_absent", return_value=artifact_state
+        ):
+            with self.assertRaises(RuntimeError):
+                build_d6c_authorization(
+                    config_path=CONFIG, project_root=ROOT,
+                    authorization_text=FUTURE_EXECUTION_AUTHORIZATION_TEXT,
+                    git_metadata=git,
+                )
+            authorization = build_d6c_authorization(
+                config_path=CONFIG, project_root=ROOT,
+                authorization_text=FUTURE_EXECUTION_AUTHORIZATION_TEXT,
+                git_metadata=git, verify_execution_artifacts_absent=False,
+            )
+            with tempfile.TemporaryDirectory() as directory:
+                path = Path(directory) / "authorization.json"
+                path.write_text(json.dumps(authorization), encoding="utf-8")
+                validated = entry.validate_d6c_authorization(
+                    authorization_path=path, config_path=CONFIG,
+                    project_root=ROOT, git=git,
+                )
+        self.assertEqual(
+            validated["entry_static_report_sha256"],
+            authorization["entry_static_report_sha256"],
+        )
+
     def test_missing_lock_fails_before_git_source_claim_or_model(self):
         environment = dict(os.environ)
         environment.pop(entry.EXECUTION_LOCK_ENV, None)

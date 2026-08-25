@@ -251,6 +251,7 @@ def _require_utc_timestamp(value: Any) -> None:
 def build_d6c_authorization(
     *, config_path: str | Path, project_root: str | Path,
     authorization_text: str, git_metadata: Mapping[str, str] | None = None,
+    verify_execution_artifacts_absent: bool = True,
 ) -> dict[str, Any]:
     root = Path(project_root).resolve()
     config_file = _require_path(root, config_path, CONFIG_RELATIVE_PATH, "config")
@@ -272,7 +273,8 @@ def build_d6c_authorization(
         "git_commit": git["commit"],
         "config_sha256": sha256_file(config_file),
         "entry_static_report_sha256": build_d6c_entry_static_report(
-            config_path=config_file, project_root=root
+            config_path=config_file, project_root=root,
+            verify_execution_artifacts_absent=verify_execution_artifacts_absent,
         )["report_digest_sha256"],
         "installed_source_probe_authorized": True,
         "model_execution_authorized": True,
@@ -305,6 +307,7 @@ def validate_d6c_authorization(
     expected = build_d6c_authorization(
         config_path=config_path, project_root=root,
         authorization_text=FUTURE_EXECUTION_AUTHORIZATION_TEXT, git_metadata=git,
+        verify_execution_artifacts_absent=False,
     )
     for field, value in expected.items():
         if field not in {"authorized_at_utc", "authorization_digest_sha256"}:
@@ -501,8 +504,20 @@ def _runtime_forward_mutation_audit(root: Path) -> dict[str, Any]:
     }
 
 
+def _execution_artifacts_absent(root: Path) -> dict[str, bool]:
+    return {
+        "machine_authorization_absent": not (
+            root / AUTHORIZATION_RELATIVE_PATH
+        ).exists(),
+        "execution_claim_absent": not (
+            root / OUTPUT_RELATIVE_DIR / "execution_claim.json"
+        ).exists(),
+    }
+
+
 def build_d6c_entry_static_report(
     *, config_path: str | Path, project_root: str | Path,
+    verify_execution_artifacts_absent: bool = True,
 ) -> dict[str, Any]:
     root = Path(project_root).resolve()
     config_file = _require_path(root, config_path, CONFIG_RELATIVE_PATH, "config")
@@ -511,8 +526,7 @@ def build_d6c_entry_static_report(
     lines = _entry_ast_audit()
     runtime_audit = _runtime_forward_mutation_audit(root)
     source_digests = {path: sha256_file(root / path) for path in SOURCE_PATHS}
-    authorization_path = root / AUTHORIZATION_RELATIVE_PATH
-    claim_path = root / OUTPUT_RELATIVE_DIR / "execution_claim.json"
+    artifact_absence = _execution_artifacts_absent(root)
     checks = {
         "config_valid": True,
         "implementation_confirmation_recorded": spec["implementation_confirmation_text"]
@@ -560,8 +574,14 @@ def build_d6c_entry_static_report(
         "source_inventory_complete": len(source_digests) == len(SOURCE_PATHS),
         "rwkv_model_not_imported": "rwkv.model" not in sys.modules,
         "torch_not_imported": "torch" not in sys.modules,
-        "machine_authorization_not_created": not authorization_path.exists(),
-        "execution_claim_not_created": not claim_path.exists(),
+        "machine_authorization_not_created": (
+            artifact_absence["machine_authorization_absent"]
+            if verify_execution_artifacts_absent else True
+        ),
+        "execution_claim_not_created": (
+            artifact_absence["execution_claim_absent"]
+            if verify_execution_artifacts_absent else True
+        ),
     }
     if not all(checks.values()):
         failed = [name for name, valid in checks.items() if not valid]
