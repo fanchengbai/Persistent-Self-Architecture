@@ -1,8 +1,8 @@
 # Persistent Self Architecture 项目进度表
 
 > 最后更新：2026-08-25
-> 当前节点：Phase 3 Coupling-D6D-I wrapper-owned路径与冻结projection工具本地无模型实现通过；等待服务器复验
-> 研究状态：同一wrapper的11条件、20类验收和14项报告检查通过，digest=`b9267f24…4290`；真实projection尚未构造、模型未执行，核心Self效果仍未测试
+> 当前节点：Phase 3 Coupling-D6D-II installed source/manifest/真实入口远程无模型门通过；等待独立逐字单次执行授权
+> 研究状态：D6D-II远程12/12测试、24/24入口检查和35/35 manifest检查通过，installed source仅静态编译；真实projection尚未构造、2.9B联合实验尚未执行，核心Self效果仍未测试
 
 ## 1. 这张表怎么使用
 
@@ -113,14 +113,14 @@
 | 38p. EXP-001C v02 Stage B只读live preflight与机器授权锁 | ✅ 云端通过 | 在模型加载前绑定干净main提交、设计/protocol digest、Stage A原始结果、模型配置与资产哈希、主机环境、224条计划和空输出目录；授权只接受固定逐字文本并绑定preflight digest | 防止把“继续”解释成模型执行授权，也防止代码、证据、模型或输出目录变化后复用旧授权 | Stage B 29项远程测试通过，云端只读preflight全部检查为true且失败项为空；`model_loaded=false`、`model_executed=false`、执行/观察均为false。最终digest以本轮最终文档提交后的服务器v02证据为准 | Codex |
 | 38q. EXP-001C v02 Stage B项目负责人单次授权 | ✅ 已逐字确认并消费 | 负责人使用冻结原文授权224条recurrent-state非Core pilot及本轮结果观察，同时明确排除Stage A重跑、正式测试集、正式运行、确认性决定和自动重跑 | 模型执行和结果观察是新的不可逆边界，不能由此前“继续”推断 | 授权绑定preflight_v03与Stage A/result digest，机器记录和single-use claim均已消费；224条运行及观察完成后禁止重跑 | 项目负责人；Codex执行 |
 | 38r. EXP-001C v02 Stage B冻结只读观察 | ✅ 云端完成 | 对五个状态语义条件按8个语义案例×4代码轮换平均log score，记录联合/字段准确率与margin；reset/random只记录参考匹配率，不定义正确答案 | 原始code top-1容易受A–D先验影响；同时不能把诊断控制事后改成主要端点或临时添加通过阈值 | 五个主要条件均联合7/8、domain 8/8、operation 7/8；continuous/restored预测8/8一致，三种swap均7/8跟随注入state。reset/random参考匹配均2/8；无确认性决定或重跑 | Codex；云端只读分析 |
-| 39. Phase 3：显式 Self Model | 🟡 D6D-I本地无模型实现通过；等待服务器复验 | 实现静态Self Store、Self Encoder和可关闭/缩放gated injection，并建立字段mask/swap/random/coupling-off消融 | 先证明接口可审计、可干预、失败关闭，再决定真实RWKV注入位置和效果实验 | D6D设计跨主机门保持有效。D6D-I现把编译后的双方法、`forward`、固定dispatcher和context全部放在外部wrapper，基础实例仅只读委托；constructor、每次调用前后均核验实例字典键及对象身份。字段分离projection工具可从训练记录生成无bias 2560维冻结资产，绑定training/pilot commitment、参数和artifact digest，支持swap/mask/norm-random并拒绝篡改。同一wrapper执行全部11条件及single/sequence、异常、嵌套/并发验收，20/20类通过；10项专项、14/14报告检查有效，digest=`b9267f24…4290`，并实际复算前置D6D design的config/doc/source三项摘要。验收artifact为synthetic teacher且`research_evidence_eligible=false`，真实projection/installed source/模型均未触发。下一步仅服务器无模型复验 | 共同完成 |
+| 39. Phase 3：显式 Self Model | 🟡 D6D-II无模型门闭环；等待真实联合实验逐字授权 | 实现静态Self Store、Self Encoder和可关闭/缩放gated injection，并建立字段mask/swap/random/coupling-off消融 | 先证明接口可审计、可干预、失败关闭，再决定真实RWKV注入位置和效果实验 | D6D-I wrapper/projection tooling跨主机门已闭环。D6D-II进一步冻结16次训练capture、12个fixture×12次的144次blinded non-Core pilot及单一联合160-forward入口；服务器12/12测试、24/24入口检查和35/35 manifest检查通过。`rwkv==0.8.32` installed source digest=`75482aee…05e0`只做AST/compile-only兼容检查，总报告digest=`93b0b09d…496f`。机器授权、claim、projection、权重和模型均未触发。下一步只能等待冻结的逐字单次执行授权 | 共同完成 |
 | 40. Self 更新与演化 | ⏳ 未开始 | 让 Self State 根据经历受控更新、回滚和分化 | 这是“持续自我”真正更深入的部分 | 尚未开始 | 后续阶段 |
 | 41. 内生调节与自主审议 | ⏳ 未开始 | 让 Self/冲突决定是否检索、回放、模拟或停止，并在零新外部观察条件下受控更新 | 检验系统是否不仅“有状态”，还会因内部状态选择继续计算；同时排除定时器和随机回放解释 | 设计说明已完成；必须等待显式 Self 因果价值和受约束更新两道前置门，不创建空壳代码 | 后续阶段 |
 | 42. 最终研究结论 | ⏳ 未开始 | 汇总统计结果、失败案例和替代解释 | 最终回答项目假设是否得到支持，而不是只展示几个有趣案例 | 尚未开始 | 共同完成 |
 
 ## 3. 当前所在位置
 
-> 2026-08-25 当前状态：D4失败、D4A瞬态分类、D4B真实稳态OFF通过、D5C/P1有效失败与已消费claim、D5终止及P2拒绝均不变；D6A/B无模型门已闭环，D6C失败claim已消费且禁止重跑。D6D核心趋近联合设计已跨主机通过：12个nonCore fixture、11条件、144次未来forward，同一实验交错synthetic正控制和96次真实Self projection计划，数值门在结果前冻结。D6D-I现完成本地无模型工程实现：`D6DIWrapperOwnedRuntime`把`forward`、编译后的`forward_one/forward_seq`、固定dispatcher和ContextVar全部绑定在外部wrapper，基础实例只做`__getattr__`读取委托；constructor、每个forward前后都比较基础实例字典的精确键与对象身份，wrapper forward AST无`setattr`/`delattr`且不调用`base_model.forward`。projection tooling从`identity_anchors`/`active_goals`的字段分离训练记录学习权重，生成无bias、双mask严格为零、training/pilot commitment分离且参数/artifact digest完整的冻结资产；swap、mask和分支norm-matched random接口及篡改失败关闭均已实现。纯Python synthetic teacher在32层×2560维×96 state fixture的同一wrapper上运行全部11条件，并覆盖single/sequence、异常恢复、嵌套/并发拒绝、输入与身份不变性；10项专项、20/20验收和14/14报告检查通过，digest=`b9267f24…4290`，前置D6D config/doc/source均由当前文件实际复算。fixture artifact明确不可作为研究证据；installed source未探测、RWKV/Torch未导入、权重未访问、真实projection未训练/构造、模型未加载/执行。下一步只允许服务器无模型复验；通过后D6D-II仍需独立确认，D6D真实执行、D6E、正式集、效果结论、Updater和自动重跑关闭。以下保留完整历史路径；如与旧阶段描述冲突，以本段和顶部“当前节点”为准。
+> 2026-08-25 当前状态：D4/D5历史结论、已消费claims及重跑禁令均不变；D6A/B无模型门已闭环，D6C失败且禁止重跑。D6D核心趋近联合设计和D6D-I wrapper/projection tooling均已跨主机闭环。D6D-II现完成真实联合实验之前的全部无模型准备：训练清单冻结4×4 identity/goal网格的16次只读layer-15 residual capture，pilot清单冻结12个non-Core fixture各1次OFF预条件与11条件调度共144次，同一full-output调用内检查通用能力sentinel，未来单一联合运行总计160次forward。服务器12/12专项测试、24/24入口检查、35/35 manifest检查全部通过；`rwkv==0.8.32`的installed source digest=`75482aee…05e0`仅被读取、AST变换和compile-only，未exec、未导入RWKV/Torch。总报告digest=`93b0b09d…496f`，机器授权、execution claim、真实projection、权重、模型及pilot均未触发。回传未含HEAD/status，结论限于source inventory、静态兼容与无模型入口。下一步只等待冻结逐字单次执行授权；D6E、正式集、Self效果结论、Updater、raw-original路线、历史重跑和自动重跑仍关闭。以下保留完整历史路径；如与旧阶段描述冲突，以本段和顶部“当前节点”为准。
 
 ```text
 理论设计
@@ -239,7 +239,7 @@ EXP-001B补充控制
 
 ## 4. 当前下一步
 
-> 2026-08-25 当前下一步：D6C claim已消费，禁止任何形式的修复后重跑或自动重跑。等待项目负责人决定是否进入一个新的D6D设计轮：目标必须直接趋近核心问题，在同一非Core实验中同时包含synthetic机制正控制和真实冻结Self projection的identity/goal因果对照，并把persistent绑定所有权移出真实RWKV实例字典；不得先拆出新的纯机制执行轮。当前只允许设计与无模型审查，除非负责人另行精确授权；D6D模型执行、D6E、正式集、真实Self效果结论和Updater均未授权。以下保留此前 EXP-001B 轨迹作为历史记录。
+> 2026-08-25 当前下一步：D6D-II远程无模型门已经闭环，不能再增加外围机制轮或把本次静态验证解释为模型执行许可。只等待项目负责人另行给出配置中冻结的逐字授权，才可在干净main和唯一输出目录中创建机器授权与single-use claim，并在同一进程、同一wrapper内执行16次训练capture、冻结真实projection后再执行144次blinded non-Core pilot，共160次forward；成功或失败均停止。本轮未授权真实执行，D5C/P1/P2/D6C/D6D重跑、自动重跑、D6E、正式测试集、Self效果结论、Self Updater、raw-original路线和拆分机制运行继续关闭。以下保留此前 EXP-001B 轨迹作为历史记录。
 
 截至2026-08-04，项目负责人已经确认EXP-001B设计草案中的B1–B7。
 新增范围仍锁在11,008条控制记录，并明确不重跑EXP-001、不重估E1–E3、
@@ -771,3 +771,4 @@ trial-condition单元；只允许全量完成且完整性验证后观察结果�
 | 2026-08-25 | Coupling-D6D-I首次服务器无模型运行在行为与安全层通过：10/10测试、20/20联合验收和14/14报告检查全真，源码inventory、artifact/parameter digest、计数及最终输出digest均一致；但总报告digest为`e263b9e5…351a`而非本地`b9267f24…4290`。逐字段定位唯一差异为norm-matched random中间projection digest，原因是跨平台数学库末位浮点舍入。已将路线证据摘要规范为有限浮点固定12位科学计数法后再哈希，并加入相邻浮点稳定、材料变化可辨的回归测试；projection/forward数值和研究边界不变。修正版11项专项、20项验收、14项报告及全项目518项本地通过，新digest=`59f93fc9…e4625`。D6D-I暂不宣告摘要闭环，D6D-II继续关闭，等待修正版远程复验 | 项目负责人贴回终端输出；`docs/self_model_v0_1_coupling_d6d_i_remote_observation.md`；`src/psa/self_model/d6d_projection_artifact.py` |
 | 2026-08-25 | Coupling-D6D-I修正版服务器无模型复验通过并闭环：11/11专项测试`OK`，20/20联合验收、14/14报告检查、全部配置检查及digest=`59f93fc9…e4625`与本地一致；规范化后的norm-random projection digest也已跨平台稳定。基础fixture实例未修改，installed source、RWKV/Torch、权重、模型、真实projection、Self效果和后续权限均保持false。回传未含HEAD/status，故结论限定为锁定源码inventory与无模型行为；D6D-II仍需独立确认 | 项目负责人贴回终端输出；`docs/self_model_v0_1_coupling_d6d_i_remote_observation.md` |
 | 2026-08-25 | Coupling-D6D-II installed source/manifest/单次真实入口本地无模型实现完成：冻结4×4字段训练网格的16次只读layer-15 residual capture及独立12-fixture blinded non-Core pilot，后者同一full-output调用内含通用能力sentinel、每fixture 1次OFF预条件+11路Latin调度，共144次；未来单一联合运行总计160次。真实runner顺序固定为授权/clean-main/source静态compile-only→claim→资产/模型→一个wrapper→训练并先持久化projection digest→再加载pilot payload→联合pilot；失败消费claim并停止。新Schema、唯一授权/输出路径、raw-original/历史重跑/D6E/正式集/效果/Updater/自动重跑关闭。12项专项、35项manifest内部检查、24项入口检查及全项目530项通过，本地pending-probe报告digest=`2134640a…8544`；本地未装服务器RWKV，故installed source明确待远程`--probe-installed-source`，权重、模型和真实projection副作用均为零 | `configs/development/self_model_v0_1_coupling_d6d_ii_real_entry.json`；`configs/development/self_model_v0_1_d6d_projection_training_manifest.json`；`configs/development/self_model_v0_1_d6d_blinded_pilot_manifest.json`；`src/psa/self_model/d6d_ii_real_entry.py`；`docs/self_model_v0_1_coupling_d6d_ii_real_entry.md` |
+| 2026-08-25 | Coupling-D6D-II服务器无模型复验通过并闭环：12/12专项测试、24/24入口检查和35/35 manifest检查全真，总报告digest=`93b0b09d…496f`。服务器`rwkv==0.8.32`的`model.py` digest=`75482aee…05e0`只做读取、双路径AST变换和compile-only，9/9 source检查通过且`exec_called=false`；probe/manifest报告digest分别为`300f3f19…a0d`/`bb1855dc…6288a`。16次训练capture、144次pilot和总160-forward承诺均冻结。机器授权、claim、真实projection artifact明确缺席，权重、模型与所有研究升级门保持关闭。回传未含HEAD/status，结论限于锁定source inventory、静态兼容和无模型入口；下一步只等待逐字单次真实执行授权 | 项目负责人回传的`results/development/self_model_v0_1_coupling_d6d_ii_real_entry/report.json`；`docs/self_model_v0_1_coupling_d6d_ii_remote_observation.md` |
