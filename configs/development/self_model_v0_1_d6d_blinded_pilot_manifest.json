@@ -1,0 +1,84 @@
+{
+  "manifest_version": "0.1-d6d-blinded-noncore-pilot",
+  "manifest_id": "Self-Model-v0.1-D6D-blinded-pilot-v01",
+  "status": "frozen_unrun_load_only_after_projection_artifact_freeze",
+  "development_only": true,
+  "non_core": true,
+  "formal_test_set_accessed": false,
+  "projection_training_eligible": false,
+  "load_order": "after_projection_parameter_and_artifact_digests_persisted",
+  "prompt_contains_current_self_state": false,
+  "recurrent_state_reset_per_call": true,
+  "general_capability_sentinel": {
+    "prefix_text": "[NON-CORE D6D GENERAL SENTINEL] The stable neutral code is ",
+    "expected_text": "A",
+    "expected_token_id": 66,
+    "suffix_text": ". ",
+    "evaluation": "teacher_forced_position_from_same_full_output_forward",
+    "same_sentinel_in_all_three_families": true,
+    "extra_model_forward_calls": 0
+  },
+  "answer_boundary": {
+    "forced_prefix_text": ">\n",
+    "forced_prefix_token_ids": [63, 11],
+    "choice_token_ids": {"A": 66, "B": 67, "C": 68, "D": 69},
+    "tokenizer_sha256": "e6dee3d4e31b4d5c40ac99508ac6c701ceef4bed681bf2167ce9a908552bca89",
+    "single_token_roundtrip_required": true
+  },
+  "conditions": [
+    "wrapper_off",
+    "wrapper_zero",
+    "synthetic_positive",
+    "self_matched",
+    "self_identity_swap",
+    "self_goal_swap",
+    "self_identity_goal_swap",
+    "self_identity_mask",
+    "self_goal_mask",
+    "self_identity_goal_mask",
+    "self_identity_goal_norm_matched_random"
+  ],
+  "schedule": {
+    "fixture_count": 12,
+    "unscored_off_precondition_per_fixture": 1,
+    "scored_conditions_per_fixture": 11,
+    "condition_order": "balanced_cyclic_latin_11_routes_first_row_repeated_for_fixture_12",
+    "calls_per_fixture": 12,
+    "model_forward_calls_total": 144,
+    "scored_forward_calls_total": 132,
+    "synthetic_positive_calls_total": 12,
+    "real_self_projection_calls_total": 96,
+    "off_or_zero_calls_total_including_preconditions": 36,
+    "target_layer_applications_total": 108
+  },
+  "query_templates": {
+    "identity_bound_choice": "[NON-CORE D6D BLINDED PILOT] Select the option matching the current identity carried only by the external Self State. The current Self State is not written in this prompt. OPTIONS: A={A}; B={B}; C={C}; D={D}. Reply after the fixed assistant boundary with one option code.",
+    "goal_bound_choice": "[NON-CORE D6D BLINDED PILOT] Select the option matching the current goal carried only by the external Self State. The current Self State is not written in this prompt. OPTIONS: A={A}; B={B}; C={C}; D={D}. Reply after the fixed assistant boundary with one option code.",
+    "identity_goal_conflict": "[NON-CORE D6D BLINDED PILOT] Select the option matching both current identity and current goal carried only by the external Self State. The current Self State is not written in this prompt. OPTIONS: A={A}; B={B}; C={C}; D={D}. Reply after the fixed assistant boundary with one option code."
+  },
+  "fixtures": [
+    {"fixture_id":"d6d-identity-01","task_family":"identity_bound_choice","sensitive_field":"identity_anchors","matched_identity":"saffron","matched_goal":"spiral","paired_identity":"indigo","paired_goal":"spiral","options":{"A":"saffron","B":"indigo","C":"amber","D":"cobalt"},"target_code":"A"},
+    {"fixture_id":"d6d-identity-02","task_family":"identity_bound_choice","sensitive_field":"identity_anchors","matched_identity":"indigo","matched_goal":"harbor","paired_identity":"amber","paired_goal":"harbor","options":{"A":"saffron","B":"indigo","C":"amber","D":"cobalt"},"target_code":"B"},
+    {"fixture_id":"d6d-identity-03","task_family":"identity_bound_choice","sensitive_field":"identity_anchors","matched_identity":"amber","matched_goal":"orbit","paired_identity":"cobalt","paired_goal":"orbit","options":{"A":"saffron","B":"indigo","C":"amber","D":"cobalt"},"target_code":"C"},
+    {"fixture_id":"d6d-identity-04","task_family":"identity_bound_choice","sensitive_field":"identity_anchors","matched_identity":"cobalt","matched_goal":"beacon","paired_identity":"saffron","paired_goal":"beacon","options":{"A":"saffron","B":"indigo","C":"amber","D":"cobalt"},"target_code":"D"},
+    {"fixture_id":"d6d-goal-01","task_family":"goal_bound_choice","sensitive_field":"active_goals","matched_identity":"saffron","matched_goal":"spiral","paired_identity":"saffron","paired_goal":"harbor","options":{"A":"spiral","B":"harbor","C":"orbit","D":"beacon"},"target_code":"A"},
+    {"fixture_id":"d6d-goal-02","task_family":"goal_bound_choice","sensitive_field":"active_goals","matched_identity":"indigo","matched_goal":"harbor","paired_identity":"indigo","paired_goal":"orbit","options":{"A":"spiral","B":"harbor","C":"orbit","D":"beacon"},"target_code":"B"},
+    {"fixture_id":"d6d-goal-03","task_family":"goal_bound_choice","sensitive_field":"active_goals","matched_identity":"amber","matched_goal":"orbit","paired_identity":"amber","paired_goal":"beacon","options":{"A":"spiral","B":"harbor","C":"orbit","D":"beacon"},"target_code":"C"},
+    {"fixture_id":"d6d-goal-04","task_family":"goal_bound_choice","sensitive_field":"active_goals","matched_identity":"cobalt","matched_goal":"beacon","paired_identity":"cobalt","paired_goal":"spiral","options":{"A":"spiral","B":"harbor","C":"orbit","D":"beacon"},"target_code":"D"},
+    {"fixture_id":"d6d-joint-01","task_family":"identity_goal_conflict","sensitive_field":"both","matched_identity":"saffron","matched_goal":"spiral","paired_identity":"indigo","paired_goal":"harbor","options":{"A":"saffron+spiral","B":"indigo+harbor","C":"amber+orbit","D":"cobalt+beacon"},"target_code":"A"},
+    {"fixture_id":"d6d-joint-02","task_family":"identity_goal_conflict","sensitive_field":"both","matched_identity":"indigo","matched_goal":"harbor","paired_identity":"amber","paired_goal":"orbit","options":{"A":"saffron+spiral","B":"indigo+harbor","C":"amber+orbit","D":"cobalt+beacon"},"target_code":"B"},
+    {"fixture_id":"d6d-joint-03","task_family":"identity_goal_conflict","sensitive_field":"both","matched_identity":"amber","matched_goal":"orbit","paired_identity":"cobalt","paired_goal":"beacon","options":{"A":"saffron+spiral","B":"indigo+harbor","C":"amber+orbit","D":"cobalt+beacon"},"target_code":"C"},
+    {"fixture_id":"d6d-joint-04","task_family":"identity_goal_conflict","sensitive_field":"both","matched_identity":"cobalt","matched_goal":"beacon","paired_identity":"saffron","paired_goal":"spiral","options":{"A":"saffron+spiral","B":"indigo+harbor","C":"amber+orbit","D":"cobalt+beacon"},"target_code":"D"}
+  ],
+  "decision_contract": {
+    "exact_control_matches_required": 12,
+    "synthetic_output_differences_required": 12,
+    "minimum_directional_fixture_passes_per_four": 3,
+    "maximum_general_capability_sentinel_code_changes": 1,
+    "maximum_nonfinite_outputs": 0,
+    "classification_only": "noncore_engineering_pilot_not_self_effect_conclusion",
+    "posthoc_route_removal_allowed": false,
+    "automatic_rerun_allowed": false
+  },
+  "failure_policy": "persist_failure_consume_claim_stop_without_rerun_or_route_splitting"
+}

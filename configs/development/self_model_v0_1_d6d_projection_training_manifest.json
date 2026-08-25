@@ -1,0 +1,53 @@
+{
+  "manifest_version": "0.1-d6d-projection-training",
+  "manifest_id": "Self-Model-v0.1-D6D-projection-training-v01",
+  "status": "frozen_unrun",
+  "development_only": true,
+  "non_core": true,
+  "formal_test_set_accessed": false,
+  "pilot_payload_accessed_during_training": false,
+  "base_model_weights_trainable": false,
+  "self_updater_allowed": false,
+  "source_contract": {
+    "self_state_version": "0.1",
+    "fields": ["identity_anchors", "active_goals"],
+    "identity_keys": ["saffron", "indigo", "amber", "cobalt"],
+    "goal_keys": ["spiral", "harbor", "orbit", "beacon"],
+    "natural_language_self_state_serialization": false
+  },
+  "capture_contract": {
+    "wrapper_owned": true,
+    "condition": "training_capture_observer_zero_delta",
+    "phase": "post_ffn_residual",
+    "target_layer_index_zero_based": 15,
+    "sequence_position": "last",
+    "capture_dtype": "float32_cpu_for_closed_form_training",
+    "residual_returned_unchanged": true,
+    "model_instance_dictionary_mutation_allowed": false,
+    "record_order": "identity_major_then_goal_major",
+    "record_count": 16,
+    "model_forward_calls": 16
+  },
+  "prompt_blueprint": {
+    "history_template": "[NON-CORE D6D PROJECTION TRAINING; EXCLUDED FROM PILOT] Retain identity marker {identity} and goal marker {goal} across the neutral ledger. Neutral ledger: quartz, willow, seven, north, lantern, quiet, delta, cedar.",
+    "capture_suffix": "\n\nAssistant: State retained.\n\nUser: Continue with one neutral bookkeeping step without changing either retained marker.\n\nAssistant:",
+    "self_state_object_is_not_rendered": true,
+    "pilot_template_reuse_allowed": false
+  },
+  "training_algorithm": {
+    "trainer_kind": "two_way_centered_additive_branch_means_closed_form_v0.1",
+    "grand_mean_handling": "split_equally_between_identity_and_goal_branches_no_explicit_bias",
+    "identity_branch": "mean_by_identity_minus_half_grand_mean",
+    "goal_branch": "mean_by_goal_minus_half_grand_mean",
+    "branch_target_rms_ratio_each": 0.005,
+    "combined_target_rms_ratio_nominal": 0.01,
+    "optimizer_kind": "closed_form_no_gradient_optimizer",
+    "optimizer_seed": 260825,
+    "output_dimension": 2560,
+    "bias_present": false,
+    "double_mask_projection_exact_zero": true,
+    "parameter_digest_required": true,
+    "artifact_digest_required_before_pilot_load": true
+  },
+  "failure_policy": "persist_failure_consume_claim_stop_without_pilot_or_rerun"
+}
