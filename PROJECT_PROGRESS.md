@@ -1,8 +1,8 @@
 # Persistent Self Architecture 项目进度表
 
 > 最后更新：2026-08-25
-> 当前节点：Phase 3 Coupling-D6C授权生命周期修复已跨主机闭环；等待最终代码上的重新逐字执行授权
-> 研究状态：远程10/10、24/24及新digest一致；机器授权、claim、installed source探测和模型执行仍未发生
+> 当前节点：Phase 3 Coupling-D6C唯一真实2.9B尝试在首次forward前有效失败，claim已消费且禁止重跑；等待面向核心问题的D6D路线决策
+> 研究状态：模型已加载但persistent绑定存储假设不成立，26次调用实际0次；未构造真实Self projection，核心Self效果仍未测试
 
 ## 1. 这张表怎么使用
 
@@ -113,14 +113,14 @@
 | 38p. EXP-001C v02 Stage B只读live preflight与机器授权锁 | ✅ 云端通过 | 在模型加载前绑定干净main提交、设计/protocol digest、Stage A原始结果、模型配置与资产哈希、主机环境、224条计划和空输出目录；授权只接受固定逐字文本并绑定preflight digest | 防止把“继续”解释成模型执行授权，也防止代码、证据、模型或输出目录变化后复用旧授权 | Stage B 29项远程测试通过，云端只读preflight全部检查为true且失败项为空；`model_loaded=false`、`model_executed=false`、执行/观察均为false。最终digest以本轮最终文档提交后的服务器v02证据为准 | Codex |
 | 38q. EXP-001C v02 Stage B项目负责人单次授权 | ✅ 已逐字确认并消费 | 负责人使用冻结原文授权224条recurrent-state非Core pilot及本轮结果观察，同时明确排除Stage A重跑、正式测试集、正式运行、确认性决定和自动重跑 | 模型执行和结果观察是新的不可逆边界，不能由此前“继续”推断 | 授权绑定preflight_v03与Stage A/result digest，机器记录和single-use claim均已消费；224条运行及观察完成后禁止重跑 | 项目负责人；Codex执行 |
 | 38r. EXP-001C v02 Stage B冻结只读观察 | ✅ 云端完成 | 对五个状态语义条件按8个语义案例×4代码轮换平均log score，记录联合/字段准确率与margin；reset/random只记录参考匹配率，不定义正确答案 | 原始code top-1容易受A–D先验影响；同时不能把诊断控制事后改成主要端点或临时添加通过阈值 | 五个主要条件均联合7/8、domain 8/8、operation 7/8；continuous/restored预测8/8一致，三种swap均7/8跟随注入state。reset/random参考匹配均2/8；无确认性决定或重跑 | Codex；云端只读分析 |
-| 39. Phase 3：显式 Self Model | ✅ D6C最终无模型入口跨主机闭环；等待重新逐字授权 | 实现静态Self Store、Self Encoder和可关闭/缩放gated injection，并建立字段mask/swap/random/coupling-off消融 | 先证明接口可审计、可干预、失败关闭，再决定真实RWKV注入位置和效果实验 | 修复版服务器10/10测试、24/24入口检查及digest=`68ca5636…b360`与本地一致，create→validate授权生命周期回归通过；11项源码inventory、26-call、三persistent路线、256/8计数及forward零属性切换保持。机器授权/claim仍缺席，installed source与模型未触发。旧授权不消费；最终代码重新逐字授权后直接进入唯一真实D6C，不再增加外围阶段 | 共同完成 |
+| 39. Phase 3：显式 Self Model | 🛑 D6C真实尝试有效失败并停止；等待D6D核心路线决策 | 实现静态Self Store、Self Encoder和可关闭/缩放gated injection，并建立字段mask/swap/random/coupling-off消融 | 先证明接口可审计、可干预、失败关闭，再决定真实RWKV注入位置和效果实验 | 唯一授权attempt在commit `5416fc7`加载2.9B后、首个forward前失败：三次`setattr`后要求名字直接存在于真实模型`__dict__`，触发`persistent bindings are incomplete`。authorization→claim→failure四层digest全匹配；claim=`82b94c33…e6a3`已消费，实际forward=0，D6C不得重跑。机制和Self效果均未验证。为避免继续外围绕行，下一决策应是把synthetic正控制与真实冻结Self projection合并进新的D6D非Core实验，并把persistent所有权移出真实模型实例字典；D6D尚未授权 | 共同完成 |
 | 40. Self 更新与演化 | ⏳ 未开始 | 让 Self State 根据经历受控更新、回滚和分化 | 这是“持续自我”真正更深入的部分 | 尚未开始 | 后续阶段 |
 | 41. 内生调节与自主审议 | ⏳ 未开始 | 让 Self/冲突决定是否检索、回放、模拟或停止，并在零新外部观察条件下受控更新 | 检验系统是否不仅“有状态”，还会因内部状态选择继续计算；同时排除定时器和随机回放解释 | 设计说明已完成；必须等待显式 Self 因果价值和受约束更新两道前置门，不创建空壳代码 | 后续阶段 |
 | 42. 最终研究结论 | ⏳ 未开始 | 汇总统计结果、失败案例和替代解释 | 最终回答项目假设是否得到支持，而不是只展示几个有趣案例 | 尚未开始 | 共同完成 |
 
 ## 3. 当前所在位置
 
-> 2026-08-25 当前状态：D4失败、D4A瞬态分类、D4B真实稳态OFF通过、D5C/P1有效失败与已消费claim、D5终止及P2拒绝均不变；D6A/B已跨主机闭环。D6C授权生命周期修复现在也已跨主机闭环：服务器10/10专项、24/24入口检查和新报告digest=`68ca5636…b360`与本地一致，11项锁定源码digest（含entry=`a8ed777b…359`、test=`198b1904…acb`）全部匹配。create→validate回归覆盖已创建机器授权时重建同一预授权摘要；首次创建仍实时要求authorization/claim缺席。26-call调度、三persistent路线、无raw-original、256/8 active计数、forward零属性切换以及授权→installed-source→claim→模型→core时序均保持。远程报告和shell明确确认机器授权/claim仍缺席，installed source未探测、RWKV/Torch未导入、权重和模型未访问/执行。贴回未含HEAD/status，结论限定为跨主机源码inventory与无模型行为。先前授权因其后源码改变仍只记录不消费；当前不再增加外围工程门，下一步只能在最终代码上重新逐字授权，然后执行唯一一次真实2.9B D6C并观察结果。D6D/E、正式集、真实层选择、真实Self projection、Self效果、Updater和自动重跑仍关闭。以下保留完整历史路径；如与旧阶段描述冲突，以本段和顶部“当前节点”为准。
+> 2026-08-25 当前状态：D4失败、D4A瞬态分类、D4B真实稳态OFF通过、D5C/P1有效失败与已消费claim、D5终止及P2拒绝均不变；D6A/B无模型门已闭环。D6C修复版无模型门以10/10、24/24和digest=`68ca5636…b360`跨主机通过后，负责人在最终代码上逐字授权唯一一次真实26-call尝试。远程HEAD=`5416fc782df10b88741be2b9066f0c8f4967eb05`，授权/claim启动前均缺席。runner创建有效机器授权并消费claim，加载冻结2.9B模型后，在`RWKV7D6CPersistentRuntime.__init__`的首次forward之前失败：callback和双方法经`setattr`安装后，`_managed_snapshot`要求三个名字必须直接存在于`base_model.__dict__`，真实RWKV对象不满足该存储假设，报`D6C persistent bindings are incomplete`。authorization内部digest=`57eb4508…307c`、authorization文件→claim=`7b1e128b…438d`、claim→failure=`82b94c33…e6a3`和failure内部digest=`25fdd26…f273`均独立复算匹配。模型已加载，但core未进入、runtime forward计数未增加，故26次计划调用实际为0；OFF/zero/active synthetic均未运行，真实Self projection也未构造。claim已消费且D6C禁止重跑。这是persistent安装对真实对象属性存储协议的错误假设，不证明AST/dispatcher/probe失败，也不提供Self效果证据。为响应“不要跑偏”，下一步不做D6C补丁重跑；若继续，应只设计一个新的D6D非Core核心趋近实验，把synthetic机制正控制与真实冻结Self projection放在同一次实验，并把persistent所有权移出真实模型实例字典。D6D设计/实现仍需独立授权，D6E、正式集、效果结论、Updater和自动重跑关闭。以下保留完整历史路径；如与旧阶段描述冲突，以本段和顶部“当前节点”为准。
 
 ```text
 理论设计
@@ -239,7 +239,7 @@ EXP-001B补充控制
 
 ## 4. 当前下一步
 
-> 2026-08-25 当前下一步：等待项目负责人在最终修复代码上重新发送配置中的完整逐字授权，范围仍是唯一一次D6C真实2.9B persistent-instrumented非Core机制验证及本次结果观察。收到后直接提供单次runner命令，不再插入新的外围实现或设计轮；普通“继续/确认”不能启动。机器授权、claim、执行锁、installed source探测和模型加载在重新授权前继续禁止。以下保留此前 EXP-001B 轨迹作为历史记录。
+> 2026-08-25 当前下一步：D6C claim已消费，禁止任何形式的修复后重跑或自动重跑。等待项目负责人决定是否进入一个新的D6D设计轮：目标必须直接趋近核心问题，在同一非Core实验中同时包含synthetic机制正控制和真实冻结Self projection的identity/goal因果对照，并把persistent绑定所有权移出真实RWKV实例字典；不得先拆出新的纯机制执行轮。当前只允许设计与无模型审查，除非负责人另行精确授权；D6D模型执行、D6E、正式集、真实Self效果结论和Updater均未授权。以下保留此前 EXP-001B 轨迹作为历史记录。
 
 截至2026-08-04，项目负责人已经确认EXP-001B设计草案中的B1–B7。
 新增范围仍锁在11,008条控制记录，并明确不重跑EXP-001、不重估E1–E3、
@@ -764,3 +764,4 @@ trial-condition单元；只允许全量完成且完整性验证后观察结果�
 | 2026-08-25 | 项目负责人逐字授权D6C唯一一次真实2.9B persistent机制验证及观察，但预执行只读审计在生成命令前发现授权生命周期必失败：机器授权写入后，校验路径会因该文件不再“缺席”而拒绝自身。未创建机器授权/claim，未探测installed source，未访问权重或模型。授权按收到时提交记录，但因随后安全入口代码变化而暂停且不得消费 | 项目负责人授权原文；`docs/self_model_v0_1_coupling_d6c_real_execution_authorization.md` |
 | 2026-08-25 | D6C授权生命周期无模型修复完成：首次授权创建继续实时要求authorization/claim缺席；已创建授权的验证改为重建同一冻结预授权摘要，不跳过源码、配置、Schema、Git或digest绑定。新增create→validate回归测试，D6C 10项、24项静态入口及全项目497项通过，新digest=`68ca5636…b360`；协议与所有研究边界不变，模型副作用仍为零。下一步只允许远程无模型复验，之后需在最终提交上重新逐字授权 | `src/psa/self_model/d6c_real_entry.py`；`tests/test_self_model_d6c_real_entry.py`；`docs/self_model_v0_1_coupling_d6c_real_execution_authorization.md` |
 | 2026-08-25 | D6C授权生命周期修复远程无模型复验通过并闭环：10/10测试、24/24检查、新digest=`68ca5636…b360`及11项源码inventory跨主机一致，机器授权与claim在验证后仍明确缺席；installed source、RWKV/Torch、权重和模型均未触发。贴回未含HEAD/status，结论限定为源码inventory与无模型行为。当前停止外围扩展，只等待最终代码上的重新逐字授权，然后进入唯一真实26-call D6C | 项目负责人贴回终端输出；`docs/self_model_v0_1_coupling_d6c_authorization_lifecycle_fix_remote_observation.md` |
+| 2026-08-25 | D6C唯一真实2.9B persistent机制attempt有效失败并停止：commit `5416fc7`上authorization与claim有效，2.9B已加载，但三绑定经真实对象协议安装后不全部出现在实例`__dict__`，在首次forward前触发`persistent bindings are incomplete`。四层digest链独立复算全匹配；claim=`82b94c33…e6a3`已消费，failure=`25fdd26…f273`，实际forward=0。未运行OFF/zero/active，未构造Self projection，不能评价机制或Self效果。禁止D6C重跑；下一决策只考虑合并机制正控制与真实Self投影的D6D核心趋近设计，不再新增纯机制执行轮 | 项目负责人回传authorization/claim/failure；`docs/self_model_v0_1_coupling_d6c_real_persistent_mechanism_observation.md` |
