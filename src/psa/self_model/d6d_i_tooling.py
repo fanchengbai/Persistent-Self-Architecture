@@ -205,6 +205,8 @@ def validate_config(config: Mapping[str, Any]) -> dict[str, bool]:
         and projection.get("training_and_pilot_digests_must_differ") is True
         and projection.get("parameter_digest_required") is True
         and projection.get("artifact_digest_required") is True
+        and projection.get("route_vector_digest_canonicalization")
+        == "finite_float_scientific_12_decimal_places"
         and projection.get("tamper_detection_required") is True,
         "projection_safety_exact": projection.get("prompt_serialization_allowed")
         is False

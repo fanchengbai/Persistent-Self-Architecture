@@ -35,6 +35,7 @@ D6D-I 把上一轮设计落实为两个项目内接口：
 - identity/goal vocabulary、参数、optimizer/seed、parameter digest 和 artifact digest 全部进入资产；
 - 双 mask 严格产生零向量；
 - random 在两个字段分支上分别固定 seed 并保持各自 L2 norm；
+- 路线证据摘要先把有限浮点数规范为小数点后 12 位科学计数法字符串，再做 canonical JSON SHA-256，避免 Windows/Linux 数学库末位舍入差异改变报告 digest；这只规范证据序列化，不改变 projection 或 forward 数值；
 - artifact 不包含基础模型参数，不做 prompt serialization，不提供在线 update；
 - 任一参数或元数据被修改而 digest 未同步时，审计失败关闭。
 

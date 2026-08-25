@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import copy
 import json
+import math
 from pathlib import Path
 import sys
 import tempfile
@@ -22,6 +23,7 @@ from psa.self_model.d6d_projection_artifact import (
     ProjectionTrainingRecord,
     audit_frozen_projection_artifact,
     build_frozen_projection_artifact,
+    projection_vector_digest,
 )
 from psa.self_model.d6d_wrapper_runtime import (
     D6DIRequest,
@@ -82,6 +84,19 @@ class D6DIToolingTests(unittest.TestCase):
                 changed["target_layer_index_zero_based"] = 16
             with self.subTest(mutation=mutation), self.assertRaises(RuntimeError):
                 audit_frozen_projection_artifact(changed)
+
+    def test_projection_vector_digest_canonicalizes_platform_last_bits(self):
+        vector = (0.000123456789012345, -0.000987654321098765)
+        adjacent = tuple(math.nextafter(value, math.inf) for value in vector)
+        materially_changed = (vector[0] + 1e-8, vector[1])
+        self.assertEqual(
+            projection_vector_digest(vector),
+            projection_vector_digest(adjacent),
+        )
+        self.assertNotEqual(
+            projection_vector_digest(vector),
+            projection_vector_digest(materially_changed),
+        )
 
     def test_training_and_pilot_commitments_must_differ(self):
         digest = sha256_json({"same": True})

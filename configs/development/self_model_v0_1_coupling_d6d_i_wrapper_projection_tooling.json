@@ -45,6 +45,7 @@
     "training_and_pilot_digests_must_differ": true,
     "parameter_digest_required": true,
     "artifact_digest_required": true,
+    "route_vector_digest_canonicalization": "finite_float_scientific_12_decimal_places",
     "tamper_detection_required": true,
     "prompt_serialization_allowed": false,
     "base_model_parameters_in_artifact_allowed": false,

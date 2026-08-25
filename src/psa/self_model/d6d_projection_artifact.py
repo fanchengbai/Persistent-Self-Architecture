@@ -14,6 +14,7 @@ from psa.self_model.state import validate_self_state
 ARTIFACT_VERSION = "0.1-d6d-field-separated-frozen-projection"
 TRAINER_KIND = "categorical_branch_mean_pure_python_v0.1"
 SOURCE_FIELDS = ("identity_anchors", "active_goals")
+PROJECTION_VECTOR_DIGEST_FORMAT = ".12e"
 
 
 @dataclass(frozen=True)
@@ -196,6 +197,16 @@ def _norm(value: Sequence[float]) -> float:
     return math.sqrt(sum(item * item for item in value))
 
 
+def projection_vector_digest(value: Sequence[float]) -> str:
+    """Return a cross-platform evidence digest for a finite projection vector."""
+    converted = tuple(float(item) for item in value)
+    if not all(math.isfinite(item) for item in converted):
+        raise ValueError("D6D-I projection digest vector must be finite")
+    return sha256_json(
+        [format(item, PROJECTION_VECTOR_DIGEST_FORMAT) for item in converted]
+    )
+
+
 def _randomize_norm_matched(
     source: tuple[float, ...], *, seed: int, branch: str
 ) -> tuple[float, ...]:
@@ -263,7 +274,10 @@ class FrozenSelfProjection:
             "aggregate_vector": aggregate,
             "identity_l2_norm": _norm(identity),
             "goal_l2_norm": _norm(goal),
-            "aggregate_digest_sha256": sha256_json(list(aggregate)),
+            "aggregate_digest_sha256": projection_vector_digest(aggregate),
+            "aggregate_digest_canonicalization": (
+                "finite_float_scientific_12_decimal_places"
+            ),
             "artifact_digest_sha256": self.artifact["artifact_digest_sha256"],
             "fixture_only": self.artifact["fixture_only"],
             "research_evidence_eligible": self.artifact["research_evidence_eligible"],
