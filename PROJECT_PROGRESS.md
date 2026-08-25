@@ -1,8 +1,8 @@
 # Persistent Self Architecture 项目进度表
 
 > 最后更新：2026-08-25
-> 当前节点：Phase 3 Coupling-D6C授权生命周期修复本地完成；等待远程无模型复验与最终代码上的重新逐字授权
-> 研究状态：预执行审计在任何远程副作用前阻断必失败入口；修复后D6C 10/10、静态24/24、全项目497项通过，模型仍未执行
+> 当前节点：Phase 3 Coupling-D6C授权生命周期修复已跨主机闭环；等待最终代码上的重新逐字执行授权
+> 研究状态：远程10/10、24/24及新digest一致；机器授权、claim、installed source探测和模型执行仍未发生
 
 ## 1. 这张表怎么使用
 
@@ -113,14 +113,14 @@
 | 38p. EXP-001C v02 Stage B只读live preflight与机器授权锁 | ✅ 云端通过 | 在模型加载前绑定干净main提交、设计/protocol digest、Stage A原始结果、模型配置与资产哈希、主机环境、224条计划和空输出目录；授权只接受固定逐字文本并绑定preflight digest | 防止把“继续”解释成模型执行授权，也防止代码、证据、模型或输出目录变化后复用旧授权 | Stage B 29项远程测试通过，云端只读preflight全部检查为true且失败项为空；`model_loaded=false`、`model_executed=false`、执行/观察均为false。最终digest以本轮最终文档提交后的服务器v02证据为准 | Codex |
 | 38q. EXP-001C v02 Stage B项目负责人单次授权 | ✅ 已逐字确认并消费 | 负责人使用冻结原文授权224条recurrent-state非Core pilot及本轮结果观察，同时明确排除Stage A重跑、正式测试集、正式运行、确认性决定和自动重跑 | 模型执行和结果观察是新的不可逆边界，不能由此前“继续”推断 | 授权绑定preflight_v03与Stage A/result digest，机器记录和single-use claim均已消费；224条运行及观察完成后禁止重跑 | 项目负责人；Codex执行 |
 | 38r. EXP-001C v02 Stage B冻结只读观察 | ✅ 云端完成 | 对五个状态语义条件按8个语义案例×4代码轮换平均log score，记录联合/字段准确率与margin；reset/random只记录参考匹配率，不定义正确答案 | 原始code top-1容易受A–D先验影响；同时不能把诊断控制事后改成主要端点或临时添加通过阈值 | 五个主要条件均联合7/8、domain 8/8、operation 7/8；continuous/restored预测8/8一致，三种swap均7/8跟随注入state。reset/random参考匹配均2/8；无确认性决定或重跑 | Codex；云端只读分析 |
-| 39. Phase 3：显式 Self Model | ⚠️ D6C授权生命周期修复本地通过；等待远程复验 | 实现静态Self Store、Self Encoder和可关闭/缩放gated injection，并建立字段mask/swap/random/coupling-off消融 | 先证明接口可审计、可干预、失败关闭，再决定真实RWKV注入位置和效果实验 | 负责人曾逐字授权，但预执行审计发现机器授权创建后会被自身“不存在”检查拒绝，故在零副作用时暂停。修复保持首次创建严格，并允许已创建授权重建同一预授权摘要；新增create→validate回归测试。D6C 10项、静态24项、全项目497项通过，新digest=`68ca5636…b360`。旧授权不消费，最终代码需远程复验并重新逐字授权；模型及D6D–E仍关闭 | Codex |
+| 39. Phase 3：显式 Self Model | ✅ D6C最终无模型入口跨主机闭环；等待重新逐字授权 | 实现静态Self Store、Self Encoder和可关闭/缩放gated injection，并建立字段mask/swap/random/coupling-off消融 | 先证明接口可审计、可干预、失败关闭，再决定真实RWKV注入位置和效果实验 | 修复版服务器10/10测试、24/24入口检查及digest=`68ca5636…b360`与本地一致，create→validate授权生命周期回归通过；11项源码inventory、26-call、三persistent路线、256/8计数及forward零属性切换保持。机器授权/claim仍缺席，installed source与模型未触发。旧授权不消费；最终代码重新逐字授权后直接进入唯一真实D6C，不再增加外围阶段 | 共同完成 |
 | 40. Self 更新与演化 | ⏳ 未开始 | 让 Self State 根据经历受控更新、回滚和分化 | 这是“持续自我”真正更深入的部分 | 尚未开始 | 后续阶段 |
 | 41. 内生调节与自主审议 | ⏳ 未开始 | 让 Self/冲突决定是否检索、回放、模拟或停止，并在零新外部观察条件下受控更新 | 检验系统是否不仅“有状态”，还会因内部状态选择继续计算；同时排除定时器和随机回放解释 | 设计说明已完成；必须等待显式 Self 因果价值和受约束更新两道前置门，不创建空壳代码 | 后续阶段 |
 | 42. 最终研究结论 | ⏳ 未开始 | 汇总统计结果、失败案例和替代解释 | 最终回答项目假设是否得到支持，而不是只展示几个有趣案例 | 尚未开始 | 共同完成 |
 
 ## 3. 当前所在位置
 
-> 2026-08-25 当前状态：D4失败、D4A瞬态分类、D4B真实稳态OFF通过、D5C/P1有效失败与已消费claim、D5终止及P2拒绝均不变；D6A/B已跨主机闭环。D6C原设计与无模型入口曾以服务器9/9、24/24及digest=`95220de6…0a78`闭环。负责人随后逐字授权唯一一次真实26-call执行及观察，但在生成远程命令前的只读生命周期审计发现：runner先创建机器授权，`validate_d6c_authorization`又通过`build_d6c_authorization`重建静态摘要，而该路径要求机器授权仍不存在，因此必然在installed-source和claim前拒绝自身。由于提前发现，机器授权、claim、installed source、RWKV/Torch、权重、模型加载/执行均未发生。现已修复为两个明确模式：首次创建仍实时要求authorization/claim缺席；验证已创建授权时只重建相同的冻结预授权摘要，不把授权文件本身视为违规。新增create→validate回归测试，D6C 10/10、静态入口24/24及全项目497项通过，新报告digest=`68ca5636…b360`。协议、26-call调度、三persistent路线、256/8计数和所有研究边界未改，但entry/test源码digest已变，因此2026-08-25旧代码上的人类授权只记录不消费。下一步必须先远程无模型复验最终修复，再由负责人对最终代码重新逐字授权；此前不得设置执行锁或触发任何真实操作。以下保留完整历史路径；如与旧阶段描述冲突，以本段和顶部“当前节点”为准。
+> 2026-08-25 当前状态：D4失败、D4A瞬态分类、D4B真实稳态OFF通过、D5C/P1有效失败与已消费claim、D5终止及P2拒绝均不变；D6A/B已跨主机闭环。D6C授权生命周期修复现在也已跨主机闭环：服务器10/10专项、24/24入口检查和新报告digest=`68ca5636…b360`与本地一致，11项锁定源码digest（含entry=`a8ed777b…359`、test=`198b1904…acb`）全部匹配。create→validate回归覆盖已创建机器授权时重建同一预授权摘要；首次创建仍实时要求authorization/claim缺席。26-call调度、三persistent路线、无raw-original、256/8 active计数、forward零属性切换以及授权→installed-source→claim→模型→core时序均保持。远程报告和shell明确确认机器授权/claim仍缺席，installed source未探测、RWKV/Torch未导入、权重和模型未访问/执行。贴回未含HEAD/status，结论限定为跨主机源码inventory与无模型行为。先前授权因其后源码改变仍只记录不消费；当前不再增加外围工程门，下一步只能在最终代码上重新逐字授权，然后执行唯一一次真实2.9B D6C并观察结果。D6D/E、正式集、真实层选择、真实Self projection、Self效果、Updater和自动重跑仍关闭。以下保留完整历史路径；如与旧阶段描述冲突，以本段和顶部“当前节点”为准。
 
 ```text
 理论设计
@@ -239,7 +239,7 @@ EXP-001B补充控制
 
 ## 4. 当前下一步
 
-> 2026-08-25 当前下一步：先将D6C授权生命周期修复提交到main，由项目负责人在远程只运行10项专项和24项静态入口验证，确认新digest=`68ca5636…b360`、机器授权/claim缺席、installed source和模型未触发。远程无模型闭环后，负责人必须在最终提交上重新发送配置中的完整逐字执行授权；当前已记录的授权因其后entry/test源码改变而不得消费。普通“继续/确认”仍无效。以下保留此前 EXP-001B 轨迹作为历史记录。
+> 2026-08-25 当前下一步：等待项目负责人在最终修复代码上重新发送配置中的完整逐字授权，范围仍是唯一一次D6C真实2.9B persistent-instrumented非Core机制验证及本次结果观察。收到后直接提供单次runner命令，不再插入新的外围实现或设计轮；普通“继续/确认”不能启动。机器授权、claim、执行锁、installed source探测和模型加载在重新授权前继续禁止。以下保留此前 EXP-001B 轨迹作为历史记录。
 
 截至2026-08-04，项目负责人已经确认EXP-001B设计草案中的B1–B7。
 新增范围仍锁在11,008条控制记录，并明确不重跑EXP-001、不重估E1–E3、
@@ -763,3 +763,4 @@ trial-condition单元；只允许全量完成且完整性验证后观察结果�
 | 2026-08-24 | Coupling-D6C远程无模型复验通过并闭环：9/9专项测试、24/24入口检查、报告digest=`95220de6…0a78`及11项冻结源码digest与本地一致；26-call三路线计划、256/8计数、forward零属性修改和授权/claim/model时序均有效。机器授权和claim明确缺席，installed source、RWKV/Torch、权重和模型均未触发。贴回未含HEAD/status，结论限定为跨主机源码inventory与无模型入口行为；真实唯一执行仍需独立逐字授权 | 项目负责人贴回终端输出；`docs/self_model_v0_1_coupling_d6c_remote_observation.md` |
 | 2026-08-25 | 项目负责人逐字授权D6C唯一一次真实2.9B persistent机制验证及观察，但预执行只读审计在生成命令前发现授权生命周期必失败：机器授权写入后，校验路径会因该文件不再“缺席”而拒绝自身。未创建机器授权/claim，未探测installed source，未访问权重或模型。授权按收到时提交记录，但因随后安全入口代码变化而暂停且不得消费 | 项目负责人授权原文；`docs/self_model_v0_1_coupling_d6c_real_execution_authorization.md` |
 | 2026-08-25 | D6C授权生命周期无模型修复完成：首次授权创建继续实时要求authorization/claim缺席；已创建授权的验证改为重建同一冻结预授权摘要，不跳过源码、配置、Schema、Git或digest绑定。新增create→validate回归测试，D6C 10项、24项静态入口及全项目497项通过，新digest=`68ca5636…b360`；协议与所有研究边界不变，模型副作用仍为零。下一步只允许远程无模型复验，之后需在最终提交上重新逐字授权 | `src/psa/self_model/d6c_real_entry.py`；`tests/test_self_model_d6c_real_entry.py`；`docs/self_model_v0_1_coupling_d6c_real_execution_authorization.md` |
+| 2026-08-25 | D6C授权生命周期修复远程无模型复验通过并闭环：10/10测试、24/24检查、新digest=`68ca5636…b360`及11项源码inventory跨主机一致，机器授权与claim在验证后仍明确缺席；installed source、RWKV/Torch、权重和模型均未触发。贴回未含HEAD/status，结论限定为源码inventory与无模型行为。当前停止外围扩展，只等待最终代码上的重新逐字授权，然后进入唯一真实26-call D6C | 项目负责人贴回终端输出；`docs/self_model_v0_1_coupling_d6c_authorization_lifecycle_fix_remote_observation.md` |
