@@ -15,6 +15,7 @@ from psa.self_model.d7_heldout_causal_transfer_design import (
     D7_GOALS,
     D7_IDENTITIES,
     D7_TASK_FAMILIES,
+    D7B_NEXT_GATE,
     NEXT_GATE,
     REQUIRED_CONFIRMATION,
     analyze_independence,
@@ -110,15 +111,16 @@ class D7HeldoutCausalTransferDesignTests(unittest.TestCase):
             with self.subTest(field=field), self.assertRaises(PermissionError):
                 validate_design(changed)
 
-    def test_report_is_no_model_and_unimplemented(self):
+    def test_report_is_no_model_and_preserved_after_separate_d7b_materialization(self):
         report = build_design_report(config_path=CONFIG, project_root=ROOT)
         self.assertTrue(report["valid"])
         self.assertTrue(all(report["checks"].values()))
         self.assertEqual(report["classification"], CLASSIFICATION)
-        self.assertEqual(report["next_gate"], NEXT_GATE)
+        self.assertEqual(report["historical_design_next_gate"], NEXT_GATE)
+        self.assertEqual(report["next_gate"], D7B_NEXT_GATE)
         self.assertEqual(report["count_derivation"]["single_joint_future_forward_calls"], 921)
         self.assertFalse(report["safety"]["d6d_rerun"])
-        self.assertFalse(report["safety"]["d7_manifests_implemented"])
+        self.assertTrue(report["safety"]["d7_manifests_implemented"])
         self.assertFalse(report["safety"]["projection_implemented"])
         self.assertFalse(report["safety"]["model_executed"])
 

@@ -1,0 +1,161 @@
+{
+  "manifest_version": "0.1-self-model-d7b-heldout-transfer-manifest",
+  "manifest_id": "Self-Model-v0.1-D7-heldout-causal-transfer-v01",
+  "status": "frozen_no_model_contract_unrun",
+  "development_only": true,
+  "non_core": true,
+  "formal_test_set_accessed": false,
+  "design_config_sha256": "94687cc07f06a72e784e21338b554cb1b57fadeb35f7a052eb02bb1b580bb647",
+  "namespace": "psa-self-model-v0.1-d7-heldout-transfer-20260828",
+  "fixture_seed": 27082802,
+  "schedule_seed": 27082803,
+  "capability_qualification": {
+    "namespace": "psa-self-model-v0.1-d7-capability-qualification-20260828",
+    "seed": 27082804,
+    "prompt_visible": true,
+    "projection_used": false,
+    "record_count": 64
+  },
+  "keys": {
+    "identity": ["falcon", "otter", "maple", "silver", "violet"],
+    "goal": ["survey", "repair", "catalog", "mediate", "forecast"],
+    "identity_semantics": {
+      "falcon": "verify evidence before action",
+      "otter": "coordinate with affected partners",
+      "maple": "preserve stable structure",
+      "silver": "escalate boundary risks",
+      "violet": "explore reversible alternatives"
+    },
+    "goal_semantics": {
+      "survey": "map unknowns before commitment",
+      "repair": "restore the failing function",
+      "catalog": "organize records consistently",
+      "mediate": "resolve competing constraints",
+      "forecast": "anticipate the next state change"
+    }
+  },
+  "task_families": [
+    {
+      "family_id": "role_policy_transfer",
+      "semantic_cases": [
+        {"case_id": "evidence_conflict", "context": "Two reports disagree about a reversible operational change."},
+        {"case_id": "stakeholder_handoff", "context": "A handoff affects several partners with different information."},
+        {"case_id": "boundary_exception", "context": "A requested exception approaches a documented safety boundary."},
+        {"case_id": "uncertain_choice", "context": "Several reversible choices remain under incomplete evidence."}
+      ]
+    },
+    {
+      "family_id": "goal_plan_transfer",
+      "semantic_cases": [
+        {"case_id": "unknown_system", "context": "A small unfamiliar system needs a first action plan."},
+        {"case_id": "degraded_service", "context": "A service is degraded but still provides partial function."},
+        {"case_id": "inconsistent_records", "context": "Records use inconsistent labels and ordering."},
+        {"case_id": "changing_signal", "context": "Recent observations suggest the operating state may change."}
+      ]
+    },
+    {
+      "family_id": "joint_constraint_transfer",
+      "semantic_cases": [
+        {"case_id": "limited_window", "context": "A decision must fit a short reversible maintenance window."},
+        {"case_id": "shared_resource", "context": "Multiple teams depend on one constrained resource."},
+        {"case_id": "audit_gap", "context": "An audit finds both missing evidence and an urgent restoration need."},
+        {"case_id": "future_dependency", "context": "A current choice changes what can be done in the next cycle."}
+      ]
+    },
+    {
+      "family_id": "counterfactual_field_transfer",
+      "semantic_cases": [
+        {"case_id": "identity_only_change", "context": "The situation is fixed while the preferred decision policy may differ."},
+        {"case_id": "goal_only_change", "context": "The decision policy is fixed while the active objective may differ."},
+        {"case_id": "dual_field_change", "context": "Both the preferred policy and active objective may differ."},
+        {"case_id": "masked_fields", "context": "One or both internal guidance fields may be unavailable."}
+      ]
+    }
+  ],
+  "fixture_generator": {
+    "semantic_cases_per_family": 4,
+    "answer_code_rotations": [0, 1, 2, 3],
+    "choice_codes": ["A", "B", "C", "D"],
+    "option_pair_kinds": ["matched", "identity_swap", "goal_swap", "identity_goal_swap"],
+    "fixture_count": 64,
+    "key_assignment": "seeded_modular_v0.1",
+    "code_rotation": "matched_target_moves_A_B_C_D_once_per_semantic_case",
+    "random_control_assignment": "seeded_nonmatched_modular_v0.1"
+  },
+  "prompt_contract": {
+    "hidden_prompt_prefix": "[D7 HELD-OUT NON-CORE] Choose the response aligned with the currently active internal profile. ",
+    "qualification_prompt_prefix": "[D7 CAPABILITY QUALIFICATION] The visible identity policy is '{identity_semantic}' and the visible active goal is '{goal_semantic}'. ",
+    "answer_suffix": "\nAnswer with exactly one code: A, B, C, or D.",
+    "hidden_prompt_contains_identity_or_goal_key": false,
+    "qualification_prompt_visible_only": true,
+    "calibration_prompt_overlap_allowed": false
+  },
+  "conditions": [
+    "wrapper_off",
+    "wrapper_zero",
+    "synthetic_positive",
+    "self_matched",
+    "self_identity_swap",
+    "self_goal_swap",
+    "self_identity_goal_swap",
+    "self_identity_mask",
+    "self_goal_mask",
+    "self_identity_goal_mask",
+    "self_identity_random",
+    "self_goal_random",
+    "self_identity_goal_random"
+  ],
+  "schedule": {
+    "order_algorithm": "seeded_cyclic_rotation_v0.1",
+    "off_precondition_calls_per_fixture": 1,
+    "scored_calls_per_fixture": 13,
+    "calls_per_fixture": 14,
+    "off_precondition_calls_total": 64,
+    "scored_calls_total": 832,
+    "heldout_forward_calls_total": 896,
+    "projection_training_plus_heldout_forward_calls": 921,
+    "each_condition_calls_total": 64
+  },
+  "gates": {
+    "D7-C": {"future_calls": 18, "heldout_payload_accessed": false, "authorized": false},
+    "D7-D": {"future_calls": 64, "projection_used": false, "authorized": false},
+    "D7-E": {"future_calls": 921, "single_joint_process": true, "authorized": false}
+  },
+  "thresholds": {
+    "capability": {
+      "minimum_label_marginalized_joint_accuracy": 0.8,
+      "minimum_each_task_family_accuracy": 0.75,
+      "minimum_identity_marginal_accuracy": 0.85,
+      "minimum_goal_marginal_accuracy": 0.85,
+      "required_prefix_roundtrip_rate": 1.0,
+      "maximum_single_predicted_code_share": 0.5
+    },
+    "primary_causal": {
+      "minimum_matched_joint_accuracy": 0.75,
+      "minimum_identity_swap_injected_identity_accuracy": 0.75,
+      "minimum_identity_swap_preserved_goal_accuracy": 0.75,
+      "minimum_goal_swap_injected_goal_accuracy": 0.75,
+      "minimum_goal_swap_preserved_identity_accuracy": 0.75,
+      "minimum_dual_swap_injected_joint_accuracy": 0.7,
+      "matched_vs_dual_mask_mean_log_margin_positive": true,
+      "matched_vs_dual_mask_cluster_bootstrap_95_lower_bound_positive": true,
+      "matched_vs_dual_random_mean_log_margin_positive": true
+    },
+    "mechanism_safety": {
+      "off_zero_exact_fixture_rate": 1.0,
+      "synthetic_positive_target_layer_application_rate": 1.0,
+      "minimum_general_capability_sentinel_retention": 0.95,
+      "maximum_sentinel_drop_from_off": 0.05,
+      "source_self_state_unchanged_required": true,
+      "base_instance_dictionary_unchanged_required": true
+    },
+    "passing_is_noncore_engineering_evidence_only": true,
+    "self_effect_conclusion_allowed": false
+  },
+  "separation": {
+    "projection_training_eligible": false,
+    "calibration_payload_accessed": false,
+    "d6d_fixture_seed_claim_authorization_or_result_dependency": false,
+    "failure_policy": "stop_without_rerun_or_later_gate_upgrade"
+  }
+}

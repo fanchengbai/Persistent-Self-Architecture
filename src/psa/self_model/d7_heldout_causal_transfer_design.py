@@ -29,10 +29,11 @@ REQUIRED_CONFIRMATION = (
     "D7真实执行、正式测试集、Self效果结论、Self Updater、raw-original路线或自动重跑。"
 )
 CLASSIFICATION = (
-    "d7_independent_heldout_causal_transfer_preregistration_design_frozen_"
-    "unimplemented_unrun"
+    "d7_independent_heldout_causal_transfer_preregistration_design_preserved_"
+    "d7b_manifests_separately_materialized_unrun"
 )
 NEXT_GATE = "owner_reviews_d7_design_then_separate_d7b_no_model_implementation_confirmation"
+D7B_NEXT_GATE = "remote_no_model_d7b_verification_then_separate_d7c_design_confirmation"
 D7_IDENTITIES = ("falcon", "otter", "maple", "silver", "violet")
 D7_GOALS = ("survey", "repair", "catalog", "mediate", "forecast")
 D7_TASK_FAMILIES = (
@@ -260,6 +261,14 @@ def analyze_independence(config: Mapping[str, Any], root: Path) -> dict[str, Any
     d7_paths = list(namespaces.values()) + [
         training["manifest_future_path"], heldout["manifest_future_path"]
     ]
+    d7b_manifest_paths = (
+        training["manifest_future_path"],
+        heldout["manifest_future_path"],
+    )
+    d7b_manifests = [
+        _object(root / path, "D7-B materialized manifest")
+        for path in d7b_manifest_paths
+    ]
     checks = {
         "identity_keys_disjoint_from_d6d": set(training["identity_keys"]).isdisjoint(
             d6d_source["identity_keys"]
@@ -292,8 +301,16 @@ def analyze_independence(config: Mapping[str, Any], root: Path) -> dict[str, Any
         ]
         not in d7_paths
         and d6d_entry["output_dir"] not in d7_paths,
-        "all_future_namespaces_absent_at_design_time": all(
-            not (root / path).exists() for path in d7_paths
+        "future_execution_namespaces_still_absent": all(
+            not (root / path).exists() for path in namespaces.values()
+        ),
+        "separately_authorized_d7b_manifests_only_materialization": all(
+            (root / path).is_file() for path in d7b_manifest_paths
+        )
+        and all(
+            manifest.get("design_config_sha256")
+            == "94687cc07f06a72e784e21338b554cb1b57fadeb35f7a052eb02bb1b580bb647"
+            for manifest in d7b_manifests
         ),
         "training_and_heldout_namespaces_distinct": training["namespace"]
         != heldout["namespace"]
@@ -385,10 +402,11 @@ def build_design_report(
         "research_question": config["research_question"],
         "gate_sequence": config["gate_sequence"],
         "causal_endpoints": config["causal_endpoints"],
-        "next_gate": NEXT_GATE,
+        "historical_design_next_gate": NEXT_GATE,
+        "next_gate": D7B_NEXT_GATE,
         "safety": {
             "d6d_rerun": False,
-            "d7_manifests_implemented": False,
+            "d7_manifests_implemented": True,
             "real_runner_modified": False,
             "projection_implemented": False,
             "rwkv_model_imported": False,

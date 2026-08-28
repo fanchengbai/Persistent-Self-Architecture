@@ -1,7 +1,7 @@
 # Self Model v0.1 D7 独立 held-out causal transfer 设计
 
 日期：2026-08-28
-状态：无模型预注册设计；未实现 manifest、projection 或真实执行入口
+状态：无模型预注册设计保持冻结；D7-B manifests 已在单独授权下实现，projection 与真实执行入口仍未实现
 
 ## 为什么 D7 不是 D6D 重跑
 
@@ -38,6 +38,6 @@ held-out 端包含四个全新任务族，每族四个语义案例，每个案�
 
 ## 当前权限
 
-当前只完成研究问题和无模型预注册设计。未来 manifests、兼容入口、能力runner、projection和pilot均未实现；没有导入RWKV/Torch、访问权重、加载或执行模型。D6D重跑、D7真实执行、正式测试集、Self效果结论、Self Updater、raw-original及自动重跑全部关闭。
+研究问题和无模型预注册设计保持冻结。D7-B 已在后续单独授权下把 calibration 与 held-out manifests、确定性展开和符号 fake runtime 物化；兼容入口、能力runner、projection和pilot仍未实现。没有导入RWKV/Torch、访问权重、加载或执行模型。D6D重跑、D7真实执行、正式测试集、Self效果结论、Self Updater、raw-original及自动重跑全部关闭。
 
-下一步只有项目负责人审阅本设计后，才能另行确认 D7-B 无模型 manifest/runtime contract 实现。
+下一步只有完成 D7-B 远程无模型复验后，才能另行确认 D7-C 真实协议兼容设计。

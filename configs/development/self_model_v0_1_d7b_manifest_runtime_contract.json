@@ -1,0 +1,84 @@
+{
+  "contract_version": "0.1-self-model-d7b-manifest-runtime-contract",
+  "stage": "Self-Model-v0.1-D7-B_no_model_manifest_and_fake_first_runtime_contract",
+  "status": "offline_contract_implemented_unrun_no_model",
+  "development_only": true,
+  "owner_confirmation_text": "确认进入 Self Model v0.1 D7-B held-out causal transfer manifest与fake-first runtime contract无模型实现；只允许把已冻结的25条calibration、64条held-out fixture、13条件调度、D7-C/D7-D/D7-E分阶段门、通过阈值和11个全新命名空间转成确定性manifest、纯Python fixture、完整性校验与离线报告；不得复用或修改D6D fixtures、seed、authorization、claim或结果，不探测installed source、不修改真实runner、不实现或构造projection、不导入RWKV/Torch、不访问权重、不加载或执行模型；不授权D7-C/D7-D/D7-E真实执行、D6D重跑、正式测试集、Self效果结论、Self Updater、raw-original路线或自动重跑。",
+  "frozen_design": {
+    "path": "configs/preregistration/self_model_v0_1_d7_heldout_causal_transfer.draft.json",
+    "sha256": "94687cc07f06a72e784e21338b554cb1b57fadeb35f7a052eb02bb1b580bb647",
+    "historical_design_report_sha256": "142b52f226406781620ef0ba45422fd65760841b823f2079d2c9af25802e2536",
+    "research_question_changed": false
+  },
+  "manifests": {
+    "calibration_path": "configs/development/self_model_v0_1_d7_projection_training_manifest.json",
+    "heldout_path": "configs/development/self_model_v0_1_d7_heldout_transfer_manifest.json",
+    "deterministic_expansion_required": true,
+    "expanded_commitment_required": true,
+    "prompt_overlap_allowed": false
+  },
+  "counts": {
+    "calibration_records": 25,
+    "heldout_fixtures": 64,
+    "conditions": 13,
+    "off_precondition_calls": 64,
+    "scored_calls": 832,
+    "heldout_forward_calls": 896,
+    "future_joint_forward_calls": 921
+  },
+  "fake_runtime_contract": {
+    "fixture_kind": "d7b_symbolic_python_only",
+    "symbolic_route_resolution_only": true,
+    "numeric_projection_allowed": false,
+    "tensor_construction_allowed": false,
+    "model_object_allowed": false,
+    "input_mutation_allowed": false,
+    "unknown_condition_policy": "reject_before_ledger_append",
+    "wrong_phase_policy": "reject_before_ledger_append",
+    "output_claim": "route_contract_only_not_model_or_effect_evidence"
+  },
+  "namespace_groups": [
+    "calibration_logical_namespace",
+    "heldout_logical_namespace",
+    "capability_qualification_logical_namespace",
+    "calibration_manifest_path",
+    "heldout_manifest_path",
+    "compatibility_authorization_path",
+    "compatibility_output_namespace_including_claim",
+    "capability_authorization_path",
+    "capability_output_namespace_including_claim",
+    "pilot_authorization_path",
+    "pilot_output_namespace_including_claim_and_projection_artifact"
+  ],
+  "gate_sequence": [
+    {"gate_id": "D7-B", "implemented": true, "model_execution": false},
+    {"gate_id": "D7-C", "implemented": false, "authorized": false, "future_forward_calls": 18},
+    {"gate_id": "D7-D", "implemented": false, "authorized": false, "future_forward_calls": 64},
+    {"gate_id": "D7-E", "implemented": false, "authorized": false, "future_forward_calls": 921}
+  ],
+  "authority": {
+    "d7b_manifest_implementation_authorized": true,
+    "pure_python_fixture_authorized": true,
+    "offline_integrity_report_authorized": true,
+    "installed_source_probe_authorized": false,
+    "real_runner_modification_authorized": false,
+    "projection_implementation_authorized": false,
+    "projection_construction_authorized": false,
+    "rwkv_import_authorized": false,
+    "torch_import_authorized": false,
+    "weights_access_authorized": false,
+    "model_load_authorized": false,
+    "model_execution_authorized": false,
+    "d7c_authorized": false,
+    "d7d_authorized": false,
+    "d7e_authorized": false,
+    "d6d_rerun_authorized": false,
+    "formal_test_set_authorized": false,
+    "self_effect_conclusion_authorized": false,
+    "self_updater_authorized": false,
+    "raw_original_route_authorized": false,
+    "automatic_rerun_authorized": false
+  },
+  "required_classification": "d7b_deterministic_manifests_and_symbolic_fake_runtime_verified_no_model_no_projection",
+  "next_gate": "remote_no_model_d7b_verification_then_separate_d7c_design_confirmation"
+}

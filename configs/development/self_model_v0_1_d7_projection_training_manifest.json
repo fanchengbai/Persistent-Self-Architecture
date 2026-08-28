@@ -1,0 +1,70 @@
+{
+  "manifest_version": "0.1-self-model-d7b-calibration-manifest",
+  "manifest_id": "Self-Model-v0.1-D7-projection-calibration-v01",
+  "status": "frozen_no_model_contract_projection_unimplemented",
+  "development_only": true,
+  "non_core": true,
+  "formal_test_set_accessed": false,
+  "design_config_sha256": "94687cc07f06a72e784e21338b554cb1b57fadeb35f7a052eb02bb1b580bb647",
+  "namespace": "psa-self-model-v0.1-d7-calibration-20260828",
+  "seed": 27082801,
+  "source_contract": {
+    "self_state_version": "0.1",
+    "fields": ["identity_anchors", "active_goals"],
+    "identity_keys": ["falcon", "otter", "maple", "silver", "violet"],
+    "goal_keys": ["survey", "repair", "catalog", "mediate", "forecast"],
+    "identity_semantics": {
+      "falcon": "verify evidence before action",
+      "otter": "coordinate with affected partners",
+      "maple": "preserve stable structure",
+      "silver": "escalate boundary risks",
+      "violet": "explore reversible alternatives"
+    },
+    "goal_semantics": {
+      "survey": "map unknowns before commitment",
+      "repair": "restore the failing function",
+      "catalog": "organize records consistently",
+      "mediate": "resolve competing constraints",
+      "forecast": "anticipate the next state change"
+    },
+    "natural_language_self_state_serialization": false
+  },
+  "record_generator": {
+    "order": "identity_major_then_goal_major",
+    "identity_count": 5,
+    "goal_count": 5,
+    "record_count": 25,
+    "record_id_template": "d7-cal-{identity}-{goal}",
+    "deterministic_seed_is_commitment_only": true
+  },
+  "prompt_blueprint": {
+    "history_template": "[D7 CALIBRATION ONLY] A coordinator consistently follows the identity policy '{identity_semantic}' and maintains the active goal '{goal_semantic}'.",
+    "capture_suffix": "\nRecord the final planning residual for this calibration profile without producing a held-out answer.",
+    "heldout_template_reuse_allowed": false,
+    "capability_template_reuse_allowed": false,
+    "self_state_object_rendered": false
+  },
+  "capture_contract": {
+    "future_only": true,
+    "read_only": true,
+    "record_count": 25,
+    "model_forward_calls": 25,
+    "target_layer_selected": false,
+    "target_layer_selection_deferred_to_d7c": true,
+    "base_instance_dictionary_mutation_allowed": false,
+    "source_self_state_mutation_allowed": false
+  },
+  "projection_contract": {
+    "family": "field_separated_additive_no_bias_frozen_after_calibration",
+    "implemented": false,
+    "constructed": false,
+    "training_authorized": false,
+    "artifact_path": "results/development/self_model_v0_1_d7_heldout_transfer_v01/projection_artifact.json"
+  },
+  "separation": {
+    "heldout_payload_accessed_during_calibration": false,
+    "capability_payload_accessed_during_calibration": false,
+    "d6d_fixture_or_result_dependency": false,
+    "failure_policy": "stop_without_projection_or_heldout_execution"
+  }
+}
