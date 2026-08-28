@@ -1,0 +1,193 @@
+{
+  "design_version": "0.1-self-model-d7-heldout-causal-transfer-draft",
+  "stage": "Self-Model-v0.1-D7_independent_heldout_causal_transfer_design",
+  "status": "preregistration_design_frozen_unimplemented_unrun",
+  "development_only": true,
+  "required_owner_confirmation_text": "确认进入 Self Model v0.1 D7 独立held-out causal transfer研究路线与无模型预注册设计；只允许定义新的研究问题、训练/held-out评估分离、因果对照、通过标准、真实协议兼容前置门和全新artifact/authorization/claim/output命名空间，不复用D6D训练或pilot fixtures、seed、claim和执行结果，不修改真实runner、不实现projection或执行模型；不授权D6D重跑、D7真实执行、正式测试集、Self效果结论、Self Updater、raw-original路线或自动重跑。",
+  "research_question": "Can a field-separated Self projection learned from a new non-Core calibration set cause identity-specific and goal-specific behavioral transfer on previously unseen task families while preserving general capability?",
+  "independence_contract": {
+    "new_research_question_not_wrapper_repair": true,
+    "d6d_training_fixtures_reused": false,
+    "d6d_pilot_fixtures_reused": false,
+    "d6d_seed_reused": false,
+    "d6d_claim_reused": false,
+    "d6d_output_or_quantitative_result_reused": false,
+    "d6d_execution_rerun": false,
+    "historical_d6d_use": "failure_boundary_and_nonreuse_constraint_only"
+  },
+  "model_contract": {
+    "model_id": "rwkv7-g1h-2.9b-20260710",
+    "base_weights_trainable": false,
+    "self_state_version": "0.1",
+    "fields": ["identity_anchors", "active_goals"],
+    "target_layer_selection": "future_compatibility_gate_must_freeze_before_any_projection_training",
+    "natural_language_self_state_serialization": false
+  },
+  "training_design": {
+    "manifest_id": "Self-Model-v0.1-D7-projection-calibration-v01",
+    "manifest_future_path": "configs/development/self_model_v0_1_d7_projection_training_manifest.json",
+    "namespace": "psa-self-model-v0.1-d7-calibration-20260828",
+    "seed": 27082801,
+    "identity_keys": ["falcon", "otter", "maple", "silver", "violet"],
+    "goal_keys": ["survey", "repair", "catalog", "mediate", "forecast"],
+    "grid_order": "identity_major_then_goal_major",
+    "capture_count": 25,
+    "capture_split": "calibration_only_excluded_from_capability_and_heldout_transfer",
+    "projection_family": "field_separated_additive_no_bias_frozen_after_calibration",
+    "projection_implementation_authorized": false
+  },
+  "heldout_design": {
+    "manifest_id": "Self-Model-v0.1-D7-heldout-causal-transfer-v01",
+    "manifest_future_path": "configs/development/self_model_v0_1_d7_heldout_transfer_manifest.json",
+    "namespace": "psa-self-model-v0.1-d7-heldout-transfer-20260828",
+    "fixture_seed": 27082802,
+    "schedule_seed": 27082803,
+    "task_families": [
+      "role_policy_transfer",
+      "goal_plan_transfer",
+      "joint_constraint_transfer",
+      "counterfactual_field_transfer"
+    ],
+    "semantic_cases_per_family": 4,
+    "answer_code_rotations": 4,
+    "fixture_count": 64,
+    "conditions": [
+      "wrapper_off",
+      "wrapper_zero",
+      "synthetic_positive",
+      "self_matched",
+      "self_identity_swap",
+      "self_goal_swap",
+      "self_identity_goal_swap",
+      "self_identity_mask",
+      "self_goal_mask",
+      "self_identity_goal_mask",
+      "self_identity_random",
+      "self_goal_random",
+      "self_identity_goal_random"
+    ],
+    "off_precondition_calls_per_fixture": 1,
+    "scored_calls_per_fixture": 13,
+    "heldout_forward_calls": 896,
+    "projection_training_plus_heldout_forward_calls": 921,
+    "prompt_payload_overlap_with_training_allowed": false,
+    "formal_test_set": false
+  },
+  "gate_sequence": [
+    {
+      "gate_id": "D7-B",
+      "name": "no_model_manifest_and_runtime_contract",
+      "model_execution": false,
+      "separate_authorization_required": true
+    },
+    {
+      "gate_id": "D7-C",
+      "name": "real_public_semantics_compatibility",
+      "model_execution": true,
+      "separate_authorization_required": true,
+      "future_forward_calls": 18,
+      "heldout_payload_accessed": false
+    },
+    {
+      "gate_id": "D7-D",
+      "name": "prompt_visible_heldout_family_capability_qualification",
+      "model_execution": true,
+      "separate_authorization_required": true,
+      "future_forward_calls": 64,
+      "projection_used": false
+    },
+    {
+      "gate_id": "D7-E",
+      "name": "single_joint_projection_training_and_heldout_causal_transfer_pilot",
+      "model_execution": true,
+      "separate_authorization_required": true,
+      "future_forward_calls": 921,
+      "self_effect_conclusion_allowed": false
+    }
+  ],
+  "compatibility_gate": {
+    "equivalence_cells": 8,
+    "equivalence_forward_calls": 16,
+    "synthetic_active_forward_calls": 2,
+    "total_forward_calls": 18,
+    "execution_paths": ["forward_one", "forward_seq"],
+    "state_inputs": ["none", "prebuilt"],
+    "full_output_values": [false, true],
+    "public_state_none_initialization_required": true,
+    "off_and_zero_logits_torch_equal_required": true,
+    "off_and_zero_state_torch_equal_required": true,
+    "base_instance_dictionary_unchanged_required": true,
+    "active_callback_layer_count_exact_required": true,
+    "heldout_payload_accessed": false,
+    "failure_action": "stop_without_projection_training_or_effect_pilot"
+  },
+  "capability_gate": {
+    "qualification_fixture_namespace": "psa-self-model-v0.1-d7-capability-qualification-20260828",
+    "qualification_seed": 27082804,
+    "prompt_visible_only": true,
+    "projection_used": false,
+    "record_count": 64,
+    "minimum_label_marginalized_joint_accuracy": 0.8,
+    "minimum_each_task_family_accuracy": 0.75,
+    "minimum_identity_marginal_accuracy": 0.85,
+    "minimum_goal_marginal_accuracy": 0.85,
+    "required_prefix_roundtrip_rate": 1.0,
+    "maximum_single_predicted_code_share": 0.5,
+    "failure_action": "stop_without_projection_training_or_effect_pilot"
+  },
+  "causal_endpoints": {
+    "primary_conjunctive": {
+      "minimum_matched_joint_accuracy": 0.75,
+      "minimum_identity_swap_injected_identity_accuracy": 0.75,
+      "minimum_identity_swap_preserved_goal_accuracy": 0.75,
+      "minimum_goal_swap_injected_goal_accuracy": 0.75,
+      "minimum_goal_swap_preserved_identity_accuracy": 0.75,
+      "minimum_dual_swap_injected_joint_accuracy": 0.7,
+      "matched_vs_dual_mask_mean_log_margin_positive": true,
+      "matched_vs_dual_mask_cluster_bootstrap_95_lower_bound_positive": true,
+      "matched_vs_dual_random_mean_log_margin_positive": true
+    },
+    "mechanism_and_safety": {
+      "off_zero_exact_fixture_rate": 1.0,
+      "synthetic_positive_target_layer_application_rate": 1.0,
+      "minimum_general_capability_sentinel_retention": 0.95,
+      "maximum_sentinel_drop_from_off": 0.05,
+      "source_self_state_unchanged_required": true,
+      "base_instance_dictionary_unchanged_required": true
+    },
+    "mask_and_random_are_preregistered_contrasts_not_posthoc_success_rules": true,
+    "all_primary_thresholds_fixed_before_any_d7_model_execution": true,
+    "passing_d7e_is_noncore_engineering_evidence_only": true,
+    "self_effect_conclusion_allowed": false
+  },
+  "namespaces": {
+    "projection_artifact_future_path": "results/development/self_model_v0_1_d7_heldout_transfer_v01/projection_artifact.json",
+    "compatibility_authorization_future_path": "results/authorizations/self_model_v0_1_d7_compatibility_v01.json",
+    "compatibility_claim_future_path": "results/development/self_model_v0_1_d7_compatibility_v01/execution_claim.json",
+    "compatibility_output_future_dir": "results/development/self_model_v0_1_d7_compatibility_v01",
+    "capability_authorization_future_path": "results/authorizations/self_model_v0_1_d7_capability_v01.json",
+    "capability_claim_future_path": "results/development/self_model_v0_1_d7_capability_v01/execution_claim.json",
+    "capability_output_future_dir": "results/development/self_model_v0_1_d7_capability_v01",
+    "pilot_authorization_future_path": "results/authorizations/self_model_v0_1_d7_heldout_transfer_v01.json",
+    "pilot_claim_future_path": "results/development/self_model_v0_1_d7_heldout_transfer_v01/execution_claim.json",
+    "pilot_output_future_dir": "results/development/self_model_v0_1_d7_heldout_transfer_v01"
+  },
+  "authority": {
+    "d7_research_question_design_authorized": true,
+    "d7_preregistration_design_authorized": true,
+    "offline_design_verification_authorized": true,
+    "d6d_rerun_authorized": false,
+    "d7_manifest_implementation_authorized": false,
+    "real_runner_modification_authorized": false,
+    "projection_implementation_authorized": false,
+    "d7_compatibility_execution_authorized": false,
+    "d7_capability_execution_authorized": false,
+    "d7_effect_execution_authorized": false,
+    "formal_test_set_authorized": false,
+    "self_effect_conclusion_authorized": false,
+    "self_updater_authorized": false,
+    "raw_original_route_authorized": false,
+    "automatic_rerun_authorized": false
+  },
+  "next_gate": "owner_reviews_d7_design_then_separate_d7b_no_model_implementation_confirmation"
+}
