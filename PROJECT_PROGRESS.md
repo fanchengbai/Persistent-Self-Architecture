@@ -1,8 +1,8 @@
 # Persistent Self Architecture 项目进度表
 
 > 最后更新：2026-08-28
-> 当前节点：Phase 3 Self Model v0.1 D7-C真实public语义兼容门设计与无模型安全入口本地完成；等待服务器无模型复验
-> 研究状态：冻结8个兼容cell、16次OFF/zero等价调用与2次synthetic active调用，共18-call；13项专项、14项静态检查、15项配置检查、14类synthetic验收及全项目569项通过，digest=`8f9fb1d9…d405`；installed source、RWKV/Torch、权重、模型、机器授权和claim均未触发
+> 当前节点：Phase 3 Self Model v0.1 D7-C真实public语义兼容门设计与无模型安全入口服务器复验闭环；等待独立逐字真实执行授权
+> 研究状态：服务器13项专项、14项静态检查、15项配置检查、14类synthetic验收、8个cell与严格18-call计划均与本地一致，digest=`8f9fb1d9…d405`；installed source、RWKV/Torch、payload、权重、模型、机器授权和claim均未触发，真实兼容尚未验证
 
 ## 1. 这张表怎么使用
 
@@ -113,14 +113,14 @@
 | 38p. EXP-001C v02 Stage B只读live preflight与机器授权锁 | ✅ 云端通过 | 在模型加载前绑定干净main提交、设计/protocol digest、Stage A原始结果、模型配置与资产哈希、主机环境、224条计划和空输出目录；授权只接受固定逐字文本并绑定preflight digest | 防止把“继续”解释成模型执行授权，也防止代码、证据、模型或输出目录变化后复用旧授权 | Stage B 29项远程测试通过，云端只读preflight全部检查为true且失败项为空；`model_loaded=false`、`model_executed=false`、执行/观察均为false。最终digest以本轮最终文档提交后的服务器v02证据为准 | Codex |
 | 38q. EXP-001C v02 Stage B项目负责人单次授权 | ✅ 已逐字确认并消费 | 负责人使用冻结原文授权224条recurrent-state非Core pilot及本轮结果观察，同时明确排除Stage A重跑、正式测试集、正式运行、确认性决定和自动重跑 | 模型执行和结果观察是新的不可逆边界，不能由此前“继续”推断 | 授权绑定preflight_v03与Stage A/result digest，机器记录和single-use claim均已消费；224条运行及观察完成后禁止重跑 | 项目负责人；Codex执行 |
 | 38r. EXP-001C v02 Stage B冻结只读观察 | ✅ 云端完成 | 对五个状态语义条件按8个语义案例×4代码轮换平均log score，记录联合/字段准确率与margin；reset/random只记录参考匹配率，不定义正确答案 | 原始code top-1容易受A–D先验影响；同时不能把诊断控制事后改成主要端点或临时添加通过阈值 | 五个主要条件均联合7/8、domain 8/8、operation 7/8；continuous/restored预测8/8一致，三种swap均7/8跟随注入state。reset/random参考匹配均2/8；无确认性决定或重跑 | Codex；云端只读分析 |
-| 39. Phase 3：显式 Self Model | 🟡 D7-C真实public语义兼容门设计与无模型安全入口本地完成；等待服务器无模型复验 | 实现静态Self Store、Self Encoder和可关闭/缩放gated injection，并建立字段mask/swap/random/coupling-off消融 | 先证明接口可审计、可干预、失败关闭，再决定真实RWKV注入位置和效果实验 | D6D失败与禁止重跑边界不变。D7-C冻结与held-out payload无关的single/sequence token fixture，覆盖`state=None`/prebuilt与`full_output=false/true`的8个cell；每cell未来各1次public OFF和wrapper zero，另加2次synthetic active，总18次。独立目标层规则固定为第15层；公共zero-state初始化、logits/state逐项相等、32层callback与目标层单次应用、基础实例字典不变性和失败即停止均进入contract。13项专项、14项静态、15项配置、14类synthetic及全项目569项通过，digest=`8f9fb1d9…d405`。本轮未探测installed source，未导入RWKV/Torch，未访问payload/权重，未加载/执行模型，未创建机器授权或claim；不构成真实兼容、projection或Self效果证据 | Codex本地实现；等待项目负责人远程无模型复验 |
+| 39. Phase 3：显式 Self Model | ✅ D7-C真实public语义兼容门设计与无模型安全入口服务器复验闭环；等待独立逐字真实执行授权 | 实现静态Self Store、Self Encoder和可关闭/缩放gated injection，并建立字段mask/swap/random/coupling-off消融 | 先证明接口可审计、可干预、失败关闭，再决定真实RWKV注入位置和效果实验 | D6D失败与禁止重跑边界不变。服务器13项专项通过；14项入口、15项配置和14类synthetic验收全真，8个cell、16次OFF/zero等价调用、2次active与总18-call计划均与本地一致。4个None-state cell各初始化一次，4个prebuilt cell不初始化；96组件、32层callback、第15层单次应用、实例字典和binding稳定检查全部通过，总digest=`8f9fb1d9…d405`。installed source、RWKV/Torch、payload、权重、模型、authorization/claim均未触发。回传未含HEAD/status，结论只覆盖锁定源码和无模型行为，不构成真实兼容、projection或Self效果证据 | 项目负责人远程执行；Codex只读观察 |
 | 40. Self 更新与演化 | ⏳ 未开始 | 让 Self State 根据经历受控更新、回滚和分化 | 这是“持续自我”真正更深入的部分 | 尚未开始 | 后续阶段 |
 | 41. 内生调节与自主审议 | ⏳ 未开始 | 让 Self/冲突决定是否检索、回放、模拟或停止，并在零新外部观察条件下受控更新 | 检验系统是否不仅“有状态”，还会因内部状态选择继续计算；同时排除定时器和随机回放解释 | 设计说明已完成；必须等待显式 Self 因果价值和受约束更新两道前置门，不创建空壳代码 | 后续阶段 |
 | 42. 最终研究结论 | ⏳ 未开始 | 汇总统计结果、失败案例和替代解释 | 最终回答项目假设是否得到支持，而不是只展示几个有趣案例 | 尚未开始 | 共同完成 |
 
 ## 3. 当前所在位置
 
-> 2026-08-28 当前状态：D4/D5历史结论及重跑禁令不变；D6C与D6D claims均已消费且禁止重跑。D7-B服务器无模型复验已经闭环。D7-C真实public语义兼容门的设计和无模型安全入口现已在本地完成：使用与calibration/held-out payload完全无关的固定single/sequence synthetic token，冻结`forward_one`/`forward_seq` × `state=None`/prebuilt × `full_output=false/true`共8个cell；每cell未来执行1次public OFF与1次wrapper zero，共16次，再执行2次synthetic active，总计严格18次forward。目标层由独立规则`32 // 2 - 1 = 15`选择，不复用D6D结果；wrapper对`state=None`显式走public zero-state初始化，对prebuilt state不重新初始化。真实门要求logits与96个state组件逐项`torch.equal`、每次32层callback、active仅在目标层应用一次、基础模型实例字典不变，任一失败立即停止。纯Python 32层/96-state验收14/14、静态检查14/14、配置检查15/15、专项13项及全项目569项均通过，报告digest=`8f9fb1d9…d405`。本轮没有探测installed source，没有导入RWKV/Torch，没有访问calibration/held-out payload或权重，没有加载/执行模型，也没有创建机器授权、claim或结果目录。D7-C真实兼容尚未得到证明，projection及Self效果仍完全未进入。以下保留完整历史路径；如与旧阶段描述冲突，以本段和顶部“当前节点”为准。
+> 2026-08-28 当前状态：D4/D5历史结论及重跑禁令不变；D6C与D6D claims均已消费且禁止重跑。D7-B服务器无模型复验已经闭环。D7-C设计与无模型安全入口也已完成服务器复验：远程13项专项测试`OK`，14/14入口检查、15/15配置检查和14/14 synthetic acceptance全真；`forward_one`/`forward_seq` × `state=None`/prebuilt × `full_output=false/true`的8个cell、16次public OFF/wrapper zero等价调用与2次synthetic active严格合计18次。4个None-state cell各执行一次zero-state初始化，4个prebuilt cell不初始化；每cell output/logits/96个state组件精确，active共64次layer callback并只在第15层各应用一次，实例字典、owned bindings和context均稳定。三个commitment及总报告digest=`8f9fb1d9…d405`与本地一致。服务器没有探测installed source，没有导入RWKV/Torch，没有访问calibration/held-out payload或权重，没有加载/执行模型，authorization、claim和执行输出均不存在。回传未含HEAD/status，所以只确认锁定的15个源码digest和无模型行为跨环境一致；真实2.9B public/wrapper兼容仍未验证，projection和Self效果仍完全未进入。以下保留完整历史路径；如与旧阶段描述冲突，以本段和顶部“当前节点”为准。
 
 ```text
 理论设计
@@ -239,7 +239,7 @@ EXP-001B补充控制
 
 ## 4. 当前下一步
 
-> 2026-08-28 当前下一步：先把本轮D7-C代码与进度账本持久化到`main`，再由项目负责人在服务器只运行13项D7-C专项测试和无模型静态入口验证；该复验不得启用授权环境变量，不得创建机器授权或claim，不得探测installed source、导入RWKV/Torch、访问权重/payload、加载或执行模型。只有远程无模型报告与本地digest=`8f9fb1d9…d405`及18-call/8-cell/14类验收完全一致后，才可另行请求D7-C真实2.9B单次执行的逐字授权。D7-D/D7-E、projection实现或构造、D6D及其他历史重跑、正式测试集、Self效果结论、Self Updater、raw-original路线和自动重跑继续关闭。以下保留此前 EXP-001B 轨迹作为历史记录。
+> 2026-08-28 当前下一步：D7-C无模型阶段已经闭环，只等待项目负责人另行给出配置中冻结的逐字授权，才允许在最终干净`main`上创建唯一机器授权与single-use claim并执行一次真实2.9B public语义兼容门。该门严格只有8个等价cell的16次调用与2次synthetic active，共18次forward，不访问calibration/held-out payload；成功或失败均停止且不允许D7-C或自动重跑。D7-D/D7-E、projection实现或构造、D6D及其他历史重跑、正式测试集、Self效果结论、Self Updater和raw-original路线继续关闭。以下保留此前 EXP-001B 轨迹作为历史记录。
 
 截至2026-08-04，项目负责人已经确认EXP-001B设计草案中的B1–B7。
 新增范围仍锁在11,008条控制记录，并明确不重跑EXP-001、不重估E1–E3、
@@ -779,3 +779,4 @@ trial-condition单元；只允许全量完成且完整性验证后观察结果�
 | 2026-08-28 | Self Model v0.1 D7-B deterministic manifests与fake-first runtime contract本地无模型实现完成：calibration manifest展开25条全新5×5记录；held-out manifest展开4任务族×4案例×4代码轮换共64条fixture，三组prompt摘要互斥且hidden不序列化key。冻结每fixture 1次OFF预条件+13条件的896条计划，13条件各64次，未来联合总数仍为921。符号runtime只解析字段路由，拒绝错误phase/condition并保持输入不变，不创建张量、projection或模型输出。D7-B 11项总检查、15类验收、18项专项及全项目556项通过，digest=`9800d221…f683`；D7历史设计在manifest物化后10项独立性检查仍有效，digest=`0d68e05d…29d1`。installed source、真实runner、RWKV/Torch、权重、模型、authorization/claim/output和全部后续权限均未触发；下一步仅服务器纯离线复验 | `configs/development/self_model_v0_1_d7b_manifest_runtime_contract.json`；`configs/development/self_model_v0_1_d7_projection_training_manifest.json`；`configs/development/self_model_v0_1_d7_heldout_transfer_manifest.json`；`src/psa/self_model/d7b_manifest_runtime_contract.py`；`docs/self_model_v0_1_d7b_manifest_runtime_contract.md` |
 | 2026-08-28 | Self Model v0.1 D7-B服务器无模型复验通过并闭环：18项专项测试`OK`；25/64/896/921计数、13条件各64次、15类fake验收、四个expanded commitment、11个锁定源digest及总报告digest=`9800d221…f683`均与本地一致。安全字段确认installed source、RWKV/Torch、权重、模型、projection、真实runner、D7-C/D7-D/D7-E和所有研究升级均未触发。回传未含HEAD/status，因此结论限定为锁定源码inventory和纯离线行为跨环境一致，不宣称服务器工作树commit/cleanliness，也不形成兼容、projection或Self效果证据；下一步只等待D7-C设计与无模型安全入口的单独确认 | 项目负责人回传终端输出；`docs/self_model_v0_1_d7b_remote_observation.md` |
 | 2026-08-28 | Self Model v0.1 D7-C真实public语义兼容门设计与无模型安全入口本地完成：固定与D7 calibration/held-out payload无关的single/sequence synthetic token，形成8个`forward_one/forward_seq × state=None/prebuilt × full_output=false/true`兼容cell；未来每cell各1次public OFF与wrapper zero共16次，加2次synthetic active，严格18次forward。目标层由独立规则固定为0-based第15层；wrapper在`state=None`时调用public zero-state初始化，对prebuilt保持不重初始化。未来真实门冻结logits/96个state逐项`torch.equal`、32层callback、目标层单次active、基础实例字典不变与失败即停止。14类纯Python验收、14项静态、15项配置、13项专项及全项目569项通过，报告digest=`8f9fb1d9…d405`。本轮未探测installed source，未导入RWKV/Torch，未访问payload/权重，未加载/执行模型，未创建authorization/claim；D7-C真实执行及所有后续研究门仍关闭 | `configs/development/self_model_v0_1_d7c_real_public_semantics_compatibility.json`；`src/psa/self_model/d7c_public_semantics_runtime.py`；`src/psa/self_model/d7c_real_compatibility_entry.py`；`docs/self_model_v0_1_d7c_real_public_semantics_compatibility.md` |
+| 2026-08-28 | Self Model v0.1 D7-C服务器无模型复验通过并闭环：13项专项测试`OK`；14项入口、15项配置、14类synthetic验收、8个cell及严格18-call计划全部与本地一致。4个None-state cell各初始化一次，prebuilt不初始化；96组件精确、64次active callback、第15层两次单独应用及实例字典/binding/context稳定均通过。三个commitment和总digest=`8f9fb1d9…d405`匹配；installed source、RWKV/Torch、payload、权重、模型、authorization/claim及所有后续门均未触发。回传未含HEAD/status，因此结论限定为锁定源码inventory和无模型行为跨环境一致，不证明真实2.9B兼容、projection或Self效果；下一步只等待D7-C逐字单次真实执行授权 | 项目负责人回传终端输出；`docs/self_model_v0_1_d7c_remote_observation.md` |
