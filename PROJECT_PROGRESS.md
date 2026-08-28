@@ -1,8 +1,8 @@
 # Persistent Self Architecture 项目进度表
 
 > 最后更新：2026-08-28
-> 当前节点：Phase 3 Coupling-D6D唯一真实2.9B联合尝试有效失败并停止；single-use claim已消费，禁止重跑
-> 研究状态：模型在第1个训练forward中因wrapper绕过上游`state=None`初始化而失败；0/16 capture完成、projection未构造、0/144 pilot执行，核心Self效果仍未测试
+> 当前节点：Phase 3 Coupling-D6D失败纯离线根因与路线审查闭环；D6D关闭，尚未建立科学上独立的后继实验
+> 研究状态：AST与32层/96-state三角fixture证明wrapper直达子方法跳过public zero-state初始化；16项报告、8项专项和全项目538项通过，digest=`e029e809…ec4c`，D6E与Self效果结论继续关闭
 
 ## 1. 这张表怎么使用
 
@@ -113,14 +113,14 @@
 | 38p. EXP-001C v02 Stage B只读live preflight与机器授权锁 | ✅ 云端通过 | 在模型加载前绑定干净main提交、设计/protocol digest、Stage A原始结果、模型配置与资产哈希、主机环境、224条计划和空输出目录；授权只接受固定逐字文本并绑定preflight digest | 防止把“继续”解释成模型执行授权，也防止代码、证据、模型或输出目录变化后复用旧授权 | Stage B 29项远程测试通过，云端只读preflight全部检查为true且失败项为空；`model_loaded=false`、`model_executed=false`、执行/观察均为false。最终digest以本轮最终文档提交后的服务器v02证据为准 | Codex |
 | 38q. EXP-001C v02 Stage B项目负责人单次授权 | ✅ 已逐字确认并消费 | 负责人使用冻结原文授权224条recurrent-state非Core pilot及本轮结果观察，同时明确排除Stage A重跑、正式测试集、正式运行、确认性决定和自动重跑 | 模型执行和结果观察是新的不可逆边界，不能由此前“继续”推断 | 授权绑定preflight_v03与Stage A/result digest，机器记录和single-use claim均已消费；224条运行及观察完成后禁止重跑 | 项目负责人；Codex执行 |
 | 38r. EXP-001C v02 Stage B冻结只读观察 | ✅ 云端完成 | 对五个状态语义条件按8个语义案例×4代码轮换平均log score，记录联合/字段准确率与margin；reset/random只记录参考匹配率，不定义正确答案 | 原始code top-1容易受A–D先验影响；同时不能把诊断控制事后改成主要端点或临时添加通过阈值 | 五个主要条件均联合7/8、domain 8/8、operation 7/8；continuous/restored预测8/8一致，三种swap均7/8跟随注入state。reset/random参考匹配均2/8；无确认性决定或重跑 | Codex；云端只读分析 |
-| 39. Phase 3：显式 Self Model | ⚠️ D6D唯一真实尝试有效失败；claim已消费 | 实现静态Self Store、Self Encoder和可关闭/缩放gated injection，并建立字段mask/swap/random/coupling-off消融 | 先证明接口可审计、可干预、失败关闭，再决定真实RWKV注入位置和效果实验 | commit `563c314`上的机器授权与claim有效，2.9B已加载；第1个训练forward以`state=None`进入wrapper后被直接分派到`forward_seq`，跳过上游public `forward`的zero-state初始化，触发`NoneType`下标错误。0/16 capture完成、projection未构造、0/144 pilot执行；failure digest=`5fc35707…a65d`。不能评价Self机制或效果，且禁止D6D重跑 | 项目负责人服务器执行；Codex只读诊断 |
+| 39. Phase 3：显式 Self Model | ⚠️ D6D失败根因闭环并关闭；无独立后继路线 | 实现静态Self Store、Self Encoder和可关闭/缩放gated injection，并建立字段mask/swap/random/coupling-off消融 | 先证明接口可审计、可干预、失败关闭，再决定真实RWKV注入位置和效果实验 | 唯一D6D claim已消费，0/16 capture、无projection、0/144 pilot。纯离线AST确认训练入口传`state=None`、wrapper直达子方法且无zero-state初始化、既有测试只传预构造state；32层/96-state三角fixture中public路径成功、wrapper-none同型失败、wrapper-prebuilt成功。16项报告、8项专项和全项目538项通过，digest=`e029e809…ec4c`。修复后重复同一160-call计划仍属D6D重跑，D6E前置不满足，当前无独立后继实验 | Codex纯离线诊断；项目负责人审阅停止判定 |
 | 40. Self 更新与演化 | ⏳ 未开始 | 让 Self State 根据经历受控更新、回滚和分化 | 这是“持续自我”真正更深入的部分 | 尚未开始 | 后续阶段 |
 | 41. 内生调节与自主审议 | ⏳ 未开始 | 让 Self/冲突决定是否检索、回放、模拟或停止，并在零新外部观察条件下受控更新 | 检验系统是否不仅“有状态”，还会因内部状态选择继续计算；同时排除定时器和随机回放解释 | 设计说明已完成；必须等待显式 Self 因果价值和受约束更新两道前置门，不创建空壳代码 | 后续阶段 |
 | 42. 最终研究结论 | ⏳ 未开始 | 汇总统计结果、失败案例和替代解释 | 最终回答项目假设是否得到支持，而不是只展示几个有趣案例 | 尚未开始 | 共同完成 |
 
 ## 3. 当前所在位置
 
-> 2026-08-28 当前状态：D4/D5历史结论及重跑禁令不变；D6C与D6D的single-use claims均已消费且禁止重跑。D6D机器授权精确绑定commit `563c314`、config/training/pilot/installed-source digests；2.9B模型已加载，但唯一联合尝试在第一个训练record失败。`execute_projection_training`传入`state=None`，wrapper为持有instrumented方法而直接调用`forward_seq`，跳过真实RWKV public `forward`中唯一的`generate_zero_state()`路径，最终在state分量访问处触发`TypeError`。第一次forward未完成，0/16 capture完成，真实projection未构造，0/144 pilot执行；claim SHA=`421a4c81…d909`，failure digest=`5fc35707…a65d`。这只证明wrapper-owned dispatch缺失zero-state初始化兼容，不能评价synthetic正控制、Self projection、因果对照或Self效果。D6D/D6C及全部历史重跑、自动重跑、D6E、正式集、效果结论、Updater、raw-original和拆分机制运行继续关闭。以下保留完整历史路径；如与旧阶段描述冲突，以本段和顶部“当前节点”为准。
+> 2026-08-28 当前状态：D4/D5历史结论及重跑禁令不变；D6C与D6D claims均已消费且禁止重跑。D6D唯一真实attempt停在第一个训练forward，0/16 capture、无projection、0/144 pilot，不能评价Self机制或效果。新的纯离线诊断现完成根因闭环：AST锁定`execute_projection_training(..., state=None)`、wrapper直接`forward_one/forward_seq`且零`generate_zero_state`调用、冻结上游public `forward`独占None-state初始化语义、既有真实入口测试只传`_state()`。同一32层/96-state合成上游的三角fixture证明public-none初始化1次并成功、wrapper-none在dispatcher前精确复现同型TypeError、wrapper-prebuilt经过32层成功且来源state不变。16/16报告检查、8项专项及全项目538项通过，报告digest=`e029e809…ec4c`；未导入RWKV/Torch、未访问权重/模型、未修改真实runner。修复后重复同一模型/manifests/160-call计划仍属禁止的D6D重跑；D6E前置不满足，本轮未建立科学上独立的后继实验。以下保留完整历史路径；如与旧阶段描述冲突，以本段和顶部“当前节点”为准。
 
 ```text
 理论设计
@@ -239,7 +239,7 @@ EXP-001B补充控制
 
 ## 4. 当前下一步
 
-> 2026-08-28 当前下一步：D6D唯一机会已消费，不执行、不准备也不暗示任何修复后重跑。先持久化本次authorization/claim/failure观察和state初始化边界根因；如继续，只能由项目负责人另行确认一个纯离线失败闭环与研究路线审查，决定是否有科学上独立且非D6D重跑的新阶段。当前不修改真实runner，不创建新机器授权或claim，不访问权重或模型；D5C/P1/P2/D6C/D6D重跑、D6E、正式测试集、Self效果结论、Self Updater、raw-original路线、拆分机制运行和自动重跑继续关闭。以下保留此前 EXP-001B 轨迹作为历史记录。
+> 2026-08-28 当前下一步：项目负责人审阅D6D停止判定。D6D根因已经纯离线闭环，但本轮结论是`no_independent_successor_established`，不能把明确的wrapper修复当作新实验，也不能进入D6E。若项目继续，必须先提出一个不是“修复后重复D6D”的新研究问题和独立预注册阶段；在此之前不修改真实runner、不创建授权/claim、不访问模型。D5C/P1/P2/D6C/D6D重跑、D6E、正式测试集、Self效果结论、Self Updater、raw-original路线、拆分机制运行和自动重跑继续关闭。以下保留此前 EXP-001B 轨迹作为历史记录。
 
 截至2026-08-04，项目负责人已经确认EXP-001B设计草案中的B1–B7。
 新增范围仍锁在11,008条控制记录，并明确不重跑EXP-001、不重估E1–E3、
@@ -774,3 +774,4 @@ trial-condition单元；只允许全量完成且完整性验证后观察结果�
 | 2026-08-25 | Coupling-D6D-II服务器无模型复验通过并闭环：12/12专项测试、24/24入口检查和35/35 manifest检查全真，总报告digest=`93b0b09d…496f`。服务器`rwkv==0.8.32`的`model.py` digest=`75482aee…05e0`只做读取、双路径AST变换和compile-only，9/9 source检查通过且`exec_called=false`；probe/manifest报告digest分别为`300f3f19…a0d`/`bb1855dc…6288a`。16次训练capture、144次pilot和总160-forward承诺均冻结。机器授权、claim、真实projection artifact明确缺席，权重、模型与所有研究升级门保持关闭。回传未含HEAD/status，结论限于锁定source inventory、静态兼容和无模型入口；下一步只等待逐字单次真实执行授权 | 项目负责人回传的`results/development/self_model_v0_1_coupling_d6d_ii_real_entry/report.json`；`docs/self_model_v0_1_coupling_d6d_ii_remote_observation.md` |
 | 2026-08-25 | 项目负责人逐字授权Coupling-D6D真实2.9B单一联合projection训练与non-Core pilot一次及本次工程结果观察：同一进程/wrapper先完成16次只读capture并冻结真实projection，再执行12个fixture各1次OFF预条件+11条件共144次pilot，总160次forward。授权明确排除全部历史重跑、D6D重跑/自动重跑、D6E、正式集、Self效果结论、Updater、raw-original和拆分机制运行。当前仅持久化人类授权，机器授权、claim、权重、模型、projection与pilot均未触发；下一步在最终干净main上单次消费，成功或失败均停止 | 项目负责人授权原文；`docs/self_model_v0_1_coupling_d6d_real_execution_authorization.md` |
 | 2026-08-28 | Coupling-D6D唯一真实2.9B联合attempt有效失败并停止：commit `563c314`上的机器授权与claim有效，config/training/pilot/installed-source digest均与冻结项目文件一致；2.9B已加载。第1个训练record以`state=None`调用wrapper，wrapper直接进入instrumented `forward_seq`而绕过上游public `forward`的`generate_zero_state()`，在state下标访问处抛出`TypeError`。第一次forward未完成，0/16 capture完成，真实projection未构造，0/144 pilot执行。claim=`421a4c81…d909`已消费，failure=`5fc35707…a65d`；不能评价synthetic正控制、Self projection、因果对照或Self效果，禁止D6D及自动重跑 | 项目负责人回传authorization/claim/failure；`docs/self_model_v0_1_coupling_d6d_real_joint_observation.md` |
+| 2026-08-28 | Coupling-D6D失败纯离线state初始化诊断与路线审查完成：AST确认真实训练入口传`state=None`，wrapper直达instrumented子方法且无zero-state生成，而冻结上游public `forward`独占None-state初始化；既有测试仅用预构造`_state()`。32层/96-state纯Python三角fixture中public-none初始化并成功、wrapper-none在dispatcher前精确复现同型TypeError、wrapper-prebuilt经过32层成功且来源state不变。16/16报告、8项专项和全项目538项通过，digest=`e029e809…ec4c`；RWKV/Torch、权重、模型和真实runner修改均为零。判定修复后重复同一160-call计划仍属D6D重跑，D6E前置不满足，本轮没有建立独立后继实验 | `configs/development/self_model_v0_1_d6d_failure_state_initialization_diagnostic.json`；`src/psa/self_model/d6d_failure_state_initialization_diagnostic.py`；`docs/self_model_v0_1_coupling_d6d_failure_state_initialization_diagnostic.md` |

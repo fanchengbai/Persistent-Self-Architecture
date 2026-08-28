@@ -1,0 +1,86 @@
+{
+  "diagnostic_version": "0.1-coupling-d6d-failure-state-initialization-offline",
+  "stage": "Coupling-D6D_failure_state_initialization_offline_diagnostic_and_route_review",
+  "status": "offline_diagnostic_authorized_no_model_no_fix_no_rerun",
+  "development_only": true,
+  "required_owner_confirmation_text": "确认进入 Self Model v0.1 Coupling-D6D失败纯离线state初始化语义诊断与研究路线审查；仅使用现有authorization、claim、failure、冻结源码和合成Python fixture，验证public forward的zero-state初始化、wrapper-owned分派边界及测试覆盖缺口，并判断后续是否存在科学上独立且不构成D6D重跑的新实验路线；不导入RWKV/Torch、不访问权重、不加载或执行模型、不修改真实runner、不实现或授权D6D修复后重跑，也不授权D6E、正式测试集、Self效果结论、Self Updater、raw-original路线、拆分机制运行或自动重跑。",
+  "frozen_failure_evidence": {
+    "execution_commit": "563c3144d23f1a10e27c3e4377952f165fd0230f",
+    "authorization_payload_digest_sha256": "fabe99e84af60b7edc193f72de2d6617a3cdeb89569a7fcc8b3148e55c96d5fc",
+    "authorization_file_sha256": "3e514c9a8afa3d2aaf7a49b4b9f80a972160ccccb8a03dbd18a00af211a8a468",
+    "execution_claim_sha256": "421a4c811722e2600abe08bf742b43faa56f2162e9075c1668710187f5fed909",
+    "failure_report_digest_sha256": "5fc3570762c4d64e30de328711d1f5b9596876d87adf30898fe89a1e2a7ba65d",
+    "failure_status": "d6d_real_joint_attempt_failed_claim_consumed",
+    "failure_error_type": "TypeError",
+    "failure_error": "'NoneType' object is not subscriptable",
+    "config_sha256": "f9f53635f64d66a9f8d309f004d0a8acd8f7c68ba47ab223e08d3f2c2db4af1f",
+    "training_manifest_sha256": "a0aa594f6b020b03546fa95d2cd135783b97c72436e84d31d27c37f369dab0fd",
+    "pilot_manifest_sha256": "4c18addedb26de4fc80438ad687d2606df5a68511cde96661b3b87e4c60023b2",
+    "installed_source_sha256": "75482aee89a08d2a8c8dbe628110b317fc8d0974ddffbaa52aa19190667305e0",
+    "training_forward_calls_planned": 16,
+    "training_captures_completed": 0,
+    "projection_artifact_constructed": false,
+    "pilot_forward_calls_planned": 144,
+    "pilot_forward_calls_completed": 0,
+    "claim_consumed": true,
+    "d6d_rerun_authorized": false,
+    "automatic_rerun_authorized": false
+  },
+  "frozen_source_locks": {
+    "src/psa/self_model/d6d_ii_joint_runtime.py": "883fbbf314ad1cd93bd2547cfe1672c3d27b84419a0ee30881058e44905c609e",
+    "src/psa/self_model/d6d_ii_real_entry.py": "0efd605329551db6049e3bf4c3c13a1f5808bd9107fb664c1420afcd36549cbe",
+    "src/psa/self_model/rwkv_interface_audit.py": "1a051cf8a159e6e69eb3c749c272a0fb09e2cbeac51a665a13673c84196b0aa3",
+    "tests/test_self_model_d6d_ii_real_entry.py": "3b9a20d6604cd46240bfb09800f5d09892fc194ebc881e79aa20ee923f32ad86",
+    "docs/self_model_v0_1_coupling_d6d_real_joint_observation.md": "9f750437e6e6834e3d892e935bff1a3d38bb05fc9ecbda31585870d075038c6a"
+  },
+  "synthetic_fixture": {
+    "kind": "pure_python_public_forward_vs_wrapper_owned_dispatch_triangle",
+    "n_layer": 32,
+    "state_components": 96,
+    "tokens": [3, 5, 8],
+    "required_cases": [
+      "public_forward_none_initializes_and_succeeds",
+      "wrapper_direct_sequence_none_reproduces_type_error_before_dispatch",
+      "wrapper_direct_sequence_prebuilt_state_succeeds"
+    ],
+    "rwkv_imported": false,
+    "torch_imported": false,
+    "model_loaded": false,
+    "model_executed": false
+  },
+  "route_review": {
+    "repair_then_repeat_same_model_manifests_and_160_call_plan_is_d6d_rerun": true,
+    "d6e_prerequisite_satisfied": false,
+    "independent_new_experiment_route_established": false,
+    "minimum_future_independence_requirements": [
+      "new_research_question_not_merely_wrapper_repair",
+      "new_preregistration_and_stage_identity",
+      "new_authorization_claim_and_output_namespace",
+      "pre_model_real_protocol_compatibility_gate_covering_state_none",
+      "no_reuse_of_d6d_claim_or_claimed_160_call_attempt"
+    ],
+    "decision": "stop_d6d_no_independent_successor_established_by_this_diagnostic"
+  },
+  "required_classification": "d6d_failure_root_cause_converged_on_skipped_public_zero_state_initialization_no_independent_successor_established",
+  "authority": {
+    "offline_failure_diagnostic_authorized": true,
+    "offline_synthetic_fixture_authorized": true,
+    "research_route_review_authorized": true,
+    "rwkv_import_authorized": false,
+    "torch_import_authorized": false,
+    "weights_access_authorized": false,
+    "model_load_authorized": false,
+    "model_execution_authorized": false,
+    "real_runner_modification_authorized": false,
+    "d6d_fix_implementation_authorized": false,
+    "d6d_rerun_authorized": false,
+    "d6e_authorized": false,
+    "formal_test_set_authorized": false,
+    "self_effect_conclusion_authorized": false,
+    "self_updater_authorized": false,
+    "raw_original_route_authorized": false,
+    "split_mechanism_run_authorized": false,
+    "automatic_rerun_authorized": false
+  },
+  "next_gate": "owner_reviews_offline_stop_decision_no_model_or_fix_authorized"
+}
