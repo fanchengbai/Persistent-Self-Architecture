@@ -1,8 +1,8 @@
 # Persistent Self Architecture 项目进度表
 
 > 最后更新：2026-08-31
-> 当前节点：Phase 3 Self Model v0.1 D9-A within-wrapper causal isolation独立路线的纯离线预注册设计已完成；等待本地提交与推送后另行确认D9-B manifests/fake contract
-> 研究状态：D9-A冻结32个calibration、16 base case×4轮换=64个held-out、7类同wrapper成对对照和448 pair=928次未来forward；zero/condition顺序每类32/32平衡，轮换共享内容token且只改变code token，D8的70个token及fixture/seed/claim/result均不复用。专项12项、D8+D9组合56项和全项目636项通过；13项总检查、14项配置、18项独立性检查全真，report=`df3a203a…b714`。projection/runner/入口/model均未实现或触发，D9-B及以后未授权
+> 当前节点：Phase 3 Self Model v0.1 D9-B deterministic manifests与fake-first causal endpoint contract本地纯离线实现完成；等待提交/推送后服务器无模型复验
+> 研究状态：D9-A冻结的32 calibration、64 held-out、七类同wrapper对照、448 pair/928-call和全部阈值已原样物化为四份manifest；纯Python 480-record ledger与三类合成端点通过，缺失/重复/乱序/public/非有限/阶段泄漏均失败关闭。D9-A+B专项24项、D8+D9组合68项和全项目648项通过；13项总检查、12类验收全真，report=`6fa53a0a…ac91`。projection contract、authorization/claim/output、runner/入口/model均未创建或触发，D9-C/D仍未授权
 
 ## 1. 这张表怎么使用
 
@@ -113,14 +113,14 @@
 | 38p. EXP-001C v02 Stage B只读live preflight与机器授权锁 | ✅ 云端通过 | 在模型加载前绑定干净main提交、设计/protocol digest、Stage A原始结果、模型配置与资产哈希、主机环境、224条计划和空输出目录；授权只接受固定逐字文本并绑定preflight digest | 防止把“继续”解释成模型执行授权，也防止代码、证据、模型或输出目录变化后复用旧授权 | Stage B 29项远程测试通过，云端只读preflight全部检查为true且失败项为空；`model_loaded=false`、`model_executed=false`、执行/观察均为false。最终digest以本轮最终文档提交后的服务器v02证据为准 | Codex |
 | 38q. EXP-001C v02 Stage B项目负责人单次授权 | ✅ 已逐字确认并消费 | 负责人使用冻结原文授权224条recurrent-state非Core pilot及本轮结果观察，同时明确排除Stage A重跑、正式测试集、正式运行、确认性决定和自动重跑 | 模型执行和结果观察是新的不可逆边界，不能由此前“继续”推断 | 授权绑定preflight_v03与Stage A/result digest，机器记录和single-use claim均已消费；224条运行及观察完成后禁止重跑 | 项目负责人；Codex执行 |
 | 38r. EXP-001C v02 Stage B冻结只读观察 | ✅ 云端完成 | 对五个状态语义条件按8个语义案例×4代码轮换平均log score，记录联合/字段准确率与margin；reset/random只记录参考匹配率，不定义正确答案 | 原始code top-1容易受A–D先验影响；同时不能把诊断控制事后改成主要端点或临时添加通过阈值 | 五个主要条件均联合7/8、domain 8/8、operation 7/8；continuous/restored预测8/8一致，三种swap均7/8跟随注入state。reset/random参考匹配均2/8；无确认性决定或重跑 | Codex；云端只读分析 |
-| 39. Phase 3：显式 Self Model | ✅ D9-A独立同路径因果隔离预注册完成；D9-B待确认 | 实现静态Self Store、Self Encoder和可关闭/缩放gated injection，并建立字段mask/swap/random/coupling-off消融 | 先证明接口可审计、可干预、失败关闭，再决定真实RWKV注入位置和效果实验 | 针对D8-C确认的public↔wrapper漂移，D9-A将所有未来计分调用限制在同一persistent wrapper；冻结32 calibration、64 held-out、zero/active/mask/swap/random/synthetic七类对照、448 pair/928-call及全新阈值和namespace。12项专项、56项组合、636项全量通过，report=`df3a203a…b714`；projection和模型均未触发 | Codex |
+| 39. Phase 3：显式 Self Model | ✅ D9-B manifests/fake endpoint本地完成；等待服务器无模型复验 | 实现静态Self Store、Self Encoder和可关闭/缩放gated injection，并建立字段mask/swap/random/coupling-off消融 | 先证明接口可审计、可干预、失败关闭，再决定真实RWKV注入位置和效果实验 | D9-A的32 calibration、64 held-out、七类同wrapper对照、448 pair/928-call及全部阈值已物化为四manifest；480-record纯Python ledger、三类合成判定和失败关闭有效。24项专项、68项组合、648项全量通过，report=`6fa53a0a…ac91`；projection、授权、claim、runner和模型均未触发 | Codex |
 | 40. Self 更新与演化 | ⏳ 未开始 | 让 Self State 根据经历受控更新、回滚和分化 | 这是“持续自我”真正更深入的部分 | 尚未开始 | 后续阶段 |
 | 41. 内生调节与自主审议 | ⏳ 未开始 | 让 Self/冲突决定是否检索、回放、模拟或停止，并在零新外部观察条件下受控更新 | 检验系统是否不仅“有状态”，还会因内部状态选择继续计算；同时排除定时器和随机回放解释 | 设计说明已完成；必须等待显式 Self 因果价值和受约束更新两道前置门，不创建空壳代码 | 后续阶段 |
 | 42. 最终研究结论 | ⏳ 未开始 | 汇总统计结果、失败案例和替代解释 | 最终回答项目假设是否得到支持，而不是只展示几个有趣案例 | 尚未开始 | 共同完成 |
 
 ## 3. 当前所在位置
 
-> 2026-08-31 当前状态：D4–D8历史结论及重跑禁令不变；D7-C claim=`fa86ad70…00e1`与D8-C claim=`85403630…05db`均已消费且不重跑。D8-C确认public↔wrapper的route-specific excess drift后，D9-A建立科学独立的同路径因果隔离路线：未来所有计分条件只走persistent wrapper，比较zero与active_true、identity/goal mask、identity/goal swap、matched_random和synthetic_active，public不进入调度或计分。全新32 calibration与64 held-out严格分离；16个base case各4轮共享内容token、只改变rotation-code token；七类contrast各64 pair且zero-first/condition-first各32，未来32 capture+896 held-out=928 forward。352个D9 token定义与D8的70个token互斥，14个artifact namespace全新。主要端点以16个轮换边际化base case为单位，要求99%下界、13/16方向、字段层一致性及random/mask/swap/synthetic全部门同时通过；即使通过也只允许非正式非Self工程候选结论。D9-A专项12项、D8+D9组合56项、全项目636项及13/14/18项报告检查通过，digest=`df3a203a…b714`。本轮未实现projection/manifest/runner/入口，未探测source、导入模型栈或执行模型；D9-B/C/D及D7-D/E、正式集、Self效果、Updater、raw-original和自动重跑均关闭。以下保留完整历史路径；如与旧阶段描述冲突，以本段和顶部“当前节点”为准。
+> 2026-08-31 当前状态：D4–D8历史结论及重跑禁令不变；D7-C claim=`fa86ad70…00e1`与D8-C claim=`85403630…05db`均已消费且不重跑。D9-A针对public↔wrapper漂移建立同一persistent wrapper内的独立因果隔离路线；D9-B现已把全新32 calibration、64 held-out、七类contrast各64 pair、32/32反平衡、14个namespace及928-call计划物化为calibration/held-out/schedule/endpoint四manifest，三个展开commitment仍为`2e8d555e…fc39`、`02d33c92…15e4`、`a6b34ef7…85b9`。endpoint阈值与D9-A逐项相等，public计分路线为零。纯Python ledger含32 capture+448 pair=480记录，代表928次未来forward；字段特异正例通过，route-only和非特异反例失败，缺失、重复、乱序、public、非有限、condition顺序改变与阶段泄漏均停止。D9-A+B专项24项、D8+D9组合68项、全项目648项通过；13项报告与12类验收全真，digest=`6fa53a0a…ac91`。本轮未实现projection contract/真实projection，未创建authorization/claim/output，未探测source、修改runner、实现入口、导入模型栈或执行模型；D9-C/D及D7-D/E、正式集、Self效果、Updater、raw-original和自动重跑均关闭。以下保留完整历史路径；如与旧阶段描述冲突，以本段和顶部“当前节点”为准。
 
 ```text
 理论设计
@@ -239,7 +239,7 @@ EXP-001B补充控制
 
 ## 4. 当前下一步
 
-> 2026-08-31 当前下一步：先提交并在项目负责人明确授权后推送D9-A预注册配置、确定性设计代码、测试、文档和本进度更新。推送闭环后，普通“继续/下一步”仍不授权实现或运行；只有单独确认才能进入D9-B deterministic calibration/held-out/schedule/endpoint manifests与fake-first contract的纯离线物化。D9-C/D、projection实现或构造、installed source、RWKV/Torch、权重、模型执行、D8-C/历史重跑、D7-D/E、正式集、Self效果、Updater、raw-original和自动重跑继续关闭。以下保留此前 EXP-001B 轨迹作为历史记录。
+> 2026-08-31 当前下一步：先审计并提交D9-B四份manifest、绑定配置、纯Python endpoint代码、测试、文档和本进度更新；只有项目负责人另行授权才推送GitHub main。推送后先由服务器执行纯离线24项D9-A+B测试和D9-B验证器，不运行模型。服务器无模型复验闭环后，普通“继续/下一步”仍不授权D9-C；D9-C的projection contract与安全入口必须单独确认，D9-D真实执行更需未来独立逐字授权。installed source、RWKV/Torch、权重、模型、authorization/claim/output、D8-C/历史重跑、D7-D/E、正式集、Self效果、Updater、raw-original和自动重跑继续关闭。以下保留此前 EXP-001B 轨迹作为历史记录。
 
 截至2026-08-04，项目负责人已经确认EXP-001B设计草案中的B1–B7。
 新增范围仍锁在11,008条控制记录，并明确不重跑EXP-001、不重估E1–E3、
@@ -796,3 +796,4 @@ trial-condition单元；只允许全量完成且完整性验证后观察结果�
 | 2026-08-31 | 项目负责人在D8-C-I服务器无模型门闭环后逐字授权D8-C真实2.9B数值可识别性验证一次及本次结果观察：固定同一进程/同一wrapper，8次conditioning不计分、24 fixture/288 pair的576次scored，共584次forward；严格确定性与完整有序ledger不变。当前只持久化人类授权，机器authorization、single-use claim和output均未创建，installed source、RWKV/Torch、权重、模型均未触发。授权记录必须先进入最终干净main，之后仅允许冻结launcher一次性消费；成功或失败均禁止D8-C/历史重跑和自动重跑，D7-D/E、projection、正式集、Self效果、Updater、raw-original继续关闭 | 项目负责人授权原文；`docs/self_model_v0_1_d8c_real_execution_authorization.md` |
 | 2026-08-31 | D8-C真实2.9B数值可识别性单次验证有效完成并关闭：干净`main=e0ab61a`上机器authorization和claim依次创建，installed RWKV 0.8.32/source、2.9B权重及严格确定性门有效；584/584 forward、8 conditioning、576 scored、288 pair和296行ledger完整，所有8项运行检查为true，耗时55.71秒。24/24 fixture及四stratum各6/6 excess drift为正，均值=`0.0032601490`，99% bootstrap下界=`0.0028584167`；报告`valid=true`、digest=`a0dad92b…2ac5`，完整性`49416072…4300`，raw=`72a3e919…8e73`。结论严格限定为route-specific excess drift的非Self工程证据：wrapper-zero不等价于public，不形成Self效果或route equivalence声明。claim=`85403630…05db`已消费，D8-C/历史/自动重跑及D7-D/E、projection、正式集、Updater、raw-original均关闭 | 项目负责人执行并回传；`docs/self_model_v0_1_d8c_real_observation.md` |
 | 2026-08-31 | D9-A within-wrapper causal isolation独立纯离线预注册完成：D8-C结果只作路径混杂依据，不复用其fixture/token/seed/claim/result作为新数据。冻结32 calibration capture与16 identity×goal base case×4代码轮换=64 held-out；同case四轮共享内容token、只换独立code token，calibration/held-out及D8 token均互斥。未来七类zero对active/mask/swap/random/synthetic成对对照全走同一persistent wrapper，各64 pair、顺序32/32，448 pair+32 capture=928 forward。端点要求active-zero 99%下界、13/16方向、每字段层3/4一致，并同时通过true-vs-random、mask、swap和60/64 synthetic门；通过也只作非正式非Self工程候选。commitment分别=`2e8d555e…fc39`、`02d33c92…15e4`、`a6b34ef7…85b9`；专项12项、组合56项、全量636项及13总/14配置/18独立性检查通过，report=`df3a203a…b714`。未实现projection/manifest/runner/入口或触发模型；D9-B及后续门待独立确认 | `configs/preregistration/self_model_v0_1_d9a_within_wrapper_causal_isolation.draft.json`；`src/psa/self_model/d9a_within_wrapper_causal_isolation.py`；`docs/self_model_v0_1_d9a_within_wrapper_causal_isolation.md` |
+| 2026-08-31 | D9-B deterministic manifests与fake-first causal endpoint contract本地纯离线实现完成：D9-A的32条calibration、64条held-out、七类同wrapper对照、448 pair/928-call、训练/held-out隔离、顺序反平衡、14个namespace及全部阈值已物化为四manifest；三个展开commitment原样保持。纯Python ledger以32 capture+448 pair共480记录表示928次未来forward，字段特异候选通过全部门，route-only及active/random非特异反例失败；缺失、重复、乱序、public路由、非有限值、condition顺序变化和阶段泄漏均在决策前停止。D9-A+B专项24项、D8+D9组合68项、全项目648项通过，13项报告与12类验收全真，report=`6fa53a0a…ac91`。未创建projection contract、authorization、claim或output，未探测source、修改runner、实现入口、导入RWKV/Torch、访问权重或执行模型；下一步仅服务器纯离线复验 | `configs/development/self_model_v0_1_d9b_manifest_endpoint_contract.json`；`src/psa/self_model/d9b_manifest_endpoint_contract.py`；`docs/self_model_v0_1_d9b_manifest_endpoint_contract.md` |

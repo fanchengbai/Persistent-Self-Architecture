@@ -1,0 +1,81 @@
+{
+  "contract_version": "0.1-self-model-d9b-manifest-endpoint-contract",
+  "stage": "Self-Model-v0.1-D9-B_deterministic_manifests_and_fake_causal_endpoint_contract",
+  "status": "offline_contract_implemented_unrun_no_model",
+  "development_only": true,
+  "owner_confirmation_text": "确认进入 Self Model v0.1 D9-B deterministic manifests与fake-first causal endpoint contract纯离线实现；只允许将D9-A冻结的32个calibration fixture、64个held-out fixture、七类同wrapper成对对照、448个pair/928次未来forward、训练与held-out隔离、配对反平衡、通过阈值和14个全新命名空间物化为deterministic calibration/held-out/schedule/endpoint manifests、纯Python数据结构、完整性校验、失败关闭与合成验收；不得修改D9-A阈值、引入public计分路线，或复用D8-C的fixture、token、seed、claim和结果作为新实验数据。本轮不实现projection contract或真实projection、不探测installed source、不修改真实runner、不实现执行入口、不导入RWKV/Torch、不访问权重、不加载或执行模型、不创建authorization/claim/output；不授权D9-C/D9-D真实执行、D8-C或历史重跑、D7-D/D7-E、正式测试集、Self效果结论、Self Updater、raw-original路线或自动重跑。",
+  "frozen_design": {
+    "path": "configs/preregistration/self_model_v0_1_d9a_within_wrapper_causal_isolation.draft.json",
+    "sha256": "430926dbf6eafad2246e25e695ca9783ea73df2f91b9c427f9105de44e9858a8",
+    "historical_design_report_sha256": "df3a203a8b9d483e9ddda0fc434f629bcda3c021655f9dee841b8000221eb714",
+    "research_question_changed": false,
+    "thresholds_changed": false
+  },
+  "manifests": {
+    "calibration_path": "configs/development/self_model_v0_1_d9_calibration_manifest.json",
+    "calibration_sha256": "0da7c885d9ffae14e097eb73241cc8b56b9e15beb587c1c4d10913c054b6d07b",
+    "heldout_path": "configs/development/self_model_v0_1_d9_heldout_manifest.json",
+    "heldout_sha256": "3f70265716623ccfac264f44f6a7e900e90dd0f589e8269cb9869a960b629e4c",
+    "schedule_path": "configs/development/self_model_v0_1_d9_within_wrapper_schedule.json",
+    "schedule_sha256": "04a359738166b386154aa13434902cd00d3552a4edbb9acc033d0dc8e11333d2",
+    "endpoint_path": "configs/development/self_model_v0_1_d9_causal_endpoint.json",
+    "endpoint_sha256": "1323b15f269f2bd4123992e213ec4d6dd1262376ad5c7b9563279f6b2543f562"
+  },
+  "counts": {
+    "calibration_fixtures": 32,
+    "heldout_fixtures": 64,
+    "base_cases": 16,
+    "contrasts": 7,
+    "heldout_pairs": 448,
+    "calibration_forward_calls": 32,
+    "heldout_forward_calls": 896,
+    "total_future_forward_calls": 928,
+    "future_namespaces": 14
+  },
+  "fake_runtime_contract": {
+    "fixture_kind": "d9b_pure_python_scalar_margin_records_only",
+    "tensor_projection_or_model_object_allowed": false,
+    "public_scoring_route_allowed": false,
+    "input_mutation_allowed": false,
+    "complete_ordered_ledger_required": true,
+    "finite_values_required": true,
+    "calibration_heldout_leakage_policy": "reject_before_decision",
+    "duplicate_missing_reordered_or_route_mismatch_policy": "reject_before_decision",
+    "output_claim": "endpoint_contract_only_not_real_projection_or_self_effect_evidence"
+  },
+  "gate_sequence": [
+    {"gate_id": "D9-A", "implemented": true, "model_execution": false},
+    {"gate_id": "D9-B", "implemented": true, "model_execution": false},
+    {"gate_id": "D9-C", "implemented": false, "authorized": false},
+    {"gate_id": "D9-D", "implemented": false, "authorized": false, "future_forward_calls": 928}
+  ],
+  "authority": {
+    "d9b_manifest_implementation_authorized": true,
+    "pure_python_fake_endpoint_authorized": true,
+    "offline_integrity_report_authorized": true,
+    "projection_contract_implementation_authorized": false,
+    "real_projection_construction_authorized": false,
+    "installed_source_probe_authorized": false,
+    "real_runner_modification_authorized": false,
+    "execution_entry_implementation_authorized": false,
+    "authorization_claim_or_output_creation_authorized": false,
+    "rwkv_import_authorized": false,
+    "torch_import_authorized": false,
+    "weights_access_authorized": false,
+    "model_load_authorized": false,
+    "model_execution_authorized": false,
+    "d9c_authorized": false,
+    "d9d_real_execution_authorized": false,
+    "d8c_rerun_authorized": false,
+    "historical_rerun_authorized": false,
+    "d7d_authorized": false,
+    "d7e_authorized": false,
+    "formal_test_set_authorized": false,
+    "self_effect_conclusion_authorized": false,
+    "self_updater_authorized": false,
+    "raw_original_route_authorized": false,
+    "automatic_rerun_authorized": false
+  },
+  "required_classification": "d9b_deterministic_manifests_and_fake_within_wrapper_causal_endpoint_verified_no_model",
+  "next_gate": "remote_no_model_d9b_verification_then_separate_d9c_confirmation"
+}
