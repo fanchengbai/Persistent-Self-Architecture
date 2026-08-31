@@ -1,7 +1,7 @@
 # Self Model v0.1 D7-C real public semantics compatibility execution authorization
 
 日期：2026-08-31
-状态：首次授权因生命周期修复保持未消费并失效；修复远程复验后，项目负责人已在最终修正版上重新逐字授权，等待单次执行
+状态：首次授权因生命周期修复保持未消费并失效；修复后的重新授权已在最终main上单次消费，D7-C兼容门失败且禁止重跑
 
 在 D7-C 设计与无模型安全入口服务器复验闭环后，项目负责人给出配置中冻结的精确授权：
 
@@ -24,3 +24,11 @@ D7-C 授权生命周期修复已在服务器通过 14 项专项测试、14 项�
 > 授权执行 Self Model v0.1 D7-C 真实2.9B public语义兼容门一次（固定8个public OFF/wrapper zero等价cell共16次调用，加2次synthetic active，共18次forward；不访问calibration/held-out payload），并授权观察本次兼容结果；不授权D7-C重跑、自动重跑、D7-D/D7-E、projection实现或构造、D6D重跑、正式测试集、Self效果结论、Self Updater或raw-original路线。
 
 这次重新授权只在包含本记录的最终干净 `main` 上有效。当前仅持久化人类授权：机器授权和 execution claim 尚未创建，installed source 尚未探测，权重尚未访问，模型尚未加载或执行。服务器 runner 一旦创建并消费 single-use claim，无论成功或失败都必须停止且不得重跑。
+
+## 单次执行结果
+
+重新授权已在最终干净 `main=665ac40026249fd8f1523aa2cae40486bb427d44` 上单次消费。机器授权、installed source探测、single-use claim、固定2.9B资产校验和模型加载均有效；严格18次forward全部完成，runner正常返回0。
+
+synthetic active正控制、64次callback、第15层2次应用、初始化计数、基础实例字典不变性和wrapper生命周期全部通过。但8/8个public OFF/wrapper zero cell的logits及state均未逐项精确相等，每cell只有4/96个state组件精确。最终状态为`d7c_real_public_semantics_compatibility_failed`、`valid=false`，claim SHA-256=`fa86ad70…00e1`，报告digest=`9e22f664…233d`。
+
+本次claim已经消费，D7-C及自动重跑关闭。结果只说明真实public语义精确兼容门失败，不评价projection或Self效果；详细观察见`docs/self_model_v0_1_d7c_real_compatibility_observation.md`。

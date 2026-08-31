@@ -1,8 +1,8 @@
 # Persistent Self Architecture 项目进度表
 
 > 最后更新：2026-08-31
-> 当前节点：Phase 3 Self Model v0.1 D7-C最终修正版重新逐字执行授权已确认；等待授权记录推送后单次真实2.9B兼容门
-> 研究状态：生命周期修复远程门已闭环，最终main=`d20e42c`、新digest=`f1134f26…748e`；负责人已重新授权严格8-cell/18-call兼容门及本次观察，机器授权/claim尚未创建，installed source、payload、权重和模型尚未触发
+> 当前节点：Phase 3 Self Model v0.1 D7-C唯一真实2.9B public语义兼容门有效失败；claim已消费，D7-D/D7-E继续关闭
+> 研究状态：最终main=`665ac40`上18/18次forward完成，active正控制、计数和生命周期通过，但8/8个OFF/zero cell的logits/state均非逐项精确相等，每cell仅4/96 state组件精确；report=`9e22f664…233d`、valid=false，禁止D7-C及自动重跑
 
 ## 1. 这张表怎么使用
 
@@ -113,14 +113,14 @@
 | 38p. EXP-001C v02 Stage B只读live preflight与机器授权锁 | ✅ 云端通过 | 在模型加载前绑定干净main提交、设计/protocol digest、Stage A原始结果、模型配置与资产哈希、主机环境、224条计划和空输出目录；授权只接受固定逐字文本并绑定preflight digest | 防止把“继续”解释成模型执行授权，也防止代码、证据、模型或输出目录变化后复用旧授权 | Stage B 29项远程测试通过，云端只读preflight全部检查为true且失败项为空；`model_loaded=false`、`model_executed=false`、执行/观察均为false。最终digest以本轮最终文档提交后的服务器v02证据为准 | Codex |
 | 38q. EXP-001C v02 Stage B项目负责人单次授权 | ✅ 已逐字确认并消费 | 负责人使用冻结原文授权224条recurrent-state非Core pilot及本轮结果观察，同时明确排除Stage A重跑、正式测试集、正式运行、确认性决定和自动重跑 | 模型执行和结果观察是新的不可逆边界，不能由此前“继续”推断 | 授权绑定preflight_v03与Stage A/result digest，机器记录和single-use claim均已消费；224条运行及观察完成后禁止重跑 | 项目负责人；Codex执行 |
 | 38r. EXP-001C v02 Stage B冻结只读观察 | ✅ 云端完成 | 对五个状态语义条件按8个语义案例×4代码轮换平均log score，记录联合/字段准确率与margin；reset/random只记录参考匹配率，不定义正确答案 | 原始code top-1容易受A–D先验影响；同时不能把诊断控制事后改成主要端点或临时添加通过阈值 | 五个主要条件均联合7/8、domain 8/8、operation 7/8；continuous/restored预测8/8一致，三种swap均7/8跟随注入state。reset/random参考匹配均2/8；无确认性决定或重跑 | Codex；云端只读分析 |
-| 39. Phase 3：显式 Self Model | 🟡 D7-C最终修正版重新逐字授权已确认；等待授权记录推送后单次真实2.9B兼容门 | 实现静态Self Store、Self Encoder和可关闭/缩放gated injection，并建立字段mask/swap/random/coupling-off消融 | 先证明接口可审计、可干预、失败关闭，再决定真实RWKV注入位置和效果实验 | D6D失败与禁止重跑边界不变。生命周期修复服务器无模型门已闭环；项目负责人在最终`d20e42c`后重新逐字授权一次8-cell/18-call真实兼容门及本次观察，明确不访问calibration/held-out payload并继续关闭重跑、D7-D/E、projection、正式集、Self效果、Updater和raw-original。当前仅持久化人类授权；机器授权/claim未创建，installed source、RWKV/Torch、payload、权重和模型均未触发。授权记录必须先进入最终干净main，再由冻结runner单次消费 | 项目负责人重新授权；Codex持久化前置状态 |
+| 39. Phase 3：显式 Self Model | ⚠️ D7-C唯一真实2.9B public语义兼容门有效失败；claim已消费且禁止重跑 | 实现静态Self Store、Self Encoder和可关闭/缩放gated injection，并建立字段mask/swap/random/coupling-off消融 | 先证明接口可审计、可干预、失败关闭，再决定真实RWKV注入位置和效果实验 | 最终干净`main=665ac40`上机器授权、source/资产校验、claim与模型加载有效，18/18次forward完成。8个cell、初始化计数、实例字典、bindings/context、64次callback、第15层2次active应用和active输出变化均通过；但8/8个public OFF/wrapper zero cell的logits/state均不满足逐项`torch.equal`，每cell仅4/96 state组件精确，logits最大误差0.03125–0.2421875、state最大误差0.0844383–0.2490997。状态=`d7c_real_public_semantics_compatibility_failed`、report=`9e22f664…233d`、claim=`fa86ad70…00e1`。D7-C/自动重跑关闭，D7-D/E、projection和Self效果无证据且继续关闭 | 项目负责人远程执行；Codex只读观察 |
 | 40. Self 更新与演化 | ⏳ 未开始 | 让 Self State 根据经历受控更新、回滚和分化 | 这是“持续自我”真正更深入的部分 | 尚未开始 | 后续阶段 |
 | 41. 内生调节与自主审议 | ⏳ 未开始 | 让 Self/冲突决定是否检索、回放、模拟或停止，并在零新外部观察条件下受控更新 | 检验系统是否不仅“有状态”，还会因内部状态选择继续计算；同时排除定时器和随机回放解释 | 设计说明已完成；必须等待显式 Self 因果价值和受约束更新两道前置门，不创建空壳代码 | 后续阶段 |
 | 42. 最终研究结论 | ⏳ 未开始 | 汇总统计结果、失败案例和替代解释 | 最终回答项目假设是否得到支持，而不是只展示几个有趣案例 | 尚未开始 | 共同完成 |
 
 ## 3. 当前所在位置
 
-> 2026-08-31 当前状态：D4/D5历史结论及重跑禁令不变；D6C与D6D claims均已消费且禁止重跑。D7-B、D7-C初版无模型门及D7-C授权生命周期修复的服务器复验均已闭环。修正版远程14项专项、14/14入口、15/15配置、14/14 synthetic及create→validate回归门通过，三个commitment和新总digest=`f1134f26…748e`与本地一致。修复前人类授权未消费但已因源码摘要变化失效。项目负责人现已在最终`main`提交`d20e42c`后重新给出配置中完全相同的逐字授权：仅允许一次真实2.9B 8-cell/18-call public兼容门与本次结果观察，不访问calibration/held-out payload，并明确排除D7-C/自动重跑、D7-D/E、projection、D6D重跑、正式集、Self效果、Updater和raw-original。当前仍只有人类授权；机器授权/claim未创建，installed source、RWKV/Torch、payload、权重和模型均未触发。授权记录进入最终干净main后，冻结runner才可单次消费；成功或失败均停止。真实兼容、projection和Self效果仍未得到证据。以下保留完整历史路径；如与旧阶段描述冲突，以本段和顶部“当前节点”为准。
+> 2026-08-31 当前状态：D4/D5历史结论及重跑禁令不变；D6C与D6D claims均已消费且禁止重跑。D7-B、D7-C无模型门及授权生命周期修复均已闭环。D7-C唯一真实2.9B public语义兼容门现已在干净`main=665ac40`上完整执行：精确机器授权、静态报告、`rwkv==0.8.32` source digest=`75482aee…05e0`、模型资产与single-use claim均有效；runner正常返回0并在约15.39秒内完成8次public OFF、8次wrapper zero及2次synthetic active，共18次forward。active正控制、64次callback、第15层2次应用、None/prebuilt初始化计数、实例字典不变及bindings/context稳定均通过；所有state结构也保持96/96兼容且有限。但冻结的精确等价端点失败：8/8 cell的logits均非exact，8/8 cell的state均非exact且inventory digest不等，每cell只有4/96组件精确；logits最大绝对误差范围0.03125–0.2421875，state最大绝对误差范围0.0844383–0.2490997。最终`valid=false`、status=`d7c_real_public_semantics_compatibility_failed`、report=`9e22f664…233d`、claim=`fa86ad70…00e1`。这是完整兼容门失败而非runner崩溃；现有证据不能事后归因具体差异来源。D7-C claim已消费并禁止重跑，D7-D/E前置不满足，projection与Self效果未测试。以下保留完整历史路径；如与旧阶段描述冲突，以本段和顶部“当前节点”为准。
 
 ```text
 理论设计
@@ -239,7 +239,7 @@ EXP-001B补充控制
 
 ## 4. 当前下一步
 
-> 2026-08-31 当前下一步：先把修复后重新逐字授权与未消费状态提交并推送到`main`。服务器随后必须拉取该最终提交，核对clean main、HEAD、机器授权/输出目录全缺席，并仅通过冻结runner创建唯一机器授权、探测锁定installed source、消费single-use claim、访问固定2.9B权重和执行严格18次forward。授权已包含本次结果观察；成功或失败均停止，禁止D7-C或自动重跑。D7-D/D7-E、projection实现或构造、D6D及其他历史重跑、正式测试集、Self效果结论、Self Updater和raw-original路线继续关闭。以下保留此前 EXP-001B 轨迹作为历史记录。
+> 2026-08-31 当前下一步：先把D7-C唯一真实attempt的授权、claim、通过项、8/8精确等价失败与禁止重跑结论持久化到`main`。此后普通“继续/下一步”不能授权任何模型运行、runner修复或重跑。若项目负责人另行确认，只能进入纯离线失败诊断设计：使用现有authorization、claim、report和冻结源码，分析8个cell的差异分布、调用顺序、public/instrumented边界和确定性设置；不得导入RWKV/Torch、访问权重、加载/执行模型、修改真实runner、改变D7-C失败结论或开放D7-D/E、projection、正式集、Self效果、Updater、raw-original和自动重跑。以下保留此前 EXP-001B 轨迹作为历史记录。
 
 截至2026-08-04，项目负责人已经确认EXP-001B设计草案中的B1–B7。
 新增范围仍锁在11,008条控制记录，并明确不重跑EXP-001、不重估E1–E3、
@@ -783,3 +783,4 @@ trial-condition单元；只允许全量完成且完整性验证后观察结果�
 | 2026-08-31 | 项目负责人逐字授权D7-C真实2.9B public语义兼容门一次及本次结果观察；固定8个等价cell的16次调用与2次synthetic active共18次，不访问calibration/held-out payload，并继续关闭重跑、D7-D/E、projection、正式集、Self效果、Updater和raw-original。执行前审计发现原授权create→validate会因机器授权自身出现而改变绑定的静态报告摘要，故未启动、未消费授权，未创建机器授权/claim，也未探测installed source或访问模型。完成纯无模型生命周期修复：创建后验证规范化artifact存在性但继续复算所有源码/协议/Git证据；新增回归测试，14项专项、14/15/14检查及全项目570项通过，新digest=`f1134f26…748e`。因锁定源码变化，本次授权只能保留为未消费历史，修正版远程无模型复验后必须重新逐字授权 | 项目负责人授权原文；`docs/self_model_v0_1_d7c_real_execution_authorization.md`；`src/psa/self_model/d7c_real_compatibility_entry.py` |
 | 2026-08-31 | D7-C授权生命周期修复服务器无模型复验通过并闭环：14项专项测试`OK`；14项入口、15项配置、14类synthetic、8-cell/18-call及新增create→validate回归门均跨环境一致，新总digest=`f1134f26…748e`和三个commitment匹配。execution artifacts全缺席；installed source、RWKV/Torch、payload、权重、模型及所有后续研究门均未触发。回传未含HEAD/status，结论限定为15个锁定源码digest、生命周期无模型路径和synthetic行为，不证明真实兼容或Self效果。修复前授权未消费但不可复用；下一步只允许在最终修正版上重新逐字授权 | 项目负责人回传终端输出；`docs/self_model_v0_1_d7c_authorization_lifecycle_fix_remote_observation.md` |
 | 2026-08-31 | 项目负责人在D7-C生命周期修复远程无模型门闭环及最终`main=d20e42c`后，重新给出配置中冻结的逐字授权：仅执行一次真实2.9B 8-cell/18-call public兼容门并观察本次结果，不访问calibration/held-out payload；D7-C/自动重跑、D7-D/E、projection、D6D重跑、正式集、Self效果、Updater和raw-original继续关闭。当前仅持久化人类授权，机器授权/claim尚未创建，installed source、权重和模型尚未触发；下一步只允许在包含本记录的最终干净main上由冻结runner单次消费 | 项目负责人重新授权原文；`docs/self_model_v0_1_d7c_real_execution_authorization.md` |
+| 2026-08-31 | D7-C唯一真实2.9B public语义兼容attempt完整执行并有效失败：干净`main=665ac40`，机器授权与静态digest=`f1134f26…748e`有效，`rwkv==0.8.32` source和固定资产匹配，claim=`fa86ad70…00e1`已消费；18/18次forward约15.39秒完成。8-cell计划、初始化、实例字典、wrapper生命周期、64次callback、第15层2次应用和active差异均通过；但8/8 OFF/zero cell的logits/state均非逐项exact，每cell仅4/96 state组件精确，故`valid=false`、status=`d7c_real_public_semantics_compatibility_failed`、report=`9e22f664…233d`。这是完整门失败不是崩溃；禁止D7-C/自动重跑，D7-D/E、projection与Self效果继续关闭 | 项目负责人回传authorization/claim/report；`docs/self_model_v0_1_d7c_real_compatibility_observation.md` |
