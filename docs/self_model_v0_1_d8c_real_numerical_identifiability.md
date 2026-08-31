@@ -26,7 +26,7 @@ D8-C 拥有独立的 schema、authorization、claim 和 output 命名空间：
 
 ## 纯 Python 验收
 
-安全入口用 D8-B schedule 生成纯 Python call plan，验收 conditioning/scored 数量、唯一 ID、路由合法性和完整顺序；合成 ledger 的缺失、重复和重排均被拒绝。报告明确标记 `model_executed=false`、`payload_accessed=false`、`execution_claim_created=false`，只证明协议完整性，不证明真实路径等价或 Self 效果。
+安全入口从冻结 D8-A design 复用 D8-B 的 `expand_fixtures`/`expand_schedule` 确定性展开，再生成纯 Python call plan；设计型 schedule manifest 本身没有逐条调用，若被直接传入会失败关闭。验收覆盖 conditioning/scored 数量、唯一 ID、路由合法性和完整顺序；合成 ledger 的缺失、重复和重排均被拒绝。报告明确标记 `model_executed=false`、`payload_accessed=false`、`execution_claim_created=false`，只证明协议完整性，不证明真实路径等价或 Self 效果。
 
 ## 下一道门
 

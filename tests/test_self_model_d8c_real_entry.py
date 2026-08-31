@@ -19,6 +19,10 @@ from psa.self_model.d8c_real_numerical_identifiability import (
     validate_config,
     validate_ledger_order,
 )
+from psa.self_model.d8_numerical_identifiability_design import (
+    expand_fixtures,
+    expand_schedule,
+)
 
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -26,6 +30,13 @@ ROOT = Path(__file__).resolve().parents[1]
 
 def _load(relative: str) -> dict:
     return json.loads((ROOT / relative).read_text(encoding="utf-8"))
+
+
+def _expanded_schedule() -> dict:
+    design = _load(
+        "configs/preregistration/self_model_v0_1_d8_numerical_identifiability.draft.json"
+    )
+    return expand_schedule(design, expand_fixtures(design))
 
 
 class D8CRealEntryTests(unittest.TestCase):
@@ -52,8 +63,7 @@ class D8CRealEntryTests(unittest.TestCase):
         )
 
     def test_call_plan_materializes_584_calls_without_payload(self):
-        schedule = _load("configs/development/self_model_v0_1_d8_counterbalanced_schedule.json")
-        plan = build_call_plan(schedule)
+        plan = build_call_plan(_expanded_schedule())
         self.assertEqual(len(plan), 584)
         checks = validate_call_plan(plan)
         self.assertTrue(all(checks.values()))
@@ -61,8 +71,7 @@ class D8CRealEntryTests(unittest.TestCase):
         self.assertEqual(sum(item["scored"] is True for item in plan), 576)
 
     def test_ledger_requires_exact_order_and_count(self):
-        schedule = _load("configs/development/self_model_v0_1_d8_counterbalanced_schedule.json")
-        plan = build_call_plan(schedule)
+        plan = build_call_plan(_expanded_schedule())
         ledger = [{"call_id": item["call_id"]} for item in plan]
         self.assertTrue(validate_ledger_order(plan, ledger)["valid"])
         with self.assertRaises(ValueError):
@@ -98,8 +107,7 @@ class D8CRealEntryTests(unittest.TestCase):
                 validate_config(changed)
 
     def test_plan_mutations_fail_closed(self):
-        schedule = _load("configs/development/self_model_v0_1_d8_counterbalanced_schedule.json")
-        plan = build_call_plan(schedule)
+        plan = build_call_plan(_expanded_schedule())
         changed = list(plan)
         changed[0] = dict(changed[0], scored=True)
         with self.assertRaises(ValueError):
@@ -108,6 +116,13 @@ class D8CRealEntryTests(unittest.TestCase):
         changed[10] = dict(changed[10], call_id=changed[0]["call_id"])
         with self.assertRaises(ValueError):
             validate_call_plan(changed)
+
+    def test_unexpanded_schedule_fails_closed(self):
+        schedule_manifest = _load(
+            "configs/development/self_model_v0_1_d8_counterbalanced_schedule.json"
+        )
+        with self.assertRaises(ValueError):
+            build_call_plan(schedule_manifest)
 
     def test_wrong_config_path_rejected(self):
         with self.assertRaises(PermissionError):

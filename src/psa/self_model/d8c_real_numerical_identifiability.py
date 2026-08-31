@@ -16,11 +16,17 @@ from typing import Any, Mapping, Sequence
 
 from psa.artifacts import sha256_file, sha256_json
 from psa.self_model.d8b_manifest_endpoint_contract import (
+    DESIGN_RELATIVE_PATH,
+    DESIGN_SHA256,
     validate_contract_config,
     validate_determinism_manifest,
     validate_endpoint_manifest,
     validate_fixture_manifest,
     validate_schedule_manifest,
+)
+from psa.self_model.d8_numerical_identifiability_design import (
+    expand_fixtures,
+    expand_schedule,
 )
 
 
@@ -51,7 +57,7 @@ ENDPOINT_SHA256 = "96517ab9314ac2e8f68fd520bfb860626e39b1b69e3403f7033781a699834
 REQUIRED_CONFIRMATION = (
     "确认进入 Self Model v0.1 D8-C 真实数值可识别性协议设计与无模型安全入口实现；"
     "仅设计新的真实执行协议、确定性策略、授权/claim/output 命名空间和失败即停止门，"
-    "不执行模型、不访问权重、不探测或修改真实 runner，不重跑 D7-C/D6D，也不授权 D8-C"
+    "不执行模型、不访问权重、不探测或修改真实 runner，不重跑 D7-C/D6D，也不授权 D8-C "
     "真实执行、正式测试集、Self 效果实验、Self Updater、raw-original 路线或自动重跑。"
 )
 FUTURE_EXECUTION_AUTHORIZATION_TEXT = (
@@ -69,12 +75,14 @@ NEXT_GATE = "remote_no_model_d8c_verification_then_separate_d8c_real_execution_a
 SOURCE_PATHS = (
     CONFIG_RELATIVE_PATH,
     D8B_CONTRACT_RELATIVE_PATH,
+    DESIGN_RELATIVE_PATH,
     FIXTURE_RELATIVE_PATH,
     SCHEDULE_RELATIVE_PATH,
     DETERMINISM_RELATIVE_PATH,
     ENDPOINT_RELATIVE_PATH,
     AUTHORIZATION_SCHEMA_RELATIVE_PATH,
     "docs/self_model_v0_1_d8c_real_numerical_identifiability.md",
+    "docs/self_model_v0_1_d8c_remote_no_model_failure_observation.md",
     "scripts/verify_self_model_v0_1_d8c_real_entry.py",
     "src/psa/self_model/d8c_real_numerical_identifiability.py",
     "tests/test_self_model_d8c_real_entry.py",
@@ -291,8 +299,10 @@ def validate_authorization_schema(schema: Mapping[str, Any]) -> dict[str, bool]:
 
 
 def build_call_plan(schedule: Mapping[str, Any]) -> list[dict[str, Any]]:
-    conditioning = schedule.get("conditioning_calls", [])
-    blocks = schedule.get("pair_blocks", [])
+    if "conditioning_calls" not in schedule or "pair_blocks" not in schedule:
+        raise ValueError("D8-C call plan requires the expanded D8-A schedule")
+    conditioning = schedule["conditioning_calls"]
+    blocks = schedule["pair_blocks"]
     plan: list[dict[str, Any]] = []
     for call in conditioning:
         plan.append(
@@ -398,6 +408,7 @@ def build_static_report(*, config_path: str | Path, project_root: str | Path) ->
     config = _object(expected_config, "config")
     config_checks = validate_config(config)
     d8b = _object(_inside(root, D8B_CONTRACT_RELATIVE_PATH, "D8-B contract"), "D8-B contract")
+    design = _object(_inside(root, DESIGN_RELATIVE_PATH, "D8-A design"), "D8-A design")
     fixture = _object(_inside(root, FIXTURE_RELATIVE_PATH, "fixture manifest"), "fixture manifest")
     schedule = _object(_inside(root, SCHEDULE_RELATIVE_PATH, "schedule manifest"), "schedule manifest")
     determinism = _object(_inside(root, DETERMINISM_RELATIVE_PATH, "determinism manifest"), "determinism manifest")
@@ -412,13 +423,15 @@ def build_static_report(*, config_path: str | Path, project_root: str | Path) ->
     }
     hash_checks = {
         D8B_CONTRACT_RELATIVE_PATH: sha256_file(_inside(root, D8B_CONTRACT_RELATIVE_PATH, "D8-B contract")) == D8B_CONTRACT_SHA256,
+        DESIGN_RELATIVE_PATH: sha256_file(_inside(root, DESIGN_RELATIVE_PATH, "D8-A design")) == DESIGN_SHA256,
         FIXTURE_RELATIVE_PATH: sha256_file(_inside(root, FIXTURE_RELATIVE_PATH, "fixture manifest")) == FIXTURE_SHA256,
         SCHEDULE_RELATIVE_PATH: sha256_file(_inside(root, SCHEDULE_RELATIVE_PATH, "schedule manifest")) == SCHEDULE_SHA256,
         DETERMINISM_RELATIVE_PATH: sha256_file(_inside(root, DETERMINISM_RELATIVE_PATH, "determinism manifest")) == DETERMINISM_SHA256,
         ENDPOINT_RELATIVE_PATH: sha256_file(_inside(root, ENDPOINT_RELATIVE_PATH, "endpoint manifest")) == ENDPOINT_SHA256,
     }
     schema_checks = validate_authorization_schema(schema)
-    acceptance = run_fake_acceptance(schedule)
+    expanded_schedule = expand_schedule(design, expand_fixtures(design))
+    acceptance = run_fake_acceptance(expanded_schedule)
     namespace_checks = {
         "authorization_absent": not _inside(root, AUTHORIZATION_RELATIVE_PATH, "authorization").exists(),
         "claim_absent": not _inside(root, CLAIM_RELATIVE_PATH, "claim").exists(),

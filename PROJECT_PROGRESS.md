@@ -1,8 +1,8 @@
 # Persistent Self Architecture 项目进度表
 
 > 最后更新：2026-08-31
-> 当前节点：Phase 3 Self Model v0.1 D8-C真实数值可识别性协议与无模型安全入口已完成；等待远程纯离线复验
-> 研究状态：D8-B远程22项测试与13项报告已闭环；D8-C仅完成协议、确定性策略、独立授权/claim/output命名空间和失败即停止入口，未来584-call真实执行仍未授权。未探测installed source、未导入模型栈、未访问权重或payload、未执行模型
+> 当前节点：Phase 3 Self Model v0.1 D8-C首次远程无模型复验发现两项实现错误；本地已修复，等待推送和第二次纯离线复验
+> 研究状态：首次31项远程测试为2 failure/3 error，确认原文比较少一个空格且设计型schedule未先确定性展开，故无报告；authorization/claim均缺席且模型未执行。修复不改变D8-A/B fixture、seed、阈值或584-call承诺，D8-C真实执行仍未授权
 
 ## 1. 这张表怎么使用
 
@@ -789,3 +789,4 @@ trial-condition单元；只允许全量完成且完整性验证后观察结果�
 | 2026-08-31 | D8-B deterministic manifests与fake endpoint contract纯离线实现完成：fixture/schedule/determinism/endpoint四manifest分别绑定D8-A config并由contract冻结文件SHA-256；展开保持4 conditioning、24计分fixture、288 pair及584未来调用。纯Python runtime实现递归shape/有限值检查、tensor→96-state→output distance、完整pair ledger、三重复中位数、100,000次fixture-cluster bootstrap及总/分层支持门；缺失/重复/错误pair、非有限/负距离、ragged/不同shape和错误state数量全部失败关闭。route-specific、单顺序、共同漂移三类fake验收分别给出正面/inconclusive/inconclusive，均禁止等价与Self结论。D8-A+D8-B专项22项、13项总报告、11类验收及全项目602项通过，report=`c7456e87…27d2`。未探测source、未修改runner、未实现入口、未导入RWKV/Torch或执行模型；D8-C及全部后续权限关闭 | `configs/development/self_model_v0_1_d8b_manifest_endpoint_contract.json`；`src/psa/self_model/d8b_manifest_endpoint_contract.py`；`docs/self_model_v0_1_d8b_manifest_endpoint_contract.md` |
 | 2026-08-31 | D8-B服务器纯离线复验通过并闭环：D8-A+D8-B共22项测试`OK`，13项总检查、四manifest各项检查、11类fake验收及全部失败关闭检查均为true；24计分fixture、288 pair、584未来调用、fixture/schedule commitment和四manifest哈希均保持冻结。report=`c7456e87…27d2`与本地一致，13个source digest逐项复算匹配。安全字段确认installed source/runner/entry/RWKV/Torch/权重/模型及所有后续权限均未触发。贴回未含HEAD输出，故结论限定为锁定inventory与纯离线行为跨主机一致；终端末尾status未显示条目。D8-C仍需独立设计确认 | 项目负责人贴回终端输出；`docs/self_model_v0_1_d8b_remote_observation.md` |
 | 2026-08-31 | D8-C真实数值可识别性协议与无模型安全入口完成：只绑定D8-B contract、四份manifest及冻结commitment，固定8次conditioning（不计分）+576次计分，共584次forward；严格launcher/运行期确定性策略、完整有序ledger、有限输出与失败即停止门。新增独立D8-C授权Schema、authorization/claim/output命名空间，未来执行必须逐字授权并single-use，当前均未创建。纯Python验收覆盖584-call计划、唯一ID、路由、缺失/重复/重排拒绝；配置、阈值和D7-C/D6D非复用边界冻结。未探测installed source、未修改真实runner、未导入RWKV/Torch、未访问权重或calibration/held-out payload、未加载/执行模型；D8-C真实执行及D7-C/D6D重跑、D7-D/E、projection、正式集、Self效果、Updater、raw-original和自动重跑均关闭。下一步为远程无模型复验 | `configs/development/self_model_v0_1_d8c_real_numerical_identifiability.json`；`src/psa/self_model/d8c_real_numerical_identifiability.py`；`schemas/self_model_v0_1_d8c_real_authorization.schema.json`；`docs/self_model_v0_1_d8c_real_numerical_identifiability.md` |
+| 2026-08-31 | D8-C首次服务器纯离线复验有效失败并完成修复：D8-A/B/C共31项测试出现2 failure/3 error，入口在配置前置检查停止且无报告。根因一是代码常量在`D8-C`与“真实执行”之间漏一个空格；根因二是把只含种子/计数/commitment的设计型schedule manifest当成逐条展开schedule，导致0-call。机器授权和claim均明确缺席，无模型栈或forward证据，因此不构成D8-C真实attempt。修复改为复用D8-B既有`expand_fixtures`/`expand_schedule`从冻结D8-A design生成8 conditioning+288 pair=584-call，并让未展开manifest失败关闭；新增回归测试和失败观察文档。fixture、seed、阈值、commitment和权限边界均不变；等待第二次远程无模型复验 | 项目负责人回传首次失败输出；`docs/self_model_v0_1_d8c_remote_no_model_failure_observation.md`；`src/psa/self_model/d8c_real_numerical_identifiability.py` |
