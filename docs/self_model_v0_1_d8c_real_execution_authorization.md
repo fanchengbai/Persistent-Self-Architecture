@@ -1,7 +1,7 @@
 # Self Model v0.1 D8-C real numerical identifiability execution authorization
 
 日期：2026-08-31
-状态：项目负责人已逐字授权一次真实 2.9B 数值可识别性验证；机器 authorization 与 single-use claim 尚未创建
+状态：授权已在最终干净 main 上单次消费；D8-C 有效完成并关闭，禁止重跑
 
 在 D8-C 协议、D8-C-I single-use runner 及服务器无模型静态复验全部闭环后，项目负责人给出配置中冻结的精确授权：
 
@@ -13,4 +13,12 @@
 
 本授权允许观察本次工程结果，但只回答 public 与 wrapper-zero 的跨路径数值差异是否超过各自路径内重复性背景。即使主要 endpoint 为正，也不能据此形成 Self Model 效果结论，更不授权 projection、正式测试集、Self Updater、raw-original、D7-D/D7-E 或任何历史实验重跑。
 
-本文件只持久化项目负责人的人类授权，不创建机器 authorization、execution claim 或 execution output，不探测 installed source，不访问权重，也不加载或执行模型。真实单次执行只能在包含本记录的最终干净 GitHub `main` 上由冻结 launcher 启动。
+在执行前，本文件只持久化项目负责人的人类授权，不创建机器 authorization、execution claim 或 execution output，不探测 installed source，不访问权重，也不加载或执行模型。真实单次执行随后只能在包含本记录的最终干净 GitHub `main` 上由冻结 launcher 启动；下节记录该条件满足后的唯一执行结果。
+
+## 单次执行结果
+
+授权已在干净 `main=e0ab61a58394e6eaef2567aa3a988afa6e47738c` 上单次消费。机器 authorization、installed-source 探测、single-use claim、固定 2.9B 资产校验和模型加载均有效；584/584 次 forward、8 条 conditioning 与 288 条 scored pair 全部完成，296 行 ledger 和 integrity 验证通过。
+
+冻结主要端点检测到 route-specific excess drift：24/24 fixture 为正，平均 excess drift=`0.0032601490100549004`，99% bootstrap 下界=`0.002858416711489245`。报告状态为 `d8c_real_numerical_identifiability_completed`、`valid=true`，决策仅为非 Self 工程证据；它不证明路径等价或 Self 效果。
+
+claim SHA-256=`85403630…05db`，报告内 digest=`a0dad92b…2ac5`，原始 ledger SHA-256=`72a3e919…8e73`。本次 claim 已消费，D8-C、历史实验和自动重跑均关闭；详细观察见 `docs/self_model_v0_1_d8c_real_observation.md`。
