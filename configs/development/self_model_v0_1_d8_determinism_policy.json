@@ -1,0 +1,31 @@
+{
+  "manifest_version": "0.1-self-model-d8b-determinism-policy",
+  "manifest_id": "Self-Model-v0.1-D8-strict-determinism-policy-v01",
+  "status": "determinism_policy_frozen_unapplied",
+  "development_only": true,
+  "design_sha256": "04f42ab2f42c7c0247165d4e42bdd0fdd83d986dc384c419767ff99e10c29bea",
+  "policy_namespace": "psa-self-model-v0.1-d8a-determinism-policy-20260831",
+  "policy_seed": 28083101,
+  "launcher_environment_before_python_start": {
+    "CUBLAS_WORKSPACE_CONFIG": ":4096:8",
+    "PYTHONHASHSEED": "28083101",
+    "RWKV_DE_VERSION": "unset"
+  },
+  "runtime_before_model_load": {
+    "python_random_seed": 28083101,
+    "torch_manual_seed": 28083101,
+    "torch_cuda_manual_seed_all": 28083101,
+    "torch_use_deterministic_algorithms": true,
+    "torch_deterministic_warn_only": false,
+    "cudnn_deterministic": true,
+    "cudnn_benchmark": false,
+    "cuda_matmul_allow_tf32": false,
+    "cudnn_allow_tf32": false,
+    "float32_matmul_precision": "highest"
+  },
+  "failure_action_if_unavailable": "stop_without_relaxing_policy_or_scoring_results",
+  "policy_applied": false,
+  "torch_imported": false,
+  "rwkv_imported": false,
+  "model_executed": false
+}

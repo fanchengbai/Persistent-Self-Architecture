@@ -1,0 +1,33 @@
+{
+  "manifest_version": "0.1-self-model-d8b-counterbalanced-schedule",
+  "manifest_id": "Self-Model-v0.1-D8-counterbalanced-pair-schedule-v01",
+  "status": "deterministic_schedule_manifest_frozen_unrun",
+  "development_only": true,
+  "non_core": true,
+  "formal_test_set_accessed": false,
+  "design_sha256": "04f42ab2f42c7c0247165d4e42bdd0fdd83d986dc384c419767ff99e10c29bea",
+  "fixture_manifest_path": "configs/development/self_model_v0_1_d8_fixture_manifest.json",
+  "schedule_namespace": "psa-self-model-v0.1-d8a-counterbalanced-schedule-20260831",
+  "schedule_seed": "d8a-schedule-0f409cf2-20260831",
+  "pair_types": ["public_public", "wrapper_wrapper", "public_wrapper", "wrapper_public"],
+  "seeded_pair_order": ["public_wrapper", "wrapper_wrapper", "public_public", "wrapper_public"],
+  "latin_contract": {
+    "rotation": "four_by_four_latin_rotation_balanced_across_fixture_and_replicate",
+    "replicates_per_pair_type_per_fixture": 3,
+    "latin_positions": 4,
+    "each_pair_type_per_position": 18,
+    "cross_route_order_counterbalanced": true
+  },
+  "pair_contract": {
+    "calls_per_pair": 2,
+    "same_source_state_clone_for_both_calls": true,
+    "pairs_per_fixture": 12,
+    "scored_pair_count": 288,
+    "scored_forward_calls": 576
+  },
+  "conditioning_forward_calls": 8,
+  "total_future_forward_calls": 584,
+  "expanded_schedule_commitment_sha256": "a53cf5edc4f132c3fc773d63f7686f91f485b5c08c52f82beec983af36816465",
+  "execution_authorized": false,
+  "model_executed": false
+}

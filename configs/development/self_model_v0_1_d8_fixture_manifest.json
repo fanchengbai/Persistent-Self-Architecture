@@ -1,0 +1,37 @@
+{
+  "manifest_version": "0.1-self-model-d8b-fixture-manifest",
+  "manifest_id": "Self-Model-v0.1-D8-numerical-identifiability-fixtures-v01",
+  "status": "deterministic_fixture_manifest_frozen_unrun",
+  "development_only": true,
+  "non_core": true,
+  "formal_test_set_accessed": false,
+  "design_path": "configs/preregistration/self_model_v0_1_d8_numerical_identifiability.draft.json",
+  "design_sha256": "04f42ab2f42c7c0247165d4e42bdd0fdd83d986dc384c419767ff99e10c29bea",
+  "namespace": "psa-self-model-v0.1-d8a-numerical-identifiability-fixtures-20260831",
+  "fixture_seed": "d8a-fixtures-b0876e51-20260831",
+  "token_derivation": "sha256_seed_fixture_position_nonce_mod_58977_plus_1024_global_unique",
+  "token_range": [1024, 60000],
+  "forbidden_d7c_token_ids": [187, 931, 2764],
+  "strata": [
+    {"stratum": "one_full_false", "execution_path": "forward_one", "token_count": 1, "full_output": false, "fixture_count": 6},
+    {"stratum": "one_full_true", "execution_path": "forward_one", "token_count": 1, "full_output": true, "fixture_count": 6},
+    {"stratum": "seq3_full_false", "execution_path": "forward_seq", "token_count": 3, "full_output": false, "fixture_count": 6},
+    {"stratum": "seq5_full_true", "execution_path": "forward_seq", "token_count": 5, "full_output": true, "fixture_count": 6}
+  ],
+  "conditioning_contract": {
+    "fixture_count": 4,
+    "one_per_stratum": true,
+    "route_order": ["public", "wrapper_zero"],
+    "forward_calls": 8,
+    "outputs_scored": false
+  },
+  "scored_contract": {
+    "fixture_count": 24,
+    "six_per_stratum": true,
+    "state_input": "fresh_clone_of_fixture_prebuilt_zero_state_for_every_call",
+    "state_none_used": false
+  },
+  "expanded_fixture_commitment_sha256": "8976ac9f3f0b042e92ba146e58cc1df8c2d05e5a4635ccb0de558fb36161499e",
+  "d7c_cells_claim_seed_or_results_reused": false,
+  "model_executed": false
+}

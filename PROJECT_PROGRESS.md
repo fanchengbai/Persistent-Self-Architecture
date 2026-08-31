@@ -1,8 +1,8 @@
 # Persistent Self Architecture 项目进度表
 
 > 最后更新：2026-08-31
-> 当前节点：Phase 3 Self Model v0.1 D8-A数值可识别性与excess-drift纯离线预注册设计完成；等待D8-B无模型实现单独确认
-> 研究状态：24个全新fixture、四类路径配对各72对、拉丁顺序平衡、严格确定性策略及保守差异中差异端点已冻结；未来计划8次不计分conditioning+576次计分forward共584次。D7-C失败/claim/重跑禁令不变，D8-B/D8-C及所有模型执行仍未授权
+> 当前节点：Phase 3 Self Model v0.1 D8-B deterministic manifests与fake endpoint contract纯离线实现完成；等待推送及服务器无模型复验
+> 研究状态：D8-A的24 fixture/288 pair/584-call计划已物化为fixture、schedule、determinism、endpoint四份manifest；纯Python output-distance、excess聚合、bootstrap判定与缺失/重复/非有限/shape错误失败关闭均通过。D8-C及所有模型执行仍未授权
 
 ## 1. 这张表怎么使用
 
@@ -113,14 +113,14 @@
 | 38p. EXP-001C v02 Stage B只读live preflight与机器授权锁 | ✅ 云端通过 | 在模型加载前绑定干净main提交、设计/protocol digest、Stage A原始结果、模型配置与资产哈希、主机环境、224条计划和空输出目录；授权只接受固定逐字文本并绑定preflight digest | 防止把“继续”解释成模型执行授权，也防止代码、证据、模型或输出目录变化后复用旧授权 | Stage B 29项远程测试通过，云端只读preflight全部检查为true且失败项为空；`model_loaded=false`、`model_executed=false`、执行/观察均为false。最终digest以本轮最终文档提交后的服务器v02证据为准 | Codex |
 | 38q. EXP-001C v02 Stage B项目负责人单次授权 | ✅ 已逐字确认并消费 | 负责人使用冻结原文授权224条recurrent-state非Core pilot及本轮结果观察，同时明确排除Stage A重跑、正式测试集、正式运行、确认性决定和自动重跑 | 模型执行和结果观察是新的不可逆边界，不能由此前“继续”推断 | 授权绑定preflight_v03与Stage A/result digest，机器记录和single-use claim均已消费；224条运行及观察完成后禁止重跑 | 项目负责人；Codex执行 |
 | 38r. EXP-001C v02 Stage B冻结只读观察 | ✅ 云端完成 | 对五个状态语义条件按8个语义案例×4代码轮换平均log score，记录联合/字段准确率与margin；reset/random只记录参考匹配率，不定义正确答案 | 原始code top-1容易受A–D先验影响；同时不能把诊断控制事后改成主要端点或临时添加通过阈值 | 五个主要条件均联合7/8、domain 8/8、operation 7/8；continuous/restored预测8/8一致，三种swap均7/8跟随注入state。reset/random参考匹配均2/8；无确认性决定或重跑 | Codex；云端只读分析 |
-| 39. Phase 3：显式 Self Model | 🟡 D8-A独立数值可识别性预注册设计完成；D8-B待单独确认 | 实现静态Self Store、Self Encoder和可关闭/缩放gated injection，并建立字段mask/swap/random/coupling-off消融 | 先证明接口可审计、可干预、失败关闭，再决定真实RWKV注入位置和效果实验 | D7-C失败和claim消费保持不变。D8-A提出新问题：跨路径差异是否超过public/public与wrapper/wrapper各自重复性包络。冻结24个新fixture、四类配对×3重复、双向跨路径顺序平衡、launcher级确定性策略和保守excess-drift端点；未来总计584次forward。D7-C cell/token/seed/claim/result不作为新数据。当前仅设计与纯Python审查完成，没有入口、模型或执行权限 | Codex纯离线设计；项目负责人待审阅D8-B |
+| 39. Phase 3：显式 Self Model | 🟡 D8-B manifests与fake endpoint纯离线实现完成；待跨主机复验 | 实现静态Self Store、Self Encoder和可关闭/缩放gated injection，并建立字段mask/swap/random/coupling-off消融 | 先证明接口可审计、可干预、失败关闭，再决定真实RWKV注入位置和效果实验 | D8-A冻结计划已拆成四份独立manifest并绑定文件哈希：24计分fixture、4 conditioning、288 pair、584未来调用、launcher/runtime确定性策略和保守端点。纯Python runtime能计算logits/96-state/output distance，验证完整ledger并按三轮中位数、99% bootstrap、总/分层支持门判定；单顺序效应和共同漂移均不会误判为route-specific excess。D7-C非复用与失败结论不变；没有真实入口、模型或执行权限 | Codex纯离线实现；项目负责人待远程复验 |
 | 40. Self 更新与演化 | ⏳ 未开始 | 让 Self State 根据经历受控更新、回滚和分化 | 这是“持续自我”真正更深入的部分 | 尚未开始 | 后续阶段 |
 | 41. 内生调节与自主审议 | ⏳ 未开始 | 让 Self/冲突决定是否检索、回放、模拟或停止，并在零新外部观察条件下受控更新 | 检验系统是否不仅“有状态”，还会因内部状态选择继续计算；同时排除定时器和随机回放解释 | 设计说明已完成；必须等待显式 Self 因果价值和受约束更新两道前置门，不创建空壳代码 | 后续阶段 |
 | 42. 最终研究结论 | ⏳ 未开始 | 汇总统计结果、失败案例和替代解释 | 最终回答项目假设是否得到支持，而不是只展示几个有趣案例 | 尚未开始 | 共同完成 |
 
 ## 3. 当前所在位置
 
-> 2026-08-31 当前状态：D4–D7历史结论及重跑禁令不变；D7-C唯一真实2.9B兼容门失败、claim=`fa86ad70…00e1`已消费。其纯离线诊断证明原固定public→wrapper计划没有路径内重复性和顺序平衡，不能唯一定位差异来源。现已完成科学独立的D8-A纯离线预注册设计：新问题是跨路径output distance是否超过public-public与wrapper-wrapper重复性包络。24个全新fixture分四层，每fixture对public-public、wrapper-wrapper、public-wrapper、wrapper-public各重复3次；四类配对在四个拉丁位置各18次，形成288对/576次计分调用，另有四形状×双路径共8次不计分conditioning，总未来584次。fixture/schedule commitments分别=`8976ac9f…499e`/`a53cf5ed…6465`。未来launcher必须在Python启动前冻结环境，进程内模型加载前启用严格deterministic策略。主要端点固定为`min(两种跨路径顺序)-max(两种路径内重复性)`，只有99% bootstrap下界>0、至少21/24 fixture为正且每层至少5/6为正才判定route-specific excess；否则只能inconclusive，不能宣称等价。D7-C的8个cell、token、seed、claim和结果不进入D8数据。D8-A没有实现真实入口或执行模型；D8-B/D8-C、D7-C修复/重跑、D7-D/E、projection与Self效果全部关闭。以下保留完整历史路径；如与旧阶段描述冲突，以本段和顶部“当前节点”为准。
+> 2026-08-31 当前状态：D4–D7历史结论及重跑禁令不变；D7-C失败claim=`fa86ad70…00e1`已消费且不重跑。D8-A独立数值可识别性预注册设计及D8-B纯离线实现现已完成。四份manifest分别冻结全新fixture、counterbalanced schedule、launcher/运行期严格确定性策略和excess-drift端点，并由D8-B contract绑定文件SHA-256与D8-A config/report。确定性展开仍为4个conditioning fixture、24个计分fixture、288个pair block、8+576=584次未来forward，commitments=`8976ac9f…499e`/`a53cf5ed…6465`。fake endpoint只接收纯Python有限数值序列，递归shape必须一致，state必须96组件；288条ledger必须ID/pair type/重复轮完整且无重复。三种合成情形已通过：双顺序跨路径excess得到正面工程判定，单顺序效应与共同background drift均为inconclusive且不产生等价/Self声明。缺失、重复、非有限、负距离、ragged/不同shape和错误state数量均在决策前失败关闭。D8-A阈值未改，D7-C cell/token/seed/claim/result不作为D8数据。本轮未探测installed source、未修改runner、未实现真实入口、未导入模型栈或执行模型；D8-C及所有后续研究权限关闭。以下保留完整历史路径；如与旧阶段描述冲突，以本段和顶部“当前节点”为准。
 
 ```text
 理论设计
@@ -239,7 +239,7 @@ EXP-001B补充控制
 
 ## 4. 当前下一步
 
-> 2026-08-31 当前下一步：先等待本轮D8-A本地提交的GitHub推送授权；推送闭环后，只能由项目负责人另行确认是否进入D8-B纯离线manifest与fake endpoint contract实现。D8-B若获准，也只能物化24个fixture、288对平衡schedule、确定性清单、output-distance/excess-drift计算和合成验收，不得探测installed source、修改真实runner、实现真实入口、导入RWKV/Torch、访问权重或执行模型。普通“继续/下一步”不授权D8-B/D8-C真实执行、D7-C修复/重跑、D7-D/E、projection、正式集、Self效果、Updater、raw-original或自动重跑。以下保留此前 EXP-001B 轨迹作为历史记录。
+> 2026-08-31 当前下一步：先等待D8-B本地提交的GitHub推送授权；推送后由项目负责人在服务器只运行D8-A/D8-B专项测试和D8-B纯离线验证器，核对四manifest文件哈希、两项展开commitment、22项联合测试、13项报告和11类fake验收。远程复验仍不得设置任何模型执行锁、探测installed source、导入RWKV/Torch、访问权重或实现/运行真实入口。D8-C的真实协议设计也必须等远程无模型闭环后另行确认；普通“继续/下一步”不授权D8-C真实执行、D7-C修复/重跑、D7-D/E、projection、正式集、Self效果、Updater、raw-original或自动重跑。以下保留此前 EXP-001B 轨迹作为历史记录。
 
 截至2026-08-04，项目负责人已经确认EXP-001B设计草案中的B1–B7。
 新增范围仍锁在11,008条控制记录，并明确不重跑EXP-001、不重估E1–E3、
@@ -786,3 +786,4 @@ trial-condition单元；只允许全量完成且完整性验证后观察结果�
 | 2026-08-31 | D7-C唯一真实2.9B public语义兼容attempt完整执行并有效失败：干净`main=665ac40`，机器授权与静态digest=`f1134f26…748e`有效，`rwkv==0.8.32` source和固定资产匹配，claim=`fa86ad70…00e1`已消费；18/18次forward约15.39秒完成。8-cell计划、初始化、实例字典、wrapper生命周期、64次callback、第15层2次应用和active差异均通过；但8/8 OFF/zero cell的logits/state均非逐项exact，每cell仅4/96 state组件精确，故`valid=false`、status=`d7c_real_public_semantics_compatibility_failed`、report=`9e22f664…233d`。这是完整门失败不是崩溃；禁止D7-C/自动重跑，D7-D/E、projection与Self效果继续关闭 | 项目负责人回传authorization/claim/report；`docs/self_model_v0_1_d7c_real_compatibility_observation.md` |
 | 2026-08-31 | D7-C失败纯离线差异来源诊断与路线审查完成：冻结authorization/claim/report、8个cell指标、确定性元数据及5项生产证据哈希；AST确认每cell固定public→wrapper、每路径仅一次，缺少路径内重复性和顺序平衡。8/8 cell均96组件结构兼容，仅`state[0..3]`精确，统一从`state[4]`分歧且最大误差在`state[94]`；初始化计数、none/prebuilt及full_output不能作为唯一解释。两个纯Python机制——第二次调用background drift与instrumented-route drift——产生相同摘要指纹，证明现有证据不能唯一识别原因。分类=`d7c_exactness_failure_real_cause_not_identifiable_without_within_route_repeatability_and_counterbalanced_order`；10项专项、16项报告与全项目580项测试通过，报告digest=`d92640e0…7213`。D7-C失败/claim/重跑禁令不变；只建立D8数值可识别性预注册候选，未实现入口或授权执行 | `configs/development/self_model_v0_1_d7c_failure_difference_diagnostic.json`；`src/psa/self_model/d7c_failure_difference_diagnostic.py`；`docs/self_model_v0_1_d7c_failure_difference_diagnostic.md` |
 | 2026-08-31 | D8-A numerical identifiability与excess-drift独立纯离线预注册设计完成：24个全新fixture分为4层×6个，D7-C token/seed/cell/claim/result均不复用；每fixture含public-public、wrapper-wrapper、public-wrapper、wrapper-public各3对，拉丁顺序每类在每位置恰18次，共288对/576次计分forward，另有8次双路径conditioning，总未来584次。fixture/schedule commitment=`8976ac9f…499e`/`a53cf5ed…6465`。launcher环境与进程内strict deterministic策略均在模型前冻结；主要端点为保守cross-floor减within-envelope，并冻结99% bootstrap、21/24总支持和每层5/6支持门，非正面结果不得升级为路径等价。三类合成反例验证端点不会把单顺序效应或共同漂移误判为route-specific excess。16项配置、15项独立性、13项报告、11项专项及全项目591项通过，报告digest=`3c59a1c6…8015`。未探测source、未实现入口、未导入模型栈或执行模型；D8-B/D8-C及全部后续研究权限关闭 | `configs/preregistration/self_model_v0_1_d8_numerical_identifiability.draft.json`；`src/psa/self_model/d8_numerical_identifiability_design.py`；`docs/self_model_v0_1_d8_numerical_identifiability_design.md` |
+| 2026-08-31 | D8-B deterministic manifests与fake endpoint contract纯离线实现完成：fixture/schedule/determinism/endpoint四manifest分别绑定D8-A config并由contract冻结文件SHA-256；展开保持4 conditioning、24计分fixture、288 pair及584未来调用。纯Python runtime实现递归shape/有限值检查、tensor→96-state→output distance、完整pair ledger、三重复中位数、100,000次fixture-cluster bootstrap及总/分层支持门；缺失/重复/错误pair、非有限/负距离、ragged/不同shape和错误state数量全部失败关闭。route-specific、单顺序、共同漂移三类fake验收分别给出正面/inconclusive/inconclusive，均禁止等价与Self结论。D8-A+D8-B专项22项、13项总报告、11类验收及全项目602项通过，report=`c7456e87…27d2`。未探测source、未修改runner、未实现入口、未导入RWKV/Torch或执行模型；D8-C及全部后续权限关闭 | `configs/development/self_model_v0_1_d8b_manifest_endpoint_contract.json`；`src/psa/self_model/d8b_manifest_endpoint_contract.py`；`docs/self_model_v0_1_d8b_manifest_endpoint_contract.md` |

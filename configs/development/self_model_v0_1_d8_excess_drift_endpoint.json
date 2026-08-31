@@ -1,0 +1,39 @@
+{
+  "manifest_version": "0.1-self-model-d8b-excess-drift-endpoint",
+  "manifest_id": "Self-Model-v0.1-D8-conservative-excess-drift-endpoint-v01",
+  "status": "endpoint_manifest_frozen_unrun",
+  "development_only": true,
+  "design_sha256": "04f42ab2f42c7c0247165d4e42bdd0fdd83d986dc384c419767ff99e10c29bea",
+  "distance": {
+    "tensor": "max_abs_difference_divided_by_max_of_both_max_abs_values_and_1e_minus_12",
+    "state": "maximum_tensor_distance_across_all_96_compatible_state_components",
+    "output": "maximum_of_logits_distance_and_state_distance",
+    "nonfinite_missing_or_incompatible_action": "invalidate_and_stop_without_rerun"
+  },
+  "pair_aggregation": {
+    "within_route_envelope": "max(distance_public_public,distance_wrapper_wrapper)",
+    "symmetric_cross_route_floor": "min(distance_public_wrapper,distance_wrapper_public)",
+    "replicate_excess_drift": "symmetric_cross_route_floor_minus_within_route_envelope",
+    "fixture_excess_drift": "median_of_three_replicate_excess_drift_values"
+  },
+  "primary": {
+    "estimand": "mean_fixture_excess_drift_across_24_fixtures",
+    "test": "one_sided_cluster_bootstrap_99_percent_lower_bound_greater_than_zero",
+    "bootstrap_seed": 28083102,
+    "bootstrap_resamples": 100000,
+    "minimum_positive_fixtures": 21,
+    "minimum_positive_fixtures_per_stratum": 5,
+    "positive_decision": "route_specific_excess_drift_detected_non_self_engineering_evidence_only",
+    "otherwise_decision": "inconclusive_no_route_equivalence_claim"
+  },
+  "secondary_descriptive_only": [
+    "logits_excess_drift",
+    "state_excess_drift",
+    "absolute_public_wrapper_vs_wrapper_public_order_interaction",
+    "public_vs_wrapper_within_route_repeatability_asymmetry"
+  ],
+  "thresholds_changed_from_d8a": false,
+  "route_equivalence_claim_allowed": false,
+  "self_effect_conclusion_allowed": false,
+  "model_executed": false
+}

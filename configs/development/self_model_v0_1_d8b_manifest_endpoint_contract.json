@@ -1,0 +1,75 @@
+{
+  "contract_version": "0.1-self-model-d8b-manifest-endpoint-contract",
+  "stage": "Self-Model-v0.1-D8-B_deterministic_manifests_and_fake_endpoint_contract",
+  "status": "offline_contract_implemented_unrun_no_model",
+  "development_only": true,
+  "owner_confirmation_text": "确认进入 Self Model v0.1 D8-B deterministic manifest与fake endpoint contract纯离线实现；只允许将D8-A冻结的24个全新fixture、4个conditioning fixture、288个平衡配对、584次未来调用计划、launcher/运行期确定性清单、output-distance与excess-drift主要端点物化为确定性manifest、纯Python数据结构、完整性校验和合成验收；不得修改D8-A阈值或复用D7-C的cell、token、seed、claim和结果。本轮不探测installed source、不修改真实runner、不实现真实执行入口、不导入RWKV/Torch、不访问权重、不加载或执行模型；不授权D8-C真实执行、D7-C修复或重跑、D7-D/D7-E、projection、正式测试集、Self效果结论、Self Updater、raw-original或自动重跑。",
+  "frozen_design": {
+    "path": "configs/preregistration/self_model_v0_1_d8_numerical_identifiability.draft.json",
+    "sha256": "04f42ab2f42c7c0247165d4e42bdd0fdd83d986dc384c419767ff99e10c29bea",
+    "historical_design_report_sha256": "3c59a1c65f0e9a101fbc1ede132c70fb7becf066bc487a04f217907e58cc8015",
+    "research_question_changed": false,
+    "thresholds_changed": false
+  },
+  "manifests": {
+    "fixture_path": "configs/development/self_model_v0_1_d8_fixture_manifest.json",
+    "fixture_sha256": "d0b9c2e67eff48f2e9fd3cf9b5244cdcec165091bb4b079acecd8fd5b3323c2a",
+    "schedule_path": "configs/development/self_model_v0_1_d8_counterbalanced_schedule.json",
+    "schedule_sha256": "b1ecd2c027bd6aed8834147ec333c5a2ac1ba3df6550ee3ab221612e4805943f",
+    "determinism_path": "configs/development/self_model_v0_1_d8_determinism_policy.json",
+    "determinism_sha256": "81d98e24a61f29b9e5e5fed77612b2ffa56953c80282ee811192bbd7417dff83",
+    "endpoint_path": "configs/development/self_model_v0_1_d8_excess_drift_endpoint.json",
+    "endpoint_sha256": "96517ab9314ac2e8f68fd520bfb860626e39b1b69e3403f7033781a69983458c"
+  },
+  "counts": {
+    "conditioning_fixtures": 4,
+    "scored_fixtures": 24,
+    "pair_types": 4,
+    "replicates_per_pair_type": 3,
+    "scored_pairs": 288,
+    "conditioning_forward_calls": 8,
+    "scored_forward_calls": 576,
+    "total_future_forward_calls": 584
+  },
+  "fake_runtime_contract": {
+    "fixture_kind": "d8b_pure_python_numeric_sequences_only",
+    "tensor_or_model_object_allowed": false,
+    "input_mutation_allowed": false,
+    "complete_pair_ledger_required": true,
+    "finite_values_required": true,
+    "ninety_six_state_components_required": true,
+    "duplicate_or_missing_pair_policy": "reject_before_decision",
+    "output_claim": "endpoint_contract_only_not_real_route_or_self_effect_evidence"
+  },
+  "gate_sequence": [
+    {"gate_id": "D8-A", "implemented": true, "model_execution": false},
+    {"gate_id": "D8-B", "implemented": true, "model_execution": false},
+    {"gate_id": "D8-C", "implemented": false, "authorized": false, "future_forward_calls": 584}
+  ],
+  "authority": {
+    "d8b_manifest_implementation_authorized": true,
+    "pure_python_endpoint_fixture_authorized": true,
+    "offline_integrity_report_authorized": true,
+    "installed_source_probe_authorized": false,
+    "real_runner_modification_authorized": false,
+    "execution_entry_implementation_authorized": false,
+    "rwkv_import_authorized": false,
+    "torch_import_authorized": false,
+    "weights_access_authorized": false,
+    "model_load_authorized": false,
+    "model_execution_authorized": false,
+    "d8c_real_execution_authorized": false,
+    "d7c_fix_authorized": false,
+    "d7c_rerun_authorized": false,
+    "d7d_authorized": false,
+    "d7e_authorized": false,
+    "projection_authorized": false,
+    "formal_test_set_authorized": false,
+    "self_effect_conclusion_authorized": false,
+    "self_updater_authorized": false,
+    "raw_original_route_authorized": false,
+    "automatic_rerun_authorized": false
+  },
+  "required_classification": "d8b_deterministic_manifests_and_fake_excess_drift_endpoint_verified_no_model",
+  "next_gate": "remote_no_model_d8b_verification_then_separate_d8c_design_confirmation"
+}
