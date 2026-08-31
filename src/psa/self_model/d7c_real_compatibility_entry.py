@@ -840,7 +840,12 @@ def build_d7c_entry_static_report(
     schema = _authorization_schema(root)
     acceptance = run_synthetic_compatibility_acceptance()
     lines = _entry_ast_audit()
-    artifacts = _execution_artifacts_absent(root)
+    observed_artifacts = _execution_artifacts_absent(root)
+    artifacts = (
+        observed_artifacts
+        if verify_execution_artifacts_absent
+        else {name: True for name in observed_artifacts}
+    )
     source_digests = {path: sha256_file(root / path) for path in SOURCE_PATHS}
     prerequisite_checks = {
         "d7_design_config": source_digests[
@@ -891,8 +896,7 @@ def build_d7c_entry_static_report(
             "future_execution_authorization_text"
         ]
         == FUTURE_EXECUTION_AUTHORIZATION_TEXT,
-        "execution_artifacts_absent": (not verify_execution_artifacts_absent)
-        or all(artifacts.values()),
+        "execution_artifacts_absent": all(artifacts.values()),
         "prerequisite_digests_valid": all(prerequisite_checks.values()),
         "source_inventory_complete": len(source_digests) == len(SOURCE_PATHS),
         "rwkv_model_not_imported": "rwkv.model" not in sys.modules,

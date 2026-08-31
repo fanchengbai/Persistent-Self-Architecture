@@ -30,4 +30,6 @@ D7-C 只为 synthetic 正控制定义规则 `d7_lower_half_terminal_layer_v01`�
 
 未来真实执行需要逐字授权、干净的 `main`、固定配置和源码摘要、唯一机器授权文件、唯一输出目录与 single-use claim。授权验证先于 installed source 探测；claim 先于模型配置、权重访问和模型加载。成功或失败都不允许 D7-C 重跑或自动重跑。
 
+机器授权生命周期必须绑定同一个“创建前”静态报告摘要：首次创建仍要求 authorization、claim、report 和 failure 全部缺席；创建后的验证只把这些执行 artifact 的存在性检查规范化为创建前状态，同时继续复算配置、Schema、源码、Git 和其余全部静态证据。这样机器授权本身的出现不会改变它所绑定的摘要，任何其他源码或协议变化仍会失败关闭。
+
 当前静态验证不得调用未来 runner。D7-C 执行、D7-D、D7-E、projection、正式测试集、Self 效果结论、Self Updater 和 raw-original 路线全部保持关闭。
