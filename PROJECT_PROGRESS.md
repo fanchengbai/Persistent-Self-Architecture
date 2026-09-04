@@ -1,8 +1,8 @@
 # Persistent Self Architecture 项目进度表
 
 > 最后更新：2026-09-04
-> 当前节点：Phase 3 Self Model v0.1 D9-C calibration-only projection contract与single-use安全入口服务器无模型复验通过；等待独立逐字D9-D单次执行授权
-> 研究状态：D9-C冻结32次calibration-only capture→projection审计/写入→64 held-out/448 pair的严格时序、928-call同wrapper入口、字段分离artifact/schema及预声明mask/swap评分；服务器D9-A/B/C 42项、静态14项、projection contract 9项、projection fake 13类、entry fake 9类全真，report=`e9ad2903…cc09`与本地一致。真实projection、authorization/claim/output、source探测、RWKV/Torch、权重和模型均未触发；D9-D未授权
+> 当前节点：Phase 3 Self Model v0.1 D9-D真实2.9B within-wrapper causal isolation单次联合工程验证已逐字授权；等待授权记录提交/推送后服务器拉取
+> 研究状态：D9-C服务器无模型门已闭环，项目负责人现已逐字授权D9-D同一进程/同一persistent wrapper的32次calibration capture→真实projection冻结→64 held-out/448 pair/896次held-out forward，总计928次。本轮只持久化人类授权；机器authorization、claim、真实projection/output、source探测、RWKV/Torch、权重和模型均未触发，重跑及正式集/Self结论继续关闭
 
 ## 1. 这张表怎么使用
 
@@ -113,14 +113,14 @@
 | 38p. EXP-001C v02 Stage B只读live preflight与机器授权锁 | ✅ 云端通过 | 在模型加载前绑定干净main提交、设计/protocol digest、Stage A原始结果、模型配置与资产哈希、主机环境、224条计划和空输出目录；授权只接受固定逐字文本并绑定preflight digest | 防止把“继续”解释成模型执行授权，也防止代码、证据、模型或输出目录变化后复用旧授权 | Stage B 29项远程测试通过，云端只读preflight全部检查为true且失败项为空；`model_loaded=false`、`model_executed=false`、执行/观察均为false。最终digest以本轮最终文档提交后的服务器v02证据为准 | Codex |
 | 38q. EXP-001C v02 Stage B项目负责人单次授权 | ✅ 已逐字确认并消费 | 负责人使用冻结原文授权224条recurrent-state非Core pilot及本轮结果观察，同时明确排除Stage A重跑、正式测试集、正式运行、确认性决定和自动重跑 | 模型执行和结果观察是新的不可逆边界，不能由此前“继续”推断 | 授权绑定preflight_v03与Stage A/result digest，机器记录和single-use claim均已消费；224条运行及观察完成后禁止重跑 | 项目负责人；Codex执行 |
 | 38r. EXP-001C v02 Stage B冻结只读观察 | ✅ 云端完成 | 对五个状态语义条件按8个语义案例×4代码轮换平均log score，记录联合/字段准确率与margin；reset/random只记录参考匹配率，不定义正确答案 | 原始code top-1容易受A–D先验影响；同时不能把诊断控制事后改成主要端点或临时添加通过阈值 | 五个主要条件均联合7/8、domain 8/8、operation 7/8；continuous/restored预测8/8一致，三种swap均7/8跟随注入state。reset/random参考匹配均2/8；无确认性决定或重跑 | Codex；云端只读分析 |
-| 39. Phase 3：显式 Self Model | ✅ D9-C服务器无模型复验通过；等待逐字D9-D授权 | 实现静态Self Store、Self Encoder和可关闭/缩放gated injection，并建立字段mask/swap/random/coupling-off消融 | 先证明接口可审计、可干预、失败关闭，再决定真实RWKV注入位置和效果实验 | calibration-only字段分离projection、held-out前冻结、同wrapper 928-call、授权/claim/ledger失败关闭入口与mask/swap评分均冻结。服务器42项D9及14/9/13/9类检查通过，report=`e9ad2903…cc09`与本地一致；真实projection和模型未触发 | 共同完成 |
+| 39. Phase 3：显式 Self Model | 🟡 D9-D已逐字授权；等待授权记录进入最终main | 实现静态Self Store、Self Encoder和可关闭/缩放gated injection，并建立字段mask/swap/random/coupling-off消融 | 先证明接口可审计、可干预、失败关闭，再决定真实RWKV注入位置和效果实验 | D9-C服务器门已闭环；D9-D一次性928-forward联合验证已获精确授权，但当前只记录人类授权，机器authorization、claim、真实projection和模型执行均未发生 | 项目负责人授权；Codex记录 |
 | 40. Self 更新与演化 | ⏳ 未开始 | 让 Self State 根据经历受控更新、回滚和分化 | 这是“持续自我”真正更深入的部分 | 尚未开始 | 后续阶段 |
 | 41. 内生调节与自主审议 | ⏳ 未开始 | 让 Self/冲突决定是否检索、回放、模拟或停止，并在零新外部观察条件下受控更新 | 检验系统是否不仅“有状态”，还会因内部状态选择继续计算；同时排除定时器和随机回放解释 | 设计说明已完成；必须等待显式 Self 因果价值和受约束更新两道前置门，不创建空壳代码 | 后续阶段 |
 | 42. 最终研究结论 | ⏳ 未开始 | 汇总统计结果、失败案例和替代解释 | 最终回答项目假设是否得到支持，而不是只展示几个有趣案例 | 尚未开始 | 共同完成 |
 
 ## 3. 当前所在位置
 
-> 2026-09-04 当前状态：D4–D8历史结论及重跑禁令不变；D7-C与D8-C claim均已消费且不重跑。D9-A/B的同一persistent wrapper路线与服务器无模型证据保持；D9-C calibration-only字段分离projection contract、内嵌artifact schema和未来single-use入口已在服务器完成无模型复验。未来必须先完成32条4×4×2 capture，以闭式双因素中心化拟合identity/goal各四个2560维分支，审计并exclusive-create artifact后才允许解析64 held-out和448-pair schedule；所有896次held-out调用仍只走persistent wrapper，总计928 forward。A/B/C/D token 66–69、轮换target、identity/goal替代target及mask/swap判定在结果前冻结。授权验证→source探测→claim→Torch/确定性→模型加载→calibration→artifact冻结→held-out→完整ledger→endpoint时序由AST锁定；机器authorization、claim、projection/output均缺席。服务器D9-A/B/C 42项、14项静态、9项contract、13类projection fake和9类entry fake全真，digest=`e9ad2903…cc09`与本地一致；回传未包含HEAD/status，故证据限于锁定inventory与无模型行为跨环境一致。为允许已授权D9-C物化projection contract/schema，D9-B历史验证器只放宽这两个后续文件，仍严格要求authorization/claim/output缺席；历史D9-B远程digest不重写。installed source、RWKV/Torch、权重和模型未触发；D9-D及D7-D/E、正式集、Self效果、Updater、raw-original和自动重跑仍关闭。以下保留完整历史路径；如与旧阶段描述冲突，以本段和顶部“当前节点”为准。
+> 2026-09-04 当前状态：D4–D8历史结论及重跑禁令不变；D7-C与D8-C claim均已消费且不重跑。D9-A/B的同一persistent wrapper路线与服务器无模型证据保持；D9-C calibration-only字段分离projection contract、内嵌artifact schema和single-use入口已在服务器完成无模型复验。项目负责人现已按冻结原文授权一次D9-D真实2.9B联合工程验证：必须在同一进程/同一persistent wrapper先完成32条4×4×2 capture，以闭式双因素中心化拟合identity/goal各四个2560维分支，审计并exclusive-create artifact后才允许解析64 held-out和448-pair schedule；所有896次held-out调用仍只走persistent wrapper，总计928 forward。A/B/C/D token 66–69、轮换target、identity/goal替代target及mask/swap判定在结果前冻结。当前只持久化人类授权；机器authorization、claim、projection/output均缺席，installed source、RWKV/Torch、权重和模型未触发。授权记录必须先进入最终干净main，之后才允许服务器launcher现场绑定并单次消费；成功或失败均禁止D9-D/D8-C/历史及自动重跑，D7-D/E、正式集、Self效果、Updater和raw-original继续关闭。以下保留完整历史路径；如与旧阶段描述冲突，以本段和顶部“当前节点”为准。
 
 ```text
 理论设计
@@ -239,7 +239,7 @@ EXP-001B补充控制
 
 ## 4. 当前下一步
 
-> 2026-09-04 当前下一步：D9-C服务器无模型复验已经闭环，先提交并在项目负责人另行授权后推送本次观察文档和进度更新。此后普通“继续/下一步”仍不授权D9-D；只有配置内冻结的逐字授权才允许先持久化人类授权记录，并在最终干净main上另行创建机器authorization、single-use claim和单次消费928-call入口。installed source、RWKV/Torch、权重、模型、真实projection、authorization/claim/output、D8-C/历史重跑、D7-D/E、正式集、Self效果、Updater、raw-original和自动重跑继续关闭。以下保留此前 EXP-001B 轨迹作为历史记录。
+> 2026-09-04 当前下一步：审计并提交D9-D人类授权记录与本进度更新；仅在项目负责人另行授权后推送GitHub main。服务器随后先拉取并确认最终干净main，再按冻结launcher生成新的机器authorization并单次执行928-call联合验证；任何失败都会消费claim且不得重跑。本地阶段不创建authorization/claim/output，不探测source、不导入RWKV/Torch、不访问权重或加载模型。D8-C/历史重跑、D7-D/E、正式集、Self效果、Updater、raw-original和自动重跑继续关闭。以下保留此前 EXP-001B 轨迹作为历史记录。
 
 截至2026-08-04，项目负责人已经确认EXP-001B设计草案中的B1–B7。
 新增范围仍锁在11,008条控制记录，并明确不重跑EXP-001、不重估E1–E3、
@@ -800,3 +800,4 @@ trial-condition单元；只允许全量完成且完整性验证后观察结果�
 | 2026-08-31 | D9-B服务器纯离线复验通过并闭环：D9-A+B共24项测试`OK`，13项总检查、12类fake验收、32 calibration、64 held-out、448 pair/928-call、四manifest SHA-256和三个展开commitment均与本地一致，report=`6fa53a0a…ac91`。字段特异正例通过冻结门但仍禁止Self结论，route-only和active/random非特异反例按预期失败；缺失、重复、乱序、public、非有限、condition顺序和阶段泄漏均被拒绝。安全字段确认projection、authorization/claim/output、source探测、runner/入口、RWKV/Torch、权重和模型均未触发。回传未含HEAD/status，故结论限定为锁定源码inventory与纯离线行为跨环境一致；D9-C仍需单独确认 | 项目负责人回传终端输出；`docs/self_model_v0_1_d9b_remote_observation.md` |
 | 2026-09-04 | D9-C calibration-only projection contract与真实2.9B single-use安全入口本地无模型实现完成：绑定D9-A/B的32 calibration、64 held-out、七类对照、448 pair/928-call及全部阈值；projection先做4×4×2格内平均，再以双因素中心化闭式拟合identity/goal分支，固定第15层、2560维、branch RMS比例0.005、无bias和base参数不训练。artifact schema、parameter/artifact digest及exclusive-create冻结在held-out解析前；A/B/C/D token和mask/swap替代target评分也在结果前冻结。未来入口严格按authorization→source→claim→Torch确定性/模型→32 capture→artifact→896 held-out→480-record ledger→endpoint执行，异常消费claim并停止。纯离线D9-A/B/C 42项、D8+D9 86项、全项目666项通过；14项静态、9项contract、13类projection fake、9类entry fake全真，report=`e9ad2903…cc09`。真实projection、authorization/claim/output、source探测、RWKV/Torch、权重和模型均未触发；D9-D待服务器无模型复验及未来逐字授权 | `configs/development/self_model_v0_1_d9c_projection_entry.json`；`src/psa/self_model/d9c_projection_contract.py`；`src/psa/self_model/d9c_real_entry.py`；`docs/self_model_v0_1_d9c_projection_entry.md` |
 | 2026-09-04 | D9-C服务器无模型复验通过并闭环：D9-A/B/C共42项测试`OK`，14项静态、9项projection contract、13类projection fake和9类entry fake验收全部为true；32 calibration+448 held-out pair的928-call计划、persistent-wrapper-only路由、projection先于held-out冻结和完整ledger后endpoint时序均保持。报告`valid=true`、分类=`execution_not_authorized`、digest=`e9ad2903…cc09`与本地一致；全部锁定source digest匹配。machine authorization、claim、projection、raw/report/failure/integrity均缺席，installed source、RWKV/Torch、权重和模型未触发。回传未含HEAD/status，故结论限定为锁定inventory与无模型行为跨环境一致；D9-D仍需独立逐字授权 | 项目负责人回传完整报告；`docs/self_model_v0_1_d9c_remote_observation.md` |
+| 2026-09-04 | 项目负责人在D9-C服务器无模型门闭环后逐字授权D9-D真实2.9B within-wrapper causal isolation联合验证一次及本次结果观察：同一进程、同一persistent wrapper，固定32次calibration-only capture后拟合、审计并冻结真实projection，再读取64 held-out并完成448 pair/896次held-out forward，总计928次。当前只持久化人类授权；机器authorization、single-use claim、projection/output、source探测、RWKV/Torch、权重和模型均未发生。授权记录必须先进入最终干净main，之后仅允许冻结launcher单次消费；成功或失败均禁止D9-D、D8-C、历史和自动重跑，D7-D/E、正式集、Self效果、Updater与raw-original继续关闭 | 项目负责人授权原文；`docs/self_model_v0_1_d9d_real_execution_authorization.md` |
