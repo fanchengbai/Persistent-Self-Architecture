@@ -149,7 +149,7 @@ class D9BManifestEndpointContractTests(unittest.TestCase):
         self.assertTrue(all(report["checks"].values()))
         self.assertTrue(report["fake_acceptance"]["valid"])
         self.assertFalse(report["safety"]["model_executed"])
-        self.assertFalse(report["safety"]["projection_contract_implemented"])
+        self.assertTrue(report["safety"]["projection_contract_implemented"])
 
     def test_wrong_config_path_rejected(self) -> None:
         with self.assertRaises(PermissionError):

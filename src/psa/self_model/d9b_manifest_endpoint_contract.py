@@ -777,6 +777,15 @@ def build_contract_report(
         SCHEDULE_RELATIVE_PATH,
         ENDPOINT_RELATIVE_PATH,
     }
+    projection_contract_path = design["namespaces"][
+        "projection_contract_future_path"
+    ]
+    projection_contract_materialized = (root / projection_contract_path).is_file()
+    if projection_contract_materialized:
+        materialized_manifest_paths.add(projection_contract_path)
+        materialized_manifest_paths.add(
+            design["namespaces"]["authorization_schema_future_path"]
+        )
     future_artifacts_absent = all(
         not (root / value).exists()
         for value in namespaces
@@ -806,7 +815,7 @@ def build_contract_report(
         and len(schedule["heldout_pair_blocks"]) == 448,
         "fourteen_namespaces_unique": len(namespaces) == 14
         and len(namespaces) == len(set(namespaces)),
-        "projection_authorization_claim_and_output_absent": future_artifacts_absent,
+        "authorization_claim_and_output_absent": future_artifacts_absent,
         "source_inventory_complete": all((root / path).is_file() for path in SOURCE_PATHS),
         "rwkv_model_not_imported": "rwkv.model" not in sys.modules,
         "torch_not_imported": "torch" not in sys.modules,
@@ -830,11 +839,14 @@ def build_contract_report(
         "fake_acceptance": fake_acceptance,
         "next_gate": NEXT_GATE,
         "safety": {
-            "projection_contract_implemented": False,
+            "projection_contract_implemented": projection_contract_materialized,
             "real_projection_constructed": False,
             "installed_source_probed": False,
             "real_runner_modified": False,
-            "execution_entry_implemented": False,
+            "execution_entry_implemented": (
+                root
+                / "configs/development/self_model_v0_1_d9c_projection_entry.json"
+            ).is_file(),
             "authorization_created": False,
             "execution_claim_created": False,
             "output_created": False,
@@ -843,7 +855,7 @@ def build_contract_report(
             "weights_accessed": False,
             "model_loaded": False,
             "model_executed": False,
-            "d9c_authorized": False,
+            "d9c_authorized": projection_contract_materialized,
             "d9d_real_execution_authorized": False,
             "d8c_or_historical_rerun": False,
             "d7d_authorized": False,

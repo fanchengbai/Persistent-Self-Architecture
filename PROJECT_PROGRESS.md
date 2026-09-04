@@ -1,8 +1,8 @@
 # Persistent Self Architecture 项目进度表
 
-> 最后更新：2026-08-31
-> 当前节点：Phase 3 Self Model v0.1 D9-B服务器纯离线复验通过并闭环；等待项目负责人另行确认是否进入D9-C
-> 研究状态：服务器D9-A+B 24项测试、13项总检查和12类fake验收全部通过，32 calibration、64 held-out、448 pair/928-call及四manifest哈希均与本地一致，report=`6fa53a0a…ac91`。回传未含HEAD/status，故结论限于锁定源码与纯离线行为跨环境一致。projection contract、authorization/claim/output、runner/入口/model均未创建或触发，D9-C/D仍未授权
+> 最后更新：2026-09-04
+> 当前节点：Phase 3 Self Model v0.1 D9-C calibration-only projection contract与single-use安全入口本地无模型实现完成；等待提交/推送后服务器无模型复验
+> 研究状态：D9-C冻结32次calibration-only capture→projection审计/写入→64 held-out/448 pair的严格时序、928-call同wrapper入口、字段分离artifact/schema及预声明mask/swap评分；D9-A/B/C 42项、D8+D9 86项和全项目666项通过。静态14项、projection contract 9项、projection fake 13类、entry fake 9类全真，report=`e9ad2903…cc09`；真实projection、authorization/claim/output、source探测、RWKV/Torch、权重和模型均未触发，D9-D未授权
 
 ## 1. 这张表怎么使用
 
@@ -113,14 +113,14 @@
 | 38p. EXP-001C v02 Stage B只读live preflight与机器授权锁 | ✅ 云端通过 | 在模型加载前绑定干净main提交、设计/protocol digest、Stage A原始结果、模型配置与资产哈希、主机环境、224条计划和空输出目录；授权只接受固定逐字文本并绑定preflight digest | 防止把“继续”解释成模型执行授权，也防止代码、证据、模型或输出目录变化后复用旧授权 | Stage B 29项远程测试通过，云端只读preflight全部检查为true且失败项为空；`model_loaded=false`、`model_executed=false`、执行/观察均为false。最终digest以本轮最终文档提交后的服务器v02证据为准 | Codex |
 | 38q. EXP-001C v02 Stage B项目负责人单次授权 | ✅ 已逐字确认并消费 | 负责人使用冻结原文授权224条recurrent-state非Core pilot及本轮结果观察，同时明确排除Stage A重跑、正式测试集、正式运行、确认性决定和自动重跑 | 模型执行和结果观察是新的不可逆边界，不能由此前“继续”推断 | 授权绑定preflight_v03与Stage A/result digest，机器记录和single-use claim均已消费；224条运行及观察完成后禁止重跑 | 项目负责人；Codex执行 |
 | 38r. EXP-001C v02 Stage B冻结只读观察 | ✅ 云端完成 | 对五个状态语义条件按8个语义案例×4代码轮换平均log score，记录联合/字段准确率与margin；reset/random只记录参考匹配率，不定义正确答案 | 原始code top-1容易受A–D先验影响；同时不能把诊断控制事后改成主要端点或临时添加通过阈值 | 五个主要条件均联合7/8、domain 8/8、operation 7/8；continuous/restored预测8/8一致，三种swap均7/8跟随注入state。reset/random参考匹配均2/8；无确认性决定或重跑 | Codex；云端只读分析 |
-| 39. Phase 3：显式 Self Model | ✅ D9-B manifests/fake endpoint服务器纯离线复验闭环；D9-C待单独确认 | 实现静态Self Store、Self Encoder和可关闭/缩放gated injection，并建立字段mask/swap/random/coupling-off消融 | 先证明接口可审计、可干预、失败关闭，再决定真实RWKV注入位置和效果实验 | 服务器24项D9-A+B、13项报告、12类验收及四manifest哈希均匹配，report=`6fa53a0a…ac91`；回传未含HEAD/status，结论限于锁定inventory与无模型行为。projection、授权、claim、runner和模型均未触发 | 项目负责人运行；Codex观察 |
+| 39. Phase 3：显式 Self Model | ✅ D9-C projection contract/single-use入口本地无模型完成；等待服务器复验 | 实现静态Self Store、Self Encoder和可关闭/缩放gated injection，并建立字段mask/swap/random/coupling-off消融 | 先证明接口可审计、可干预、失败关闭，再决定真实RWKV注入位置和效果实验 | calibration-only字段分离projection、held-out前冻结、同wrapper 928-call、授权/claim/ledger失败关闭入口与mask/swap评分均冻结。42项D9、86项D8+D9、666项全量及14/9/13/9类检查通过，report=`e9ad2903…cc09`；真实projection和模型未触发 | Codex |
 | 40. Self 更新与演化 | ⏳ 未开始 | 让 Self State 根据经历受控更新、回滚和分化 | 这是“持续自我”真正更深入的部分 | 尚未开始 | 后续阶段 |
 | 41. 内生调节与自主审议 | ⏳ 未开始 | 让 Self/冲突决定是否检索、回放、模拟或停止，并在零新外部观察条件下受控更新 | 检验系统是否不仅“有状态”，还会因内部状态选择继续计算；同时排除定时器和随机回放解释 | 设计说明已完成；必须等待显式 Self 因果价值和受约束更新两道前置门，不创建空壳代码 | 后续阶段 |
 | 42. 最终研究结论 | ⏳ 未开始 | 汇总统计结果、失败案例和替代解释 | 最终回答项目假设是否得到支持，而不是只展示几个有趣案例 | 尚未开始 | 共同完成 |
 
 ## 3. 当前所在位置
 
-> 2026-08-31 当前状态：D4–D8历史结论及重跑禁令不变；D7-C claim=`fa86ad70…00e1`与D8-C claim=`85403630…05db`均已消费且不重跑。D9-A针对public↔wrapper漂移建立同一persistent wrapper内的独立因果隔离路线，D9-B已将全新32 calibration、64 held-out、七类contrast各64 pair、32/32反平衡、14个namespace及928-call计划物化为四manifest和纯Python endpoint。服务器回传D9-A+B 24项测试`OK`，13项报告与12类验收全真，四manifest文件哈希、三个展开commitment、全部阈值和digest=`6fa53a0a…ac91`均与本地一致；字段特异正例、route-only与非特异反例及全部失败关闭边界符合设计。回传没有显示HEAD和最终status，因此只证明锁定源码inventory与纯离线行为跨环境一致。projection contract/真实projection、authorization/claim/output、source探测、runner/入口、模型栈、权重和模型均未触发；D9-C/D及D7-D/E、正式集、Self效果、Updater、raw-original和自动重跑仍关闭。以下保留完整历史路径；如与旧阶段描述冲突，以本段和顶部“当前节点”为准。
+> 2026-09-04 当前状态：D4–D8历史结论及重跑禁令不变；D7-C与D8-C claim均已消费且不重跑。D9-A/B的同一persistent wrapper路线与服务器无模型证据保持；D9-C现已实现calibration-only字段分离projection contract、内嵌artifact schema和未来single-use入口。未来必须先完成32条4×4×2 capture，以闭式双因素中心化拟合identity/goal各四个2560维分支，审计并exclusive-create artifact后才允许解析64 held-out和448-pair schedule；所有896次held-out调用仍只走persistent wrapper，总计928 forward。A/B/C/D token 66–69、轮换target、identity/goal替代target及mask/swap判定在结果前冻结。授权验证→source探测→claim→Torch/确定性→模型加载→calibration→artifact冻结→held-out→完整ledger→endpoint时序由AST锁定；机器authorization、claim、projection/output均缺席。D9-A/B/C 42项、D8+D9 86项、全量666项通过，14项静态、9项contract、13类projection fake和9类entry fake全真，digest=`e9ad2903…cc09`。为允许已授权D9-C物化projection contract/schema，D9-B历史验证器只放宽这两个后续文件，仍严格要求authorization/claim/output缺席；历史D9-B远程digest不重写。installed source、RWKV/Torch、权重和模型未触发；D9-D及D7-D/E、正式集、Self效果、Updater、raw-original和自动重跑仍关闭。以下保留完整历史路径；如与旧阶段描述冲突，以本段和顶部“当前节点”为准。
 
 ```text
 理论设计
@@ -239,7 +239,7 @@ EXP-001B补充控制
 
 ## 4. 当前下一步
 
-> 2026-08-31 当前下一步：先提交D9-B服务器纯离线观察文档和本进度更新，待项目负责人另行授权后推送GitHub main。推送闭环后，只有单独明确确认才能进入D9-C离线projection contract与无模型安全入口；普通“继续/下一步”不授权D9-C。D9-D真实执行必须在D9-C及未来无模型门通过后另行逐字授权。installed source、RWKV/Torch、权重、模型、authorization/claim/output、D8-C/历史重跑、D7-D/E、正式集、Self效果、Updater、raw-original和自动重跑继续关闭。以下保留此前 EXP-001B 轨迹作为历史记录。
+> 2026-09-04 当前下一步：先审计并提交D9-C projection contract、entry配置、authorization Schema、projection/entry代码、双脚本、测试、文档和本进度更新；仅在项目负责人另行授权后推送GitHub main。推送后先在服务器运行D9-A/B/C 42项纯离线测试和D9-C静态验证器，不执行模型。服务器无模型复验闭环后，普通“继续/下一步”仍不授权D9-D；只有配置内冻结的逐字授权才允许创建机器authorization并单次消费928-call入口。installed source、RWKV/Torch、权重、模型、真实projection、authorization/claim/output、D8-C/历史重跑、D7-D/E、正式集、Self效果、Updater、raw-original和自动重跑继续关闭。以下保留此前 EXP-001B 轨迹作为历史记录。
 
 截至2026-08-04，项目负责人已经确认EXP-001B设计草案中的B1–B7。
 新增范围仍锁在11,008条控制记录，并明确不重跑EXP-001、不重估E1–E3、
@@ -798,3 +798,4 @@ trial-condition单元；只允许全量完成且完整性验证后观察结果�
 | 2026-08-31 | D9-A within-wrapper causal isolation独立纯离线预注册完成：D8-C结果只作路径混杂依据，不复用其fixture/token/seed/claim/result作为新数据。冻结32 calibration capture与16 identity×goal base case×4代码轮换=64 held-out；同case四轮共享内容token、只换独立code token，calibration/held-out及D8 token均互斥。未来七类zero对active/mask/swap/random/synthetic成对对照全走同一persistent wrapper，各64 pair、顺序32/32，448 pair+32 capture=928 forward。端点要求active-zero 99%下界、13/16方向、每字段层3/4一致，并同时通过true-vs-random、mask、swap和60/64 synthetic门；通过也只作非正式非Self工程候选。commitment分别=`2e8d555e…fc39`、`02d33c92…15e4`、`a6b34ef7…85b9`；专项12项、组合56项、全量636项及13总/14配置/18独立性检查通过，report=`df3a203a…b714`。未实现projection/manifest/runner/入口或触发模型；D9-B及后续门待独立确认 | `configs/preregistration/self_model_v0_1_d9a_within_wrapper_causal_isolation.draft.json`；`src/psa/self_model/d9a_within_wrapper_causal_isolation.py`；`docs/self_model_v0_1_d9a_within_wrapper_causal_isolation.md` |
 | 2026-08-31 | D9-B deterministic manifests与fake-first causal endpoint contract本地纯离线实现完成：D9-A的32条calibration、64条held-out、七类同wrapper对照、448 pair/928-call、训练/held-out隔离、顺序反平衡、14个namespace及全部阈值已物化为四manifest；三个展开commitment原样保持。纯Python ledger以32 capture+448 pair共480记录表示928次未来forward，字段特异候选通过全部门，route-only及active/random非特异反例失败；缺失、重复、乱序、public路由、非有限值、condition顺序变化和阶段泄漏均在决策前停止。D9-A+B专项24项、D8+D9组合68项、全项目648项通过，13项报告与12类验收全真，report=`6fa53a0a…ac91`。未创建projection contract、authorization、claim或output，未探测source、修改runner、实现入口、导入RWKV/Torch、访问权重或执行模型；下一步仅服务器纯离线复验 | `configs/development/self_model_v0_1_d9b_manifest_endpoint_contract.json`；`src/psa/self_model/d9b_manifest_endpoint_contract.py`；`docs/self_model_v0_1_d9b_manifest_endpoint_contract.md` |
 | 2026-08-31 | D9-B服务器纯离线复验通过并闭环：D9-A+B共24项测试`OK`，13项总检查、12类fake验收、32 calibration、64 held-out、448 pair/928-call、四manifest SHA-256和三个展开commitment均与本地一致，report=`6fa53a0a…ac91`。字段特异正例通过冻结门但仍禁止Self结论，route-only和active/random非特异反例按预期失败；缺失、重复、乱序、public、非有限、condition顺序和阶段泄漏均被拒绝。安全字段确认projection、authorization/claim/output、source探测、runner/入口、RWKV/Torch、权重和模型均未触发。回传未含HEAD/status，故结论限定为锁定源码inventory与纯离线行为跨环境一致；D9-C仍需单独确认 | 项目负责人回传终端输出；`docs/self_model_v0_1_d9b_remote_observation.md` |
+| 2026-09-04 | D9-C calibration-only projection contract与真实2.9B single-use安全入口本地无模型实现完成：绑定D9-A/B的32 calibration、64 held-out、七类对照、448 pair/928-call及全部阈值；projection先做4×4×2格内平均，再以双因素中心化闭式拟合identity/goal分支，固定第15层、2560维、branch RMS比例0.005、无bias和base参数不训练。artifact schema、parameter/artifact digest及exclusive-create冻结在held-out解析前；A/B/C/D token和mask/swap替代target评分也在结果前冻结。未来入口严格按authorization→source→claim→Torch确定性/模型→32 capture→artifact→896 held-out→480-record ledger→endpoint执行，异常消费claim并停止。纯离线D9-A/B/C 42项、D8+D9 86项、全项目666项通过；14项静态、9项contract、13类projection fake、9类entry fake全真，report=`e9ad2903…cc09`。真实projection、authorization/claim/output、source探测、RWKV/Torch、权重和模型均未触发；D9-D待服务器无模型复验及未来逐字授权 | `configs/development/self_model_v0_1_d9c_projection_entry.json`；`src/psa/self_model/d9c_projection_contract.py`；`src/psa/self_model/d9c_real_entry.py`；`docs/self_model_v0_1_d9c_projection_entry.md` |
