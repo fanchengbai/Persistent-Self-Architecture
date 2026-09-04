@@ -1,7 +1,7 @@
 # Self Model v0.1 D9-D real within-wrapper causal isolation execution authorization
 
 日期：2026-09-04
-状态：项目负责人已逐字授权一次真实 2.9B 联合工程验证；机器 authorization 与 single-use claim 尚未创建
+状态：授权已在最终 main 上单次消费；D9-D 有效完成但预注册因果门失败，禁止重跑
 
 在 D9-A 预注册、D9-B deterministic manifests/fake endpoint、D9-C calibration-only projection contract/single-use 入口及服务器无模型复验全部闭环后，项目负责人给出配置中冻结的精确授权：
 
@@ -16,3 +16,11 @@
 本授权允许观察本次非正式工程结果，但不授权正式测试集或 Self 效果结论。即使字段特异因果门全部通过，结果也只能作为后续研究门的工程候选证据，不能直接证明模型具备 Self Model，更不开放 Self Updater、D7-D/D7-E、D8-C或任何历史实验重跑。
 
 本文件只持久化项目负责人的人类授权，不创建机器 authorization、execution claim、真实 projection 或 execution output，不探测 installed source，不导入 RWKV/Torch，不访问权重，也不加载或执行模型。真实单次执行只能在本记录推送并由服务器拉取后，由冻结 launcher 在最终干净 `main` 上启动。
+
+## 单次执行结果
+
+授权已在 `main=75de89e273c193c1633c7f5c60d73ce7e38cd8a2` 上单次消费。installed RWKV 0.8.32/source lock、launcher与运行期确定性、真实projection冻结、32次calibration capture、448个held-out pair、896次held-out forward及480条ledger记录全部完成；总计928/928次forward，报告`valid=true`。
+
+预注册因果门未通过：active-minus-zero均值为正，但99%下界=`-0.0013022422790527344`；仅`10/16`基础组合为正，真实active未可靠胜过matched random，identity/goal的level、mask和swap门全部失败。synthetic active正控制`64/64`通过，只证明注入机制工作，不证明真实projection具有字段特异Self效果。
+
+single-use claim SHA-256=`2b8a5470…013e`，报告内digest=`2aca70f1…fc1`，integrity digest=`a4a59c5e…2023`。冻结决定为`revise_or_stop_without_self_effect_claim_or_rerun`；D9-D、D8-C、历史实验和自动重跑均关闭。详细观察见`docs/self_model_v0_1_d9d_real_observation.md`。
