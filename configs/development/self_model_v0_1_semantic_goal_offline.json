@@ -1,0 +1,15 @@
+{
+  "version": "0.1-semantic-goal-offline",
+  "status": "offline_interface_preview_not_preregistered",
+  "seed_namespace": "psa-semantic-goal-offline-preview-v01",
+  "scenario_counts": {
+    "calibration": 32,
+    "development": 64,
+    "heldout": 128,
+    "persistence": 32
+  },
+  "data_role": "engineering_preview_not_a_frozen_real_experiment",
+  "model_execution_authorized": false,
+  "real_projection_construction_authorized": false,
+  "historical_rerun_authorized": false
+}
