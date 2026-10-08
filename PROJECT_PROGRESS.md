@@ -1,8 +1,8 @@
 # Persistent Self Architecture 项目进度表
 
 > 最后更新：2026-10-08
-> 当前节点：Phase 3 Self Model v0.1；云服务器项目main=1004a3d与Python 3.12.3隔离环境已重建，49项D9专项和673项全量无模型回归通过，D9-C/D9-D静态摘要与冻结值一致
-> 研究状态：新服务器工程复验完成，模型调用0次，未安装RWKV/Torch。D9-D历史928/928 forward有效但预注册因果门失败且claim已消费；原authorization/claim/projection/ledger/report/integrity仍缺席，真实工件离线诊断尚未运行，等待定位旧实例/数据盘/备份
+> 当前节点：Phase 3 Self Model v0.1；新服务器无模型环境复验已完成，语义目标状态迁移路线审查稿已完成，待确认纯离线数据/评分器/状态接口实现范围
+> 研究状态：本轮只完成文档审查，模型调用0次。候选问题收敛为省能/省时目标在新任务中的active/zero/swap/mask/random与保存恢复作用，拟在一项联合协议内检查任务能力、语义表示和因果迁移；尚未预注册、实现或授权新真实实验。D9-D历史失败、已消费claim及原工件缺席状态不变；既有服务器49项专项和673项全量测试通过
 
 ## 1. 这张表怎么使用
 
@@ -120,7 +120,7 @@
 
 ## 3. 当前所在位置
 
-> 2026-10-08 当前状态：更新后的.env连接有效，已按负责人要求恢复/root/autodl-tmp/Persistent-Self-Architecture及/root/autodl-tmp/psa-exp001c-venv。GitHub克隆503后使用经过git bundle verify的已提交代码包恢复main=1004a3d；Python 3.12.3隔离环境未安装RWKV/Torch，D9专项49项、全量673项均通过。D9-C静态14项与D9-D静态8项通过，内部摘要e9ad2903…cc09及3e32a34d…8260与此前一致；服务器最终git status为空，日志和报告已下载并核对摘要。原D9-D工件仍缺席，所以真实工件诊断未运行，模型forward=0；历史失败及已消费claim不变。以下2026-09-04段落保留为历史实现与实验状态。
+> 2026-10-08 当前状态：环境重建观察a5382cd已由负责人推送到GitHub；服务器运行代码仍为已核验1004a3d，Python 3.12.3独立venv未安装RWKV/Torch，49项D9专项与673项全量回归及D9-C/D9-D静态摘要一致性已通过。本轮进一步核对D9哈希token、外部答案公式和projection拟合，完成有明确语义的目标迁移候选路线审查稿：自然语言省能/省时任务、独立calibration/development/held-out、同wrapper因果对照与持久性检查。此稿仅为候选评审，不冻结新参数、不实现runner或创建授权。原D9-D工件仍缺席，其真实诊断未完成；本轮模型调用0次。以下2026-09-04段落保留为历史实现与实验状态。
 
 > 2026-09-04 当前状态：D4–D8历史结论及重跑禁令不变；D7-C、D8-C、D9-D claim均已消费且不重跑。D9-D在`main=75de89e…d8a2`完成928/928 forward与480条ledger，synthetic active 64/64通过，但真实projection的active-zero LB99=`-0.0013022`、positive base=10/16、identity/goal最低2/4、true-random LB99=`-0.0026636`、mask=1/16与2/16、swap=6/16与8/16，预注册因果门失败、Self结论=false。现已实现只读离线诊断器：先绑定authorization、claim、projection、raw ledger、report与integrity文件/内部摘要，再逐条核对32 capture+448 pair顺序、由A/B/C/D分数重算margin和冻结endpoint，输出16基础组合×四轮、七contrast、pair order、full-output、level分层及projection分支RMS/cosine/rank。由于原ledger只保存capture SHA而无2560维向量，replicate数值距离不可识别，禁止反推稳定性。唯一可继续审查的独立候选是使用全新语义化calibration与独立validation先建立表征可识别性门；当前只记录候选，未实现或授权。专项7项、D9组合49项、全量673项、静态8项通过，digest=`3e32a34d…8260`；RWKV/Torch、权重和模型未触发。以下保留完整历史路径；如与旧阶段描述冲突，以本段和顶部“当前节点”为准。
 
@@ -241,7 +241,7 @@ EXP-001B补充控制
 
 ## 4. 当前下一步
 
-> 2026-10-08 当前下一步：环境重建及无模型测试已完成，记录本轮服务器观察；新的记录提交推送仍需对应授权。原工件诊断需要定位旧服务器或备份中的authorization、execution_claim.json、projection.json、raw_ledger.jsonl、report.json、integrity.json，核对冻结摘要后再只读分析；不能补造工件或重新执行已消费的D9-D。科学上后续待审查的是有明确语义的任务与字段表征可识别性，当前没有新实验实现或模型执行授权。以下保留此前 EXP-001B 轨迹作为历史记录。
+> 2026-10-08 当前下一步：审阅docs/self_model_v0_1_semantic_goal_transfer_route_review.md，单独确认是否进入自然语言任务数据、独立split、参考评分器与目标状态接口的纯离线实现，并审查功效和一项联合协议。该确认不授权模型依赖部署、真实层选择、projection构造或模型执行；现有review不是预注册。原D9-D结果仍需从旧实例/数据盘/备份找回后按冻结摘要只读分析，不能因新路线而改写旧失败或复用已消费claim。新文档提交暂不自动推送。以下保留此前 EXP-001B 轨迹作为历史记录。
 
 截至2026-08-04，项目负责人已经确认EXP-001B设计草案中的B1–B7。
 新增范围仍锁在11,008条控制记录，并明确不重跑EXP-001、不重估E1–E3、
@@ -806,3 +806,4 @@ trial-condition单元；只允许全量完成且完整性验证后观察结果�
 | 2026-09-04 | D9-D真实2.9B within-wrapper causal isolation单次联合验证有效完成并关闭：干净`main=75de89e…d8a2`绑定机器authorization与single-use claim，installed RWKV 0.8.32/source及确定性门有效；同一wrapper完成32 calibration、冻结真实projection、64 held-out/448 pair/896 held-out forward，总计928/928和480条ledger，耗时121.49秒，报告`valid=true`、integrity完整。synthetic active 64/64通过，但active-zero LB99=`-0.0013022`、positive base case=10/16、identity/goal level最低2/4、true-random LB99=`-0.0026636`、mask=1/16与2/16、swap=6/16与8/16，除均值方向和正控制外全部预注册因果门失败。决策=`revise_or_stop_without_self_effect_claim_or_rerun`、Self结论=false；claim=`2b8a5470…013e`已消费，D9-D及全部历史/自动重跑关闭 | 项目负责人执行并回传；`docs/self_model_v0_1_d9d_real_observation.md` |
 | 2026-09-04 | D9-D失败纯离线projection/ledger因果结构诊断本地实现完成：配置绑定已消费authorization/claim、真实projection、raw ledger、report、integrity及冻结manifest/source摘要；分析器逐条核对480-record/928-call顺序、persistent-only路由、A/B/C/D→margin重算与endpoint一致性，并输出16×4 active/random/mask/swap、七contrast、pair-order/full-output/level分层和2560维projection RMS/cosine/rank。原calibration记录只有capture SHA而无向量，故只能审计16对hash同异，不能声称replicate数值稳定。路线审查禁止D9-D gain/layer/threshold事后搜索与数据复用，只保留“全新语义化calibration+独立validation的表征可识别性门”作为未实现未授权候选。专项7项、D9组合49项、全量673项、静态8项通过，report=`3e32a34d…8260`；未导入RWKV/Torch或执行模型 | `configs/development/self_model_v0_1_d9d_offline_causal_diagnostic.json`；`src/psa/self_model/d9d_offline_causal_diagnostic.py`；`docs/self_model_v0_1_d9d_offline_causal_diagnostic.md` |
 | 2026-10-08 | 云服务器环境重建与无模型复验完成：更新后的.env连接有效，恢复main=1004a3d和Python 3.12.3独立venv；GitHub 503后通过已验证Git bundle迁移提交内容。服务器49项D9专项、673项全量回归通过，D9-C静态14项/D9-D静态8项及摘要与冻结值一致；最终git status为空，5份日志/报告下载后摘要匹配。RWKV/Torch未安装，模型forward=0；原D9-D工件未恢复，真实工件诊断未运行，历史失败与claim消费不变 | `docs/self_model_v0_1_remote_environment_rebuild_20261008.md` |
+| 2026-10-08 | 语义目标迁移独立候选路线审查完成：核对D9哈希输入与外部答案映射的语义缺口，提出自然语言省能/省时任务、场景/模板级数据隔离、语义capture候选、同wrapper active/zero/mask/swap/random及保存恢复对照；明确一项联合协议内的科学前置检查、功效审查和原始向量备份要求。仅为候选评审文档，没有新预注册/manifest/runner/projection或模型调用，旧D9-D失败与权限不变；下一项纯离线实现仍待范围确认 | `docs/self_model_v0_1_semantic_goal_transfer_route_review.md` |
